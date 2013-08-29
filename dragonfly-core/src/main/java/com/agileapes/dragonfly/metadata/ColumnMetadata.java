@@ -18,4 +18,8 @@ public interface ColumnMetadata {
 
     TableMetadata getTable();
 
+    ValueGenerationType getGenerationType();
+
+    String getValueGenerator();
+
 }

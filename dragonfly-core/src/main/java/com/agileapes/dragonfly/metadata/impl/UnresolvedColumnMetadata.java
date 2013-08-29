@@ -4,6 +4,7 @@ import com.agileapes.dragonfly.error.MetadataCollectionError;
 import com.agileapes.dragonfly.error.UnresolvedColumnMetadataError;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
 import com.agileapes.dragonfly.metadata.TableMetadata;
+import com.agileapes.dragonfly.metadata.ValueGenerationType;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
@@ -32,6 +33,16 @@ public class UnresolvedColumnMetadata extends AbstractColumnMetadata {
 
     @Override
     public ColumnMetadata getForeignReference() {
+        throw new MetadataCollectionError("Metadata is not available", new UnresolvedColumnMetadataError());
+    }
+
+    @Override
+    public ValueGenerationType getGenerationType() {
+        throw new MetadataCollectionError("Metadata is not available", new UnresolvedColumnMetadataError());
+    }
+
+    @Override
+    public String getValueGenerator() {
         throw new MetadataCollectionError("Metadata is not available", new UnresolvedColumnMetadataError());
     }
 
