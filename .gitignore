@@ -1,0 +1,6 @@
+#Ignoring files belonging to IntelliJ IDEA
+
+*.iml
+*.ipr
+*.iws
+.idea
