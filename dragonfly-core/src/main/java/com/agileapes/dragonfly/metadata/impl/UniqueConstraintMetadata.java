@@ -19,7 +19,7 @@ public class UniqueConstraintMetadata extends AbstractConstraintMetadata {
     }
 
     @Override
-    protected String getUniqueNameSuffix() {
+    protected String getNameSuffix() {
         return "uk" + dispenser.getIdentifier(getTable());
     }
 }

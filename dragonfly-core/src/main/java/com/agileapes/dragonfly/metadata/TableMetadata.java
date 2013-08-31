@@ -16,8 +16,6 @@ public interface TableMetadata<E> {
 
     String getSchema();
 
-    String getQualifiedName();
-
     Collection<ConstraintMetadata> getConstraints();
 
     PrimaryKeyConstraintMetadata getPrimaryKey();

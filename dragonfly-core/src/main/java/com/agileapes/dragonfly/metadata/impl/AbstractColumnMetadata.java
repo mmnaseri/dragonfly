@@ -10,9 +10,9 @@ import com.agileapes.dragonfly.metadata.TableMetadata;
 public abstract class AbstractColumnMetadata implements ColumnMetadata {
 
     private final String name;
-    private final TableMetadata table;
+    private TableMetadata<?> table;
 
-    public AbstractColumnMetadata(String name, TableMetadata table) {
+    public AbstractColumnMetadata(String name, TableMetadata<?> table) {
         this.name = name;
         this.table = table;
     }
@@ -23,8 +23,12 @@ public abstract class AbstractColumnMetadata implements ColumnMetadata {
     }
 
     @Override
-    public TableMetadata getTable() {
+    public TableMetadata<?> getTable() {
         return table;
+    }
+
+    public void setTable(TableMetadata table) {
+        this.table = table;
     }
 
 }

@@ -24,7 +24,7 @@ public class ForeignKeyConstraintMetadata extends AbstractConstraintMetadata {
     }
 
     @Override
-    protected String getUniqueNameSuffix() {
+    protected String getNameSuffix() {
         return "fk" + dispenser.getIdentifier(getTable());
     }
 

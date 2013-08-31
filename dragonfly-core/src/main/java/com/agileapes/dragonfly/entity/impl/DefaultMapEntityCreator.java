@@ -1,0 +1,57 @@
+package com.agileapes.dragonfly.entity.impl;
+
+import com.agileapes.couteau.reflection.beans.BeanInitializer;
+import com.agileapes.couteau.reflection.beans.BeanWrapper;
+import com.agileapes.couteau.reflection.beans.impl.ConstructorBeanInitializer;
+import com.agileapes.couteau.reflection.beans.impl.MethodBeanWrapper;
+import com.agileapes.couteau.reflection.error.BeanInstantiationException;
+import com.agileapes.couteau.reflection.error.NoSuchPropertyException;
+import com.agileapes.couteau.reflection.error.PropertyAccessException;
+import com.agileapes.couteau.reflection.error.PropertyTypeMismatchException;
+import com.agileapes.dragonfly.entity.MapEntityCreator;
+import com.agileapes.dragonfly.error.EntityInitializationError;
+import com.agileapes.dragonfly.metadata.ColumnMetadata;
+import com.agileapes.dragonfly.metadata.TableMetadata;
+import com.agileapes.dragonfly.tools.ColumnNameFilter;
+
+import java.util.Map;
+
+import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
+
+/**
+ * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
+ * @since 1.0 (2013/8/31, 17:39)
+ */
+public class DefaultMapEntityCreator implements MapEntityCreator {
+
+    private final BeanInitializer initializer = new ConstructorBeanInitializer();
+
+    @Override
+    public <E> E fromMap(TableMetadata<E> tableMetadata, Map<String, Object> values) {
+        final E entity;
+        try {
+            entity = initializer.initialize(tableMetadata.getEntityType(), new Class[0]);
+        } catch (BeanInstantiationException e) {
+            throw new EntityInitializationError(tableMetadata.getEntityType(), e);
+        }
+        final BeanWrapper<E> wrapper = new MethodBeanWrapper<E>(entity);
+        for (Map.Entry<String, Object> value : values.entrySet()) {
+            final ColumnMetadata columnMetadata = with(tableMetadata.getColumns()).keep(new ColumnNameFilter(value.getKey())).first();
+            if (columnMetadata == null) {
+                //as of this moment, we have chosen to ignore column clashes between
+                //the map and the entity
+                continue;
+            }
+            try {
+                wrapper.setPropertyValue(columnMetadata.getPropertyName(), value.getValue());
+            } catch (NoSuchPropertyException e) {
+                //ditto here
+            } catch (PropertyAccessException e) {
+                throw new EntityInitializationError(tableMetadata.getEntityType(), e);
+            } catch (PropertyTypeMismatchException e) {
+                throw new EntityInitializationError(tableMetadata.getEntityType(), e);
+            }
+        }
+        return entity;
+    }
+}

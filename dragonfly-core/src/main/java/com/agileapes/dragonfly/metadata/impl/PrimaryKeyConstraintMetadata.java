@@ -19,7 +19,7 @@ public class PrimaryKeyConstraintMetadata extends AbstractConstraintMetadata {
     }
 
     @Override
-    protected String getUniqueNameSuffix() {
+    protected String getNameSuffix() {
         return "pk" + dispenser.getIdentifier(getTable());
     }
 

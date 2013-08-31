@@ -11,7 +11,7 @@ public class NoPrimaryKeyDefinedError extends DatabaseError {
     private final TableMetadata<?> table;
 
     public NoPrimaryKeyDefinedError(TableMetadata<?> table) {
-        super("No primary key has been defined for: " + table.getQualifiedName());
+        super("No primary key has been defined for: " + table.getName());
         this.table = table;
     }
 

@@ -21,22 +21,27 @@ public class ResolvedTableMetadata<E> extends AbstractTableMetadata<E> {
 
     private final String name;
     private final String schema;
-    private final String qualifiedName;
     private final Collection<ConstraintMetadata> constraints;
     private final Collection<ColumnMetadata> columns;
-    private final Class<E> entityType;
     private final PrimaryKeyConstraintMetadata primaryKey;
 
-    public ResolvedTableMetadata(Class<E> entityType, String schema, String name, String qualifiedName, Collection<ConstraintMetadata> constraints, Collection<ColumnMetadata> columns) {
+    public ResolvedTableMetadata(Class<E> entityType, String schema, String name, Collection<ConstraintMetadata> constraints, Collection<ColumnMetadata> columns) {
         super(entityType);
-        this.entityType = entityType;
         this.schema = schema;
         this.name = name;
-        this.qualifiedName = qualifiedName;
         this.constraints = constraints;
         this.columns = columns;
+        for (ColumnMetadata column : columns) {
+            if (column instanceof ResolvedColumnMetadata) {
+                ResolvedColumnMetadata metadata = (ResolvedColumnMetadata) column;
+                metadata.setTable(this);
+            }
+        }
         final Collection<PrimaryKeyConstraintMetadata> data = getConstraints(PrimaryKeyConstraintMetadata.class);
         this.primaryKey = data.isEmpty() ? null : data.iterator().next();
+        for (ConstraintMetadata constraint : constraints) {
+            ((AbstractConstraintMetadata) constraint).setTable(this);
+        }
     }
 
     @Override
@@ -47,11 +52,6 @@ public class ResolvedTableMetadata<E> extends AbstractTableMetadata<E> {
     @Override
     public String getSchema() {
         return schema;
-    }
-
-    @Override
-    public String getQualifiedName() {
-        return qualifiedName;
     }
 
     @Override

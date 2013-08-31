@@ -12,7 +12,7 @@ import com.agileapes.dragonfly.metadata.ValueGenerationType;
  */
 public class UnresolvedColumnMetadata extends AbstractColumnMetadata {
 
-    public UnresolvedColumnMetadata(String name, TableMetadata table) {
+    public UnresolvedColumnMetadata(String name, String qualifiedName, TableMetadata<?> table) {
         super(name, table);
     }
 

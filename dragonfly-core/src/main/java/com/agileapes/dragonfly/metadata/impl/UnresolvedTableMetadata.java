@@ -29,11 +29,6 @@ public class UnresolvedTableMetadata<E> extends AbstractTableMetadata<E> {
     }
 
     @Override
-    public String getQualifiedName() {
-        throw new MetadataCollectionError("Metadata is not available", new UnresolvedTableMetadataError());
-    }
-
-    @Override
     public Collection<ConstraintMetadata> getConstraints() {
         throw new MetadataCollectionError("Metadata is not available", new UnresolvedTableMetadataError());
     }

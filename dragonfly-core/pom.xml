@@ -17,6 +17,11 @@
             <artifactId>couteau-context</artifactId>
             <version>1.0</version>
         </dependency>
+        <dependency>
+            <groupId>com.agileapes.couteau</groupId>
+            <artifactId>couteau-freemarker</artifactId>
+            <version>1.0</version>
+        </dependency>
     </dependencies>
 
 

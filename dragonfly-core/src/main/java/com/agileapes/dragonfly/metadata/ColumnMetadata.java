@@ -16,7 +16,7 @@ public interface ColumnMetadata {
 
     ColumnMetadata getForeignReference();
 
-    TableMetadata getTable();
+    TableMetadata<?> getTable();
 
     ValueGenerationType getGenerationType();
 
