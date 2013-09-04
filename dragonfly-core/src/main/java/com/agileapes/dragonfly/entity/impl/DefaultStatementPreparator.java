@@ -1,7 +1,10 @@
 package com.agileapes.dragonfly.entity.impl;
 
 import com.agileapes.dragonfly.entity.StatementPreparator;
+import com.agileapes.dragonfly.metadata.ColumnMetadata;
+import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.statement.impl.model.ParameterPlaceholderNamespace;
+import com.agileapes.dragonfly.tools.ColumnPropertyFilter;
 import freemarker.cache.StringTemplateLoader;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
@@ -14,6 +17,8 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
+import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
+
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/3, 17:02)
@@ -21,7 +26,7 @@ import java.util.Map;
 public class DefaultStatementPreparator implements StatementPreparator {
 
     @Override
-    public PreparedStatement prepare(Connection connection, String sql, Map<String, Object> value) {
+    public PreparedStatement prepare(Connection connection, TableMetadata<?> tableMetadata, Map<String, Object> value, String sql) {
         final Configuration configuration = new Configuration();
         final StringTemplateLoader loader = new StringTemplateLoader();
         final ParameterPlaceholderNamespace namespace = new ParameterPlaceholderNamespace();
@@ -49,12 +54,16 @@ public class DefaultStatementPreparator implements StatementPreparator {
         final List<String> parameters = namespace.getParameters();
         for (int i = 0; i < parameters.size(); i++) {
             final String parameter = parameters.get(i);
-            if (value.containsKey(parameter)) {
-                try {
+            try {
+                if (value.containsKey(parameter)) {
                     System.out.println(">> SETTING VALUE FOR " + (i + 1) + " (" + parameter + ")");
                     preparedStatement.setObject(i + 1, value.get(parameter));
-                } catch (SQLException ignored) {
+                } else {
+                    final String property = parameter.substring(parameter.lastIndexOf('.') + 1);
+                    final ColumnMetadata metadata = with(tableMetadata.getColumns()).keep(new ColumnPropertyFilter(property)).first();
+                    preparedStatement.setNull(i + 1, metadata.getType());
                 }
+            } catch (SQLException ignored) {
             }
         }
         return preparedStatement;

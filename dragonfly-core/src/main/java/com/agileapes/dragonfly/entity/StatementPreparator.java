@@ -1,5 +1,7 @@
 package com.agileapes.dragonfly.entity;
 
+import com.agileapes.dragonfly.metadata.TableMetadata;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.util.Map;
@@ -10,6 +12,6 @@ import java.util.Map;
  */
 public interface StatementPreparator {
 
-    PreparedStatement prepare(Connection connection, String sql, Map<String, Object> value);
+    PreparedStatement prepare(Connection connection, TableMetadata<?> tableMetadata, Map<String, Object> value, String sql);
 
 }

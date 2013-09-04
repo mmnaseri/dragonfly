@@ -24,4 +24,12 @@ public interface ColumnMetadata {
 
     String getValueGenerator();
 
+    boolean isNullable();
+
+    int getLength();
+
+    int getPrecision();
+
+    int getScale();
+
 }

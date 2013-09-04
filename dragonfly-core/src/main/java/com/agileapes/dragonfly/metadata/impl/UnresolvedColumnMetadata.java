@@ -46,4 +46,24 @@ public class UnresolvedColumnMetadata extends AbstractColumnMetadata {
         throw new MetadataCollectionError("Metadata is not available", new UnresolvedColumnMetadataError());
     }
 
+    @Override
+    public boolean isNullable() {
+        throw new MetadataCollectionError("Metadata is not available", new UnresolvedColumnMetadataError());
+    }
+
+    @Override
+    public int getLength() {
+        throw new MetadataCollectionError("Metadata is not available", new UnresolvedColumnMetadataError());
+    }
+
+    @Override
+    public int getPrecision() {
+        throw new MetadataCollectionError("Metadata is not available", new UnresolvedColumnMetadataError());
+    }
+
+    @Override
+    public int getScale() {
+        throw new MetadataCollectionError("Metadata is not available", new UnresolvedColumnMetadataError());
+    }
+
 }

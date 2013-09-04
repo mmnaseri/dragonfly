@@ -1,0 +1,1 @@
+SELECT * FROM ${qualify(table)}<%assign columns=isSet(table.columns)/><%if columns?size &gt; 0> WHERE <%list columns as column>%{qualify(column)} = %{value[column.propertyName]}<%if column_has_next> AND </%if></%list></%if>;

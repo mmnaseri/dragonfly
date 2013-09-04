@@ -1,0 +1,1 @@
+SELECT * FROM ${qualify(table)};
