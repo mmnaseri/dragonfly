@@ -8,6 +8,10 @@ public interface Statement {
 
     boolean isDynamic();
 
+    boolean hasParameters();
+
     String getSql();
+
+    StatementType getType();
 
 }

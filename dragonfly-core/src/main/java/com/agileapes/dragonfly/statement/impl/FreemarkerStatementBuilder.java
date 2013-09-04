@@ -2,9 +2,11 @@ package com.agileapes.dragonfly.statement.impl;
 
 import com.agileapes.dragonfly.dialect.DatabaseDialect;
 import com.agileapes.dragonfly.error.StatementError;
+import com.agileapes.dragonfly.metadata.ConstraintMetadata;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.statement.Statement;
 import com.agileapes.dragonfly.statement.StatementBuilder;
+import com.agileapes.dragonfly.statement.StatementType;
 import com.agileapes.dragonfly.statement.impl.model.FreemarkerStatementModel;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
@@ -18,16 +20,24 @@ import java.util.regex.Pattern;
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/1, 1:25)
  */
-public abstract class AbstractFreemarkerStatementBuilder implements StatementBuilder {
+public class FreemarkerStatementBuilder implements StatementBuilder {
 
+    public static final Pattern STATEMENT_PATTERN = Pattern.compile("(%\\{.*?\\}|<%.*?>|</%.*>)", Pattern.DOTALL);
+    public static final Pattern VALUE_PATTERN = Pattern.compile("(?:[%\\$]\\{[^\\}]*?\\b(?:value|new|old)|<[\\$%].*?\\b(?:value|new|old))");
     private final String templateName;
     private final Configuration configuration;
     private final DatabaseDialect dialect;
+    private final ConstraintMetadata constraintMetadata;
 
-    public AbstractFreemarkerStatementBuilder(Configuration configuration, String templateName, DatabaseDialect dialect) {
+    public FreemarkerStatementBuilder(Configuration configuration, String templateName, DatabaseDialect dialect) {
+        this(configuration, templateName, dialect, null);
+    }
+
+    public FreemarkerStatementBuilder(Configuration configuration, String templateName, DatabaseDialect dialect, ConstraintMetadata constraintMetadata) {
         this.templateName = templateName;
         this.configuration = configuration;
         this.dialect = dialect;
+        this.constraintMetadata = constraintMetadata;
     }
 
     @Override
@@ -44,13 +54,14 @@ public abstract class AbstractFreemarkerStatementBuilder implements StatementBui
         } catch (TemplateModelException ignored) {
             return null;
         }
+        model.introduce("constraint", constraintMetadata);
         final StringWriter writer = new StringWriter();
         try {
             template.process(model, writer);
         } catch (Exception ignored) {
         }
-        final String sql = writer.toString();
-        return new ImmutableStatement(sql, Pattern.compile("(%\\{.*?\\}|<%.*?>|</%.*>)", Pattern.DOTALL).matcher(sql).find());
+        final String sql = writer.toString().trim();
+        return new ImmutableStatement(sql, STATEMENT_PATTERN.matcher(sql).find(), VALUE_PATTERN.matcher(sql).find(), StatementType.getStatementType(sql));
     }
 
 }

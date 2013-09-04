@@ -14,6 +14,7 @@ import java.io.StringWriter;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
 import java.util.Map;
 
@@ -47,7 +48,7 @@ public class DefaultStatementPreparator implements StatementPreparator {
         System.out.println(writer);
         PreparedStatement preparedStatement = null;
         try {
-            preparedStatement = connection.prepareStatement(writer.toString());
+            preparedStatement = connection.prepareStatement(writer.toString(), Statement.RETURN_GENERATED_KEYS);
         } catch (SQLException ignored) {
         }
         assert preparedStatement != null;

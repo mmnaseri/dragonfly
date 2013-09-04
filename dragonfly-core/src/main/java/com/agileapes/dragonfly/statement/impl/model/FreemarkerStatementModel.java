@@ -2,7 +2,6 @@ package com.agileapes.dragonfly.statement.impl.model;
 
 import com.agileapes.couteau.freemarker.model.UnresolvedMapModel;
 import com.agileapes.dragonfly.dialect.DatabaseDialect;
-import com.agileapes.dragonfly.error.DatabaseError;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.statement.impl.model.functions.*;
 import freemarker.ext.beans.BeansWrapper;
@@ -23,25 +22,21 @@ public class FreemarkerStatementModel implements TemplateHashModel {
     private final BeansWrapper wrapper;
 
     public FreemarkerStatementModel(TableMetadata<?> tableMetadata, DatabaseDialect dialect) throws TemplateModelException {
-        this(tableMetadata, dialect, new UnresolvedMapModel("value"), new UnresolvedMapModel("old"), new UnresolvedMapModel("new"));
+        this(tableMetadata, dialect, null);
     }
 
     public FreemarkerStatementModel(TableMetadata<?> tableMetadata, DatabaseDialect dialect, Object value) throws TemplateModelException {
-        this(tableMetadata, dialect, value, new UnresolvedMapModel("old"), new UnresolvedMapModel("new"));
-    }
-
-    public FreemarkerStatementModel(TableMetadata<?> tableMetadata, DatabaseDialect dialect, Object value, Object oldValue, Object newValue) throws TemplateModelException {
         this.wrapper = BeansWrapper.getDefaultInstance();
         items.put("dialect", wrapper.wrap(dialect));
         items.put("table", wrapper.wrap(tableMetadata));
-        items.put("value", wrapper.wrap(new UnresolvedMapModel("value")));
-        items.put("old", wrapper.wrap(oldValue));
-        items.put("new", wrapper.wrap(newValue));
+        items.put("value", new UnresolvedMapModel("value"));
+        items.put("old", new UnresolvedMapModel("old"));
+        items.put("new", new UnresolvedMapModel("new"));
         items.put("qualify", new DatabaseIdentifierQualifierMethod(dialect));
         items.put("notKey", new NonKeyColumnFilterMethod(tableMetadata));
         items.put("key", new KeyColumnFilterMethod(tableMetadata));
         items.put("escape", new EscapeMethod(dialect.getIdentifierEscapeCharacter()));
-        items.put("isSet", new ValueColumnSelectorMethod(value instanceof TemplateModel ? null : value));
+        items.put("isSet", new ValueColumnSelectorMethod(value));
         items.put("quote", new QuoteMethod(dialect.getStringEscapeCharacter()));
         items.put("type", new TypeResolverMethod(dialect));
     }
