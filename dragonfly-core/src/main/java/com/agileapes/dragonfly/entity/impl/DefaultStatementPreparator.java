@@ -1,7 +1,7 @@
 package com.agileapes.dragonfly.entity.impl;
 
 import com.agileapes.dragonfly.entity.StatementPreparator;
-import com.agileapes.dragonfly.query.impl.functions.ParameterPlaceholderNamespace;
+import com.agileapes.dragonfly.statement.impl.model.ParameterPlaceholderNamespace;
 import freemarker.cache.StringTemplateLoader;
 import freemarker.template.Configuration;
 import freemarker.template.Template;

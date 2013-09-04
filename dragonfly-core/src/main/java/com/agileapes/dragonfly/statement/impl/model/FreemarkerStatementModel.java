@@ -1,9 +1,9 @@
-package com.agileapes.dragonfly.query.impl.model;
+package com.agileapes.dragonfly.statement.impl.model;
 
 import com.agileapes.couteau.freemarker.model.UnresolvedMapModel;
 import com.agileapes.dragonfly.dialect.DatabaseDialect;
 import com.agileapes.dragonfly.metadata.TableMetadata;
-import com.agileapes.dragonfly.query.impl.functions.*;
+import com.agileapes.dragonfly.statement.impl.model.functions.*;
 import freemarker.ext.beans.BeansWrapper;
 import freemarker.template.TemplateHashModel;
 import freemarker.template.TemplateModel;
@@ -35,7 +35,7 @@ public class FreemarkerStatementModel implements TemplateHashModel {
         items.put("value", wrapper.wrap(value));
         items.put("old", wrapper.wrap(oldValue));
         items.put("new", wrapper.wrap(newValue));
-        items.put("qualify", new DatabaseIdentifierQualifier(dialect));
+        items.put("qualify", new DatabaseIdentifierQualifierMethod(dialect));
         items.put("notKey", new NonKeyColumnFilterMethod(tableMetadata));
         items.put("key", new KeyColumnFilterMethod(tableMetadata));
         items.put("quote", new EscapeMethod(dialect.getIdentifierEscapeCharacter()));

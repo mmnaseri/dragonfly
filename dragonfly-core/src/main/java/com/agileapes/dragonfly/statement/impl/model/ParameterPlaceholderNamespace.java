@@ -1,4 +1,4 @@
-package com.agileapes.dragonfly.query.impl.functions;
+package com.agileapes.dragonfly.statement.impl.model;
 
 import freemarker.template.TemplateHashModel;
 import freemarker.template.TemplateModel;

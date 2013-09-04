@@ -1,11 +1,11 @@
-package com.agileapes.dragonfly.query.impl;
+package com.agileapes.dragonfly.statement.impl;
 
 import com.agileapes.dragonfly.dialect.DatabaseDialect;
 import com.agileapes.dragonfly.error.StatementError;
 import com.agileapes.dragonfly.metadata.TableMetadata;
-import com.agileapes.dragonfly.query.Query;
-import com.agileapes.dragonfly.query.QueryBuilder;
-import com.agileapes.dragonfly.query.impl.model.FreemarkerStatementModel;
+import com.agileapes.dragonfly.statement.Statement;
+import com.agileapes.dragonfly.statement.StatementBuilder;
+import com.agileapes.dragonfly.statement.impl.model.FreemarkerStatementModel;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateModelException;
@@ -18,20 +18,20 @@ import java.util.regex.Pattern;
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/1, 1:25)
  */
-public abstract class AbstractFreemarkerQueryBuilder implements QueryBuilder {
+public abstract class AbstractFreemarkerStatementBuilder implements StatementBuilder {
 
     private final String templateName;
     private final Configuration configuration;
     private final DatabaseDialect dialect;
 
-    public AbstractFreemarkerQueryBuilder(Configuration configuration, String templateName, DatabaseDialect dialect) {
+    public AbstractFreemarkerStatementBuilder(Configuration configuration, String templateName, DatabaseDialect dialect) {
         this.templateName = templateName;
         this.configuration = configuration;
         this.dialect = dialect;
     }
 
     @Override
-    public Query getQuery(TableMetadata<?> tableMetadata) {
+    public Statement getStatement(TableMetadata<?> tableMetadata) {
         final Template template;
         try {
             template = configuration.getTemplate(templateName);
@@ -50,7 +50,7 @@ public abstract class AbstractFreemarkerQueryBuilder implements QueryBuilder {
         } catch (Exception ignored) {
         }
         final String sql = writer.toString();
-        return new ImmutableQuery(sql, Pattern.compile("(%\\{.*?\\}|<%.*?>|</%.*>)", Pattern.DOTALL).matcher(sql).find());
+        return new ImmutableStatement(sql, Pattern.compile("(%\\{.*?\\}|<%.*?>|</%.*>)", Pattern.DOTALL).matcher(sql).find());
     }
 
 }

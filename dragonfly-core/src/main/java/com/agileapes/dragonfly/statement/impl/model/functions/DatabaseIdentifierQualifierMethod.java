@@ -1,4 +1,4 @@
-package com.agileapes.dragonfly.query.impl.functions;
+package com.agileapes.dragonfly.statement.impl.model.functions;
 
 import com.agileapes.couteau.freemarker.api.Invokable;
 import com.agileapes.couteau.freemarker.model.TypedMethodModel;
@@ -13,12 +13,12 @@ import java.util.Collection;
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/1, 1:38)
  */
-public class DatabaseIdentifierQualifier extends TypedMethodModel {
+public class DatabaseIdentifierQualifierMethod extends TypedMethodModel {
 
     private final DatabaseDialect dialect;
     private final EscapeMethod escape;
 
-    public DatabaseIdentifierQualifier(DatabaseDialect dialect) {
+    public DatabaseIdentifierQualifierMethod(DatabaseDialect dialect) {
         this.escape = new EscapeMethod(dialect.getIdentifierEscapeCharacter());
         this.dialect = dialect;
     }

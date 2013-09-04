@@ -1,4 +1,4 @@
-package com.agileapes.dragonfly.query.impl.functions;
+package com.agileapes.dragonfly.statement.impl.model.functions;
 
 import com.agileapes.couteau.freemarker.api.Invokable;
 import com.agileapes.couteau.freemarker.model.FilteringMethodModel;
