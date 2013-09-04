@@ -13,6 +13,7 @@ import com.agileapes.dragonfly.tools.ColumnPropertyFilter;
 
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -70,12 +71,13 @@ public class DefaultEntityMapCreator implements EntityMapCreator {
                 }
                 column = column.getForeignReference();
             }
-            if (value instanceof Date && Date.class.isAssignableFrom(column.getType())) {
-                if (java.sql.Date.class.equals(column.getType())) {
+            if (value instanceof Date) {
+                if (column.getType() == Types.DATE) {
                     value = new java.sql.Date(((Date) value).getTime());
-                } else if (Time.class.equals(column.getType())) {
+                } else if (column.getType() == Types.TIME) {
                     value = new Time(((Date) value).getTime());
                 } else {
+                    //we will assume that it is Types.TIMESTAMP
                     value = new Timestamp(((Date) value).getTime());
                 }
             }
