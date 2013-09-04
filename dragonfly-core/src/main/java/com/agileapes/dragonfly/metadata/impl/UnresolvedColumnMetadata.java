@@ -17,7 +17,7 @@ public class UnresolvedColumnMetadata extends AbstractColumnMetadata {
     }
 
     @Override
-    public Class<?> getType() {
+    public int getType() {
         throw new MetadataCollectionError("Metadata is not available", new UnresolvedColumnMetadataError());
     }
 

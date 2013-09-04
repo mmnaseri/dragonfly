@@ -10,26 +10,26 @@ import com.agileapes.dragonfly.metadata.ValueGenerationType;
  */
 public class ResolvedColumnMetadata extends AbstractColumnMetadata {
 
-    private final Class<?> type;
+    private final int type;
     private final String propertyName;
     private final Class<?> propertyType;
     private final ColumnMetadata foreignReference;
     private final ValueGenerationType generationType;
     private final String valueGenerator;
 
-    public ResolvedColumnMetadata(TableMetadata<?> table, String name, Class<?> type, String propertyName, Class<?> propertyType) {
+    public ResolvedColumnMetadata(TableMetadata<?> table, String name, int type, String propertyName, Class<?> propertyType) {
         this(table, name, type, propertyName, propertyType, null, null);
     }
 
-    public ResolvedColumnMetadata(TableMetadata<?> table, String name, Class<?> type, String propertyName, Class<?> propertyType, ValueGenerationType generationType, String valueGenerator) {
+    public ResolvedColumnMetadata(TableMetadata<?> table, String name, int type, String propertyName, Class<?> propertyType, ValueGenerationType generationType, String valueGenerator) {
         this(table, name, type, propertyName, propertyType, null, generationType, valueGenerator);
     }
 
-    public ResolvedColumnMetadata(TableMetadata<?> table, String name, Class<?> type, String propertyName, Class<?> propertyType, ColumnMetadata foreignReference) {
+    public ResolvedColumnMetadata(TableMetadata<?> table, String name, int type, String propertyName, Class<?> propertyType, ColumnMetadata foreignReference) {
         this(table, name, type, propertyName, propertyType, foreignReference, null, null);
     }
 
-    public ResolvedColumnMetadata(TableMetadata<?> table, String name, Class<?> type, String propertyName, Class<?> propertyType, ColumnMetadata foreignReference, ValueGenerationType generationType, String valueGenerator) {
+    public ResolvedColumnMetadata(TableMetadata<?> table, String name, int type, String propertyName, Class<?> propertyType, ColumnMetadata foreignReference, ValueGenerationType generationType, String valueGenerator) {
         super(name, table);
         this.type = type;
         this.propertyName = propertyName;
@@ -40,7 +40,7 @@ public class ResolvedColumnMetadata extends AbstractColumnMetadata {
     }
 
     @Override
-    public Class<?> getType() {
+    public int getType() {
         return type;
     }
 
