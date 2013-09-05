@@ -1,13 +1,11 @@
 package com.agileapes.dragonfly.entity.impl;
 
-import com.agileapes.couteau.reflection.beans.BeanInitializer;
 import com.agileapes.couteau.reflection.beans.BeanWrapper;
-import com.agileapes.couteau.reflection.beans.impl.ConstructorBeanInitializer;
 import com.agileapes.couteau.reflection.beans.impl.MethodBeanWrapper;
-import com.agileapes.couteau.reflection.error.BeanInstantiationException;
 import com.agileapes.couteau.reflection.error.NoSuchPropertyException;
 import com.agileapes.couteau.reflection.error.PropertyAccessException;
 import com.agileapes.couteau.reflection.error.PropertyTypeMismatchException;
+import com.agileapes.dragonfly.entity.EntityContext;
 import com.agileapes.dragonfly.entity.MapEntityCreator;
 import com.agileapes.dragonfly.error.EntityInitializationError;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
@@ -24,14 +22,18 @@ import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
  */
 public class DefaultMapEntityCreator implements MapEntityCreator {
 
-    private final BeanInitializer initializer = new ConstructorBeanInitializer();
+    private final EntityContext context;
+
+    public DefaultMapEntityCreator(EntityContext context) {
+        this.context = context;
+    }
 
     @Override
     public <E> E fromMap(TableMetadata<E> tableMetadata, Map<String, Object> values) {
         final E entity;
         try {
-            entity = initializer.initialize(tableMetadata.getEntityType(), new Class[0]);
-        } catch (BeanInstantiationException e) {
+            entity = context.getInstance(tableMetadata);
+        } catch (Exception e) {
             throw new EntityInitializationError(tableMetadata.getEntityType(), e);
         }
         final BeanWrapper<E> wrapper = new MethodBeanWrapper<E>(entity);
