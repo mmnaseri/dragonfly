@@ -1,6 +1,7 @@
 package com.agileapes.dragonfly.entity.impl;
 
 import com.agileapes.dragonfly.entity.EntityContext;
+import com.agileapes.dragonfly.entity.InitializedEntity;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import net.sf.cglib.proxy.Enhancer;
 
@@ -12,13 +13,16 @@ public class DefaultEntityContext implements EntityContext {
 
     @Override
     public <E> E getInstance(TableMetadata<E> tableMetadata) {
-        return tableMetadata.getEntityType().cast(
+        final E proxy = tableMetadata.getEntityType().cast(
                 Enhancer.create(
                         tableMetadata.getEntityType(),
-                        new Class[]{},
+                        EntityProxy.class.getInterfaces(),
                         new EntityProxy<E>(tableMetadata)
                 )
         );
+        //noinspection unchecked
+        ((InitializedEntity<E>) proxy).initialize(proxy);
+        return proxy;
     }
 
 }
