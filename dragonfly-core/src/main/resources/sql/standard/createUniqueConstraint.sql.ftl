@@ -1,1 +1,1 @@
-ALTER TABLE ${qualify(table)} ADD CONSTRAINT ${escape(constraint.name)} UNIQUE (<#list constraint.columns as column>${escape(column)}<#if column_has_next>,</#if></#list>);
+ALTER TABLE ${qualify(table)} ADD CONSTRAINT ${escape(constraint.name)} UNIQUE (<#list constraint.columns as column>${escape(column.name)}<#if column_has_next>,</#if></#list>);

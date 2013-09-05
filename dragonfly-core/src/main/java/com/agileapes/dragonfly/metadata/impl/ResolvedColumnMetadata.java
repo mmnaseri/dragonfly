@@ -13,7 +13,7 @@ public class ResolvedColumnMetadata extends AbstractColumnMetadata {
     private final int type;
     private final String propertyName;
     private final Class<?> propertyType;
-    private final ColumnMetadata foreignReference;
+    private ColumnMetadata foreignReference;
     private final ValueGenerationType generationType;
     private final String valueGenerator;
     private final boolean nullable;
@@ -101,4 +101,7 @@ public class ResolvedColumnMetadata extends AbstractColumnMetadata {
         super.setTable(table);
     }
 
+    public void setForeignReference(ColumnMetadata foreignReference) {
+        this.foreignReference = foreignReference;
+    }
 }

@@ -1,6 +1,7 @@
 package com.agileapes.dragonfly.dialect;
 
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
+import com.agileapes.dragonfly.statement.StatementBuilderContext;
 
 import java.sql.DatabaseMetaData;
 
@@ -19,5 +20,7 @@ public interface DatabaseDialect {
     String getType(ColumnMetadata columnMetadata);
 
     boolean accepts(DatabaseMetaData databaseMetaData);
+
+    StatementBuilderContext getStatementBuilderContext();
 
 }

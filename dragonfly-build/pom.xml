@@ -12,6 +12,7 @@
     <modules>
         <module>../dragonfly-parent</module>
         <module>../dragonfly-core</module>
+        <module>../dragonfly-jpa</module>
     </modules>
     
 </project>

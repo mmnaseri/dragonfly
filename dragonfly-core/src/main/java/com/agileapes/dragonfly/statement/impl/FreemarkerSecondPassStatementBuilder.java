@@ -1,6 +1,7 @@
 package com.agileapes.dragonfly.statement.impl;
 
 import com.agileapes.dragonfly.dialect.DatabaseDialect;
+import com.agileapes.dragonfly.metadata.ConstraintMetadata;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.statement.Statement;
 import com.agileapes.dragonfly.statement.StatementBuilder;
@@ -25,7 +26,7 @@ public class FreemarkerSecondPassStatementBuilder implements StatementBuilder {
     private final Object value;
     private Template template;
 
-    public FreemarkerSecondPassStatementBuilder(Configuration configuration, Statement statement, DatabaseDialect dialect, Object value) {
+    public FreemarkerSecondPassStatementBuilder(Statement statement, DatabaseDialect dialect, Object value) {
         this.statement = statement;
         this.dialect = dialect;
         this.value = value;
@@ -35,6 +36,7 @@ public class FreemarkerSecondPassStatementBuilder implements StatementBuilder {
         sql = sql.replaceAll("</%(.*?)>", "</#$1>");
         sql = sql.replaceAll("%\\{(.*?)\\}", "\\${$1}");
         loader.putTemplate("sql", sql);
+        final Configuration configuration = new Configuration();
         configuration.setTemplateLoader(loader);
         try {
             template = configuration.getTemplate("sql");
@@ -43,7 +45,7 @@ public class FreemarkerSecondPassStatementBuilder implements StatementBuilder {
     }
 
     @Override
-    public Statement getStatement(TableMetadata<?> tableMetadata) {
+    public Statement getStatement(TableMetadata<?> tableMetadata, ConstraintMetadata constraintMetadata) {
         final FreemarkerStatementModel model;
         try {
             model = new FreemarkerStatementModel(tableMetadata, dialect, value);
@@ -56,7 +58,12 @@ public class FreemarkerSecondPassStatementBuilder implements StatementBuilder {
         } catch (Exception ignored) {
         }
         final String sql = writer.toString();
-        return new ImmutableStatement(sql, false, statement.hasParameters(), StatementType.getStatementType(sql));
+        return new ImmutableStatement(tableMetadata, dialect, sql, false, statement.hasParameters(), StatementType.getStatementType(sql));
+    }
+
+    @Override
+    public Statement getStatement(TableMetadata<?> tableMetadata) {
+        return getStatement(tableMetadata, null);
     }
 
 }

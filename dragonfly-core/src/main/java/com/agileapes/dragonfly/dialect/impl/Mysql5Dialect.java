@@ -1,82 +1,42 @@
 package com.agileapes.dragonfly.dialect.impl;
 
+import com.agileapes.couteau.freemarker.utils.FreemarkerUtils;
 import com.agileapes.dragonfly.dialect.DatabaseDialect;
 import com.agileapes.dragonfly.error.DatabaseMetadataAccessError;
-import com.agileapes.dragonfly.error.UnknownColumnTypeError;
-import com.agileapes.dragonfly.metadata.ColumnMetadata;
+import com.agileapes.dragonfly.statement.StatementBuilderContext;
+import com.agileapes.dragonfly.statement.Statements;
+import com.agileapes.dragonfly.statement.impl.FreemarkerStatementBuilder;
+import com.agileapes.dragonfly.statement.impl.FreemarkerStatementBuilderContext;
+import freemarker.template.Configuration;
 
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
-import java.sql.Types;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/4, 14:15)
  */
-public class Mysql5Dialect implements DatabaseDialect {
+public class Mysql5Dialect extends GenericDatabaseDialect {
+
+    private final StatementBuilderContext statementBuilderContext;
+
+    public Mysql5Dialect() {
+        statementBuilderContext = super.getStatementBuilderContext();
+        final Configuration configuration = FreemarkerUtils.getConfiguration(getClass(), "/sql/mysql5");
+        ((FreemarkerStatementBuilderContext) statementBuilderContext).register(Statements.Definition.CREATE_SEQUENCE, new FreemarkerStatementBuilder(configuration, "createSequence.sql.ftl", getDatabaseDialect()));
+        ((FreemarkerStatementBuilderContext) statementBuilderContext).register(Statements.Definition.DROP_FOREIGN_KEY, new FreemarkerStatementBuilder(configuration, "dropForeignKey.sql.ftl", getDatabaseDialect()));
+        ((FreemarkerStatementBuilderContext) statementBuilderContext).register(Statements.Definition.DROP_PRIMARY_KEY, new FreemarkerStatementBuilder(configuration, "dropPrimaryKey.sql.ftl", getDatabaseDialect()));
+        ((FreemarkerStatementBuilderContext) statementBuilderContext).register(Statements.Definition.DROP_SEQUENCE, new FreemarkerStatementBuilder(configuration, "dropSequence.sql.ftl", getDatabaseDialect()));
+    }
+
+    @Override
+    protected DatabaseDialect getDatabaseDialect() {
+        return this;
+    }
 
     @Override
     public Character getIdentifierEscapeCharacter() {
         return '`';
-    }
-
-    @Override
-    public Character getSchemaSeparator() {
-        return '.';
-    }
-
-    @Override
-    public Character getStringEscapeCharacter() {
-        return '\\';
-    }
-
-    @Override
-    public String getType(ColumnMetadata columnMetadata) {
-        final int columnType = columnMetadata.getType();
-        if (columnType == Types.BIT) {
-            return "BIT (" + (columnMetadata.getLength() <= 0 ? 1 : columnMetadata.getLength()) + ")";
-        } else if (columnType == Types.TINYINT) {
-            return "TINYINT";
-        } else if (columnType == Types.SMALLINT) {
-            return "SMALLINT";
-        } else if (columnType == Types.INTEGER) {
-            return "INTEGER";
-        } else if (columnType == Types.BIGINT) {
-            return "BIGINT";
-        } else if (columnType == Types.FLOAT) {
-            return "FLOAT";
-        } else if (columnType == Types.REAL) {
-            return "REAL";
-        } else if (columnType == Types.DOUBLE) {
-            return "DOUBLE";
-        } else if (columnType == Types.NUMERIC) {
-            return "NUMERIC (" + (columnMetadata.getPrecision() <= 0 ? "M" : columnMetadata.getPrecision()) +
-                        (columnMetadata.getScale() <= 0 ? "" : "," + columnMetadata.getScale()) + ")";
-        } else if (columnType == Types.DECIMAL) {
-            return "DECIMAL (" + (columnMetadata.getPrecision() <= 0 ? "M" : columnMetadata.getPrecision()) +
-                        (columnMetadata.getScale() <= 0 ? "" : "," + columnMetadata.getScale()) + ")";
-        } else if (columnType == Types.CHAR) {
-            return "CHAR (" + (columnMetadata.getLength() <= 0 ? 1 : (columnMetadata.getLength() > 255 ? 255 : columnMetadata.getLength())) + ")";
-        } else if (columnType == Types.VARCHAR) {
-            return "VARCHAR (" + (columnMetadata.getLength() <= 0 ? 1 : (columnMetadata.getLength() > 65535 ? 65535 : columnMetadata.getLength())) + ")";
-        } else if (columnType == Types.LONGNVARCHAR) {
-            return "LONGVARCHAR (" + (columnMetadata.getLength() <= 0 ? 1 : columnMetadata.getLength()) + ")";
-        } else if (columnType == Types.DATE) {
-            return "DATE";
-        } else if (columnType == Types.TIME) {
-            return "TIME";
-        } else if (columnType == Types.TIMESTAMP) {
-            return "TIMESTAMP";
-        } else if (columnType == Types.BINARY) {
-            return "BINARY (" + (columnMetadata.getLength() <= 0 ? 1 : (columnMetadata.getLength() > 255 ? 255 : columnMetadata.getLength())) + ")";
-        } else if (columnType == Types.VARBINARY) {
-            return "VARBINARY (" + (columnMetadata.getLength() <= 0 ? 1 : (columnMetadata.getLength() > 65535 ? 65535 : columnMetadata.getLength())) + ")";
-        } else if (columnType == Types.LONGVARBINARY) {
-            return "LONGVARBINARY (" + (columnMetadata.getLength() <= 0 ? 1 : (columnMetadata.getLength() > 65535 ? 65535 : columnMetadata.getLength())) + ")";
-        } else if (columnType == Types.BOOLEAN) {
-            return "BOOLEAN";
-        }
-        throw new UnknownColumnTypeError(columnType);
     }
 
     @Override
@@ -86,6 +46,11 @@ public class Mysql5Dialect implements DatabaseDialect {
         } catch (SQLException e) {
             throw new DatabaseMetadataAccessError(e);
         }
+    }
+
+    @Override
+    public StatementBuilderContext getStatementBuilderContext() {
+        return statementBuilderContext;
     }
 
 }

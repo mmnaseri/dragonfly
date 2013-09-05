@@ -44,8 +44,6 @@ public class DefaultStatementPreparator implements StatementPreparator {
             template.process(namespace, writer);
         } catch (Exception ignored) {
         }
-        System.out.println(">> PREPARED STATEMENT:");
-        System.out.println(writer);
         PreparedStatement preparedStatement = null;
         try {
             preparedStatement = connection.prepareStatement(writer.toString(), Statement.RETURN_GENERATED_KEYS);
@@ -57,7 +55,6 @@ public class DefaultStatementPreparator implements StatementPreparator {
             final String parameter = parameters.get(i);
             try {
                 if (value.containsKey(parameter)) {
-                    System.out.println(">> SETTING VALUE FOR " + (i + 1) + " (" + parameter + ")");
                     preparedStatement.setObject(i + 1, value.get(parameter));
                 } else {
                     final String property = parameter.substring(parameter.lastIndexOf('.') + 1);

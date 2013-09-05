@@ -27,21 +27,15 @@ public class FreemarkerStatementBuilder implements StatementBuilder {
     private final String templateName;
     private final Configuration configuration;
     private final DatabaseDialect dialect;
-    private final ConstraintMetadata constraintMetadata;
 
     public FreemarkerStatementBuilder(Configuration configuration, String templateName, DatabaseDialect dialect) {
-        this(configuration, templateName, dialect, null);
-    }
-
-    public FreemarkerStatementBuilder(Configuration configuration, String templateName, DatabaseDialect dialect, ConstraintMetadata constraintMetadata) {
         this.templateName = templateName;
         this.configuration = configuration;
         this.dialect = dialect;
-        this.constraintMetadata = constraintMetadata;
     }
 
     @Override
-    public Statement getStatement(TableMetadata<?> tableMetadata) {
+    public Statement getStatement(TableMetadata<?> tableMetadata, ConstraintMetadata constraintMetadata) {
         final Template template;
         try {
             template = configuration.getTemplate(templateName);
@@ -61,7 +55,12 @@ public class FreemarkerStatementBuilder implements StatementBuilder {
         } catch (Exception ignored) {
         }
         final String sql = writer.toString().trim();
-        return new ImmutableStatement(sql, STATEMENT_PATTERN.matcher(sql).find(), VALUE_PATTERN.matcher(sql).find(), StatementType.getStatementType(sql));
+        return new ImmutableStatement(tableMetadata, dialect, sql, STATEMENT_PATTERN.matcher(sql).find(), VALUE_PATTERN.matcher(sql).find(), StatementType.getStatementType(sql));
+    }
+
+    @Override
+    public Statement getStatement(TableMetadata<?> tableMetadata) {
+        return getStatement(tableMetadata, null);
     }
 
 }
