@@ -9,7 +9,7 @@ public class AmbiguousEntityError extends DatabaseError {
     private final Class<?> entityType;
 
     public AmbiguousEntityError(Class<?> entityType) {
-        super("Ambiguous entity definition for entity " + entityType.getCanonicalName());
+        super("More than one definition exists for entity: " + entityType.getCanonicalName());
         this.entityType = entityType;
     }
 

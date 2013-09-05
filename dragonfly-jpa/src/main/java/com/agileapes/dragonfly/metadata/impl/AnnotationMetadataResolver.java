@@ -53,7 +53,10 @@ public class AnnotationMetadataResolver implements MetadataResolver {
         }
         final HashSet<ConstraintMetadata> constraints = new HashSet<ConstraintMetadata>();
         //noinspection unchecked
-        final Collection<ColumnMetadata> tableColumns = withMethods(entityType).keep(new AnnotatedElementFilter(Column.class, JoinColumn.class)).transform(new Transformer<Method, ColumnMetadata>() {
+        final Collection<ColumnMetadata> tableColumns = withMethods(entityType)
+        .keep(new AnnotatedElementFilter(Column.class, JoinColumn.class))
+        .drop(new AnnotatedElementFilter(OneToMany.class))
+        .transform(new Transformer<Method, ColumnMetadata>() {
             @Override
             public ColumnMetadata map(Method method) {
                 final Column column = method.getAnnotation(Column.class);
@@ -70,7 +73,7 @@ public class AnnotationMetadataResolver implements MetadataResolver {
                 final int scale = column != null ? column.scale() : 0;
                 final ValueGenerationType generationType = determineValueGenerationType(method);
                 final String valueGenerator = determineValueGenerator(method);
-                final ColumnMetadata foreignReference = joinColumn == null ? null : determineForeignReference(method, joinColumn);
+                final ColumnMetadata foreignReference = joinColumn == null ? null : determineForeignReference(method);
                 final int type = getColumnType(method, foreignReference);
                 final ResolvedColumnMetadata columnMetadata = new ResolvedColumnMetadata(new UnresolvedTableMetadata<E>(entityType), name, type, propertyName, propertyType, nullable, length, precision, scale, generationType, valueGenerator, foreignReference);
                 if (foreignReference != null) {
@@ -185,13 +188,17 @@ public class AnnotationMetadataResolver implements MetadataResolver {
         return metadata;
     }
 
-    private static ColumnMetadata determineForeignReference(Method method, JoinColumn joinColumn) {
+    private static ColumnMetadata determineForeignReference(Method method) {
         final String name;
         final Class<?> entityType;
         if (method.isAnnotationPresent(OneToOne.class)) {
-            final OneToOne oneToOne = method.getAnnotation(OneToOne.class);
-            name = oneToOne.mappedBy();
-            entityType = oneToOne.targetEntity().equals(void.class) ? method.getReturnType() : oneToOne.targetEntity();
+            final OneToOne annotation = method.getAnnotation(OneToOne.class);
+            name = annotation.mappedBy();
+            entityType = annotation.targetEntity().equals(void.class) ? method.getReturnType() : annotation.targetEntity();
+        } else if (method.isAnnotationPresent(ManyToOne.class)) {
+            final ManyToOne annotation = method.getAnnotation(ManyToOne.class);
+            name = "";
+            entityType = annotation.targetEntity().equals(void.class) ? method.getReturnType() : annotation.targetEntity();
         } else {
             throw new UnsupportedOperationException();
         }

@@ -86,7 +86,7 @@ public class ResolvedTableMetadata<E> extends AbstractTableMetadata<E> {
         }).transform(new Transformer<ForeignKeyConstraintMetadata, TableMetadata<?>>() {
             @Override
             public TableMetadata<?> map(ForeignKeyConstraintMetadata foreignKeyConstraintMetadata) {
-                return foreignKeyConstraintMetadata.getTable();
+                return foreignKeyConstraintMetadata.getColumn().getForeignReference().getTable();
             }
         }).list();
     }

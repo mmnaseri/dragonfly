@@ -1,11 +1,16 @@
 package com.agileapes.dragonfly.metadata.impl;
 
+import com.agileapes.couteau.basics.api.Processor;
 import com.agileapes.couteau.basics.api.Transformer;
 import com.agileapes.couteau.context.contract.Registry;
 import com.agileapes.couteau.context.error.RegistryException;
 import com.agileapes.couteau.context.impl.ConcurrentRegistry;
 import com.agileapes.dragonfly.metadata.MetadataRegistry;
 import com.agileapes.dragonfly.metadata.TableMetadata;
+
+import java.util.Collection;
+
+import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
@@ -20,6 +25,17 @@ public class DefaultMetadataRegistry implements MetadataRegistry {
             return aClass.getCanonicalName();
         }
     };
+    private Processor<MetadataRegistry> registryProcessor;
+
+    @Override
+    public Collection<Class<?>> getEntityTypes() {
+        return with(registry.getBeans()).transform(new Transformer<TableMetadata<?>, Class<?>>() {
+            @Override
+            public Class<?> map(TableMetadata<?> tableMetadata) {
+                return tableMetadata.getEntityType();
+            }
+        }).list();
+    }
 
     @Override
     public <E> TableMetadata<E> getTableMetadata(Class<E> entityType) {
@@ -33,17 +49,25 @@ public class DefaultMetadataRegistry implements MetadataRegistry {
     }
 
     @Override
-    public <E> void addTableMetadata(Class<E> entityType, TableMetadata<E> tableMetadata) {
-        final String key = mapper.map(entityType);
+    public <E> void addTableMetadata(TableMetadata<E> tableMetadata) {
+        final String key = mapper.map(tableMetadata.getEntityType());
         try {
             registry.register(key, tableMetadata);
         } catch (RegistryException ignored) {
+        }
+        if (registryProcessor != null) {
+            registryProcessor.process(this);
         }
     }
 
     @Override
     public boolean contains(Class<?> entityType) {
         return registry.contains(mapper.map(entityType));
+    }
+
+    @Override
+    public void setChangeCallback(Processor<MetadataRegistry> registryProcessor) {
+        this.registryProcessor = registryProcessor;
     }
 
 }
