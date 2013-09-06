@@ -26,4 +26,6 @@ public interface TableMetadata<E> {
 
     Collection<ColumnMetadata> getColumns();
 
+    boolean hasPrimaryKey();
+
 }

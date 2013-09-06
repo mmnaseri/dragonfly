@@ -94,7 +94,7 @@ public class AnnotationMetadataResolver implements MetadataResolver {
                 }
             }).list()));
         }
-        constraints.addAll(with(uniqueColumns).transform(new Transformer<Set<String>, Set<ColumnMetadata>>() {
+        constraints.addAll(with(uniqueColumns).sort().transform(new Transformer<Set<String>, Set<ColumnMetadata>>() {
             @Override
             public Set<ColumnMetadata> map(Set<String> columns) {
                 return with(columns).transform(new Transformer<String, ColumnMetadata>() {
@@ -110,7 +110,7 @@ public class AnnotationMetadataResolver implements MetadataResolver {
                 return new UniqueConstraintMetadata(tableMetadata, columns);
             }
         }).list());
-        constraints.addAll(with(foreignKeys).transform(new Transformer<String, ColumnMetadata>() {
+        constraints.addAll(with(foreignKeys).sort().transform(new Transformer<String, ColumnMetadata>() {
             @Override
             public ColumnMetadata map(String columnName) {
                 return getColumnMetadata(columnName, tableColumns, entityType);

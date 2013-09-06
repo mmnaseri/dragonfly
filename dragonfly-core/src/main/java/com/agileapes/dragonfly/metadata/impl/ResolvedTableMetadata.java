@@ -23,6 +23,7 @@ public class ResolvedTableMetadata<E> extends AbstractTableMetadata<E> {
     private final String schema;
     private final Collection<ConstraintMetadata> constraints;
     private final Collection<ColumnMetadata> columns;
+    private PrimaryKeyConstraintMetadata primaryKey = null;
 
     public ResolvedTableMetadata(Class<E> entityType, String schema, String name, Collection<ConstraintMetadata> constraints, Collection<ColumnMetadata> columns) {
         super(entityType);
@@ -62,12 +63,23 @@ public class ResolvedTableMetadata<E> extends AbstractTableMetadata<E> {
     }
 
     @Override
+    public boolean hasPrimaryKey() {
+        prepareKey();
+        return primaryKey != null;
+    }
+
+    @Override
     public PrimaryKeyConstraintMetadata getPrimaryKey() {
-        final ConstraintMetadata metadata = with(constraints).keep(new ConstraintTypeFilter(PrimaryKeyConstraintMetadata.class)).first();
-        if (metadata == null) {
+        if (!hasPrimaryKey()) {
             throw new MetadataCollectionError("Cannot return table primary key", new NoPrimaryKeyDefinedError(this));
         }
-        return (PrimaryKeyConstraintMetadata) metadata;
+        return primaryKey;
+    }
+
+    private void prepareKey() {
+        if (primaryKey == null) {
+            primaryKey = (PrimaryKeyConstraintMetadata) with(constraints).keep(new ConstraintTypeFilter(PrimaryKeyConstraintMetadata.class)).first();
+        }
     }
 
     @Override

@@ -6,6 +6,12 @@ package com.agileapes.dragonfly.entity;
  */
 public interface InitializedEntity<E> {
 
-    void initialize(E entity);
+    void initialize(Class<E> entityType, E entity, String key);
+
+    String getToken();
+
+    void setOriginalCopy(E originalCopy);
+
+    E getOriginalCopy();
 
 }

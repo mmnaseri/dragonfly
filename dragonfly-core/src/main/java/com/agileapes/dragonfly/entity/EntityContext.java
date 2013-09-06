@@ -8,6 +8,10 @@ import com.agileapes.dragonfly.metadata.TableMetadata;
  */
 public interface EntityContext {
 
+    <E> E getInstance(Class<E> entityType);
+
     <E> E getInstance(TableMetadata<E> tableMetadata);
+
+    <E> boolean has(E entity);
 
 }

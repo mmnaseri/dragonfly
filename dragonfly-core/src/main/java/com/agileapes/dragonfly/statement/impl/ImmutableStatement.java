@@ -14,6 +14,7 @@ import com.agileapes.dragonfly.tools.MapTools;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.Map;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
@@ -76,6 +77,11 @@ public class ImmutableStatement implements Statement {
 
     @Override
     public PreparedStatement prepare(Connection connection, Object value) {
+        return prepare(connection, value, null);
+    }
+
+    @Override
+    public PreparedStatement prepare(Connection connection, Object value, Object replacement) {
         String finalSql = sql;
         if (isDynamic()) {
             final FreemarkerSecondPassStatementBuilder builder = new FreemarkerSecondPassStatementBuilder(this, dialect, value);
@@ -86,7 +92,14 @@ public class ImmutableStatement implements Statement {
         if (hasParameters()) {
             EntityMapCreator mapCreator = new DefaultEntityMapCreator();
             //noinspection unchecked
-            statement = preparator.prepare(connection, tableMetadata, MapTools.prefixKeys(mapCreator.toMap((TableMetadata<Object>) tableMetadata, value), "value."), finalSql);
+            final Map<String, Object> values = mapCreator.toMap((TableMetadata<Object>) tableMetadata, value);
+            final Map<String,Object> map = MapTools.prefixKeys(values, "value.");
+            if (replacement != null) {
+                map.putAll(MapTools.prefixKeys(values, "old."));
+                //noinspection unchecked
+                map.putAll(MapTools.prefixKeys(mapCreator.toMap((TableMetadata<Object>) tableMetadata, replacement), "new."));
+            }
+            statement = preparator.prepare(connection, tableMetadata, map, finalSql);
         } else {
             try {
                 statement = connection.prepareStatement(finalSql);
@@ -96,5 +109,6 @@ public class ImmutableStatement implements Statement {
         }
         return statement;
     }
+
 
 }

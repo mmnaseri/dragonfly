@@ -39,7 +39,7 @@ public class GenericDatabaseDialect implements DatabaseDialect {
         statementBuilderContext.register(Statements.Manipulation.FIND_ONE, new FreemarkerStatementBuilder(configuration, "findByKey.sql.ftl", getDatabaseDialect()));
         statementBuilderContext.register(Statements.Manipulation.FIND_LIKE, new FreemarkerStatementBuilder(configuration, "findBySample.sql.ftl", getDatabaseDialect()));
         statementBuilderContext.register(Statements.Manipulation.INSERT, new FreemarkerStatementBuilder(configuration, "insert.sql.ftl", getDatabaseDialect()));
-        statementBuilderContext.register(Statements.Manipulation.UPDATE, new FreemarkerStatementBuilder(configuration, "selectiveUpdate.sql.ftl", getDatabaseDialect()));
+        statementBuilderContext.register(Statements.Manipulation.UPDATE, new FreemarkerStatementBuilder(configuration, "updateBySample.sql.ftl", getDatabaseDialect()));
         statementBuilderContext.register(Statements.Manipulation.TRUNCATE, new FreemarkerStatementBuilder(configuration, "truncate.sql.ftl", getDatabaseDialect()));
     }
 

@@ -25,4 +25,6 @@ public interface Statement {
 
     PreparedStatement prepare(Connection connection, Object value);
 
+    PreparedStatement prepare(Connection connection, Object value, Object replacement);
+
 }

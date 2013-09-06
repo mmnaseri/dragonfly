@@ -1,9 +1,12 @@
 package com.agileapes.dragonfly.entity.impl;
 
+import com.agileapes.dragonfly.api.DataAccess;
 import com.agileapes.dragonfly.entity.EntityContext;
 import com.agileapes.dragonfly.entity.InitializedEntity;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import net.sf.cglib.proxy.Enhancer;
+
+import java.util.UUID;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
@@ -11,18 +14,38 @@ import net.sf.cglib.proxy.Enhancer;
  */
 public class DefaultEntityContext implements EntityContext {
 
+    private final String key;
+    private final DataAccess dataAccess;
+
+    public DefaultEntityContext(DataAccess dataAccess) {
+        this.dataAccess = dataAccess;
+        key = UUID.randomUUID().toString();
+    }
+
+    @Override
+    public <E> E getInstance(Class<E> entityType) {
+        return null;
+    }
+
     @Override
     public <E> E getInstance(TableMetadata<E> tableMetadata) {
         final E proxy = tableMetadata.getEntityType().cast(
                 Enhancer.create(
                         tableMetadata.getEntityType(),
                         EntityProxy.class.getInterfaces(),
-                        new EntityProxy<E>(tableMetadata)
+                        new EntityProxy<E>(dataAccess, tableMetadata)
                 )
         );
         //noinspection unchecked
-        ((InitializedEntity<E>) proxy).initialize(proxy);
+        ((InitializedEntity<E>) proxy).initialize(tableMetadata.getEntityType(), proxy, key);
+        //noinspection unchecked
+        ((InitializedEntity<E>) proxy).setOriginalCopy(proxy);
         return proxy;
+    }
+
+    @Override
+    public <E> boolean has(E entity) {
+        return entity instanceof InitializedEntity && ((InitializedEntity) entity).getToken().equals(key);
     }
 
 }
