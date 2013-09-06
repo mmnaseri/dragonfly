@@ -9,7 +9,9 @@ import com.agileapes.couteau.reflection.error.PropertyAccessException;
 import com.agileapes.dragonfly.error.MetadataCollectionError;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
 
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -22,6 +24,14 @@ public class ValueColumnSelectorMethod extends FilteringMethodModel<ColumnMetada
 
     public ValueColumnSelectorMethod(Object value) {
         if (value == null) {
+            return;
+        }
+        if (value instanceof Map<?, ?>) {
+            //noinspection unchecked
+            final Map<String, ?> map = (Map<String, ?>) value;
+            for (String property : map.keySet()) {
+                properties.add(property.substring(6));
+            }
             return;
         }
         final BeanAccessor<Object> accessor = new MethodBeanAccessor<Object>(value);

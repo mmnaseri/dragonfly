@@ -14,6 +14,7 @@ import com.agileapes.dragonfly.tools.MapTools;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -91,13 +92,19 @@ public class ImmutableStatement implements Statement {
         System.out.println(finalSql);
         if (hasParameters()) {
             EntityMapCreator mapCreator = new DefaultEntityMapCreator();
-            //noinspection unchecked
-            final Map<String, Object> values = mapCreator.toMap((TableMetadata<Object>) tableMetadata, value);
-            final Map<String,Object> map = MapTools.prefixKeys(values, "value.");
-            if (replacement != null) {
-                map.putAll(MapTools.prefixKeys(values, "old."));
+            final Map<String,Object> map = new HashMap<String, Object>();
+            if (!(value instanceof Map)) {
                 //noinspection unchecked
-                map.putAll(MapTools.prefixKeys(mapCreator.toMap((TableMetadata<Object>) tableMetadata, replacement), "new."));
+                final Map<String, Object> values = mapCreator.toMap((TableMetadata<Object>) tableMetadata, value);
+                map.putAll(MapTools.prefixKeys(values, "value."));
+                if (replacement != null) {
+                    map.putAll(MapTools.prefixKeys(values, "old."));
+                    //noinspection unchecked
+                    map.putAll(MapTools.prefixKeys(mapCreator.toMap((TableMetadata<Object>) tableMetadata, replacement), "new."));
+                }
+            } else {
+                //noinspection unchecked
+                map.putAll((Map) value);
             }
             statement = preparator.prepare(connection, tableMetadata, map, finalSql);
         } else {

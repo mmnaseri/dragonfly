@@ -1,12 +1,14 @@
 package com.agileapes.dragonfly.api;
 
+import com.agileapes.dragonfly.metadata.TableMetadata;
+
 import java.io.Serializable;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/5, 19:25)
  */
-public interface DataAccessObject<K extends Serializable> {
+public interface DataAccessObject<E, K extends Serializable> {
 
     void refresh();
 
@@ -21,5 +23,7 @@ public interface DataAccessObject<K extends Serializable> {
     boolean hasKey();
 
     String getQualifiedName();
+
+    TableMetadata<E> getTableMetadata();
 
 }

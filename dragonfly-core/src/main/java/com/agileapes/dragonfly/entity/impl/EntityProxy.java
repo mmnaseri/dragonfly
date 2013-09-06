@@ -16,7 +16,6 @@ import com.agileapes.dragonfly.error.EntityDefinitionError;
 import com.agileapes.dragonfly.error.EntityDeletedError;
 import com.agileapes.dragonfly.error.NoPrimaryKeyDefinedError;
 import com.agileapes.dragonfly.metadata.TableMetadata;
-import com.agileapes.dragonfly.metadata.TableMetadataAware;
 import com.agileapes.dragonfly.metadata.impl.PrimaryKeyConstraintMetadata;
 import com.agileapes.dragonfly.tools.ColumnPropertyFilter;
 import net.sf.cglib.proxy.MethodProxy;
@@ -31,7 +30,7 @@ import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/5, 15:36)
  */
-public class EntityProxy<E> extends InterfaceInterceptor implements InitializedEntity<E>, TableMetadataAware<E>, DataAccessObject<Serializable> {
+public class EntityProxy<E> extends InterfaceInterceptor implements InitializedEntity<E>, DataAccessObject<E, Serializable> {
 
     private final DataAccess dataAccess;
     private final TableMetadata<E> tableMetadata;

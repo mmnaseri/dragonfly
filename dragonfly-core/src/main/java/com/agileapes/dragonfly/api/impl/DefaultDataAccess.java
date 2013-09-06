@@ -6,21 +6,23 @@ import com.agileapes.dragonfly.api.DataAccess;
 import com.agileapes.dragonfly.api.DataAccessObject;
 import com.agileapes.dragonfly.entity.*;
 import com.agileapes.dragonfly.entity.impl.*;
+import com.agileapes.dragonfly.error.AmbiguousObjectKeyError;
 import com.agileapes.dragonfly.error.EntityOutOfContextError;
+import com.agileapes.dragonfly.error.ObjectNotFoundError;
+import com.agileapes.dragonfly.error.UnsuccessfulOperationError;
 import com.agileapes.dragonfly.metadata.MetadataRegistry;
 import com.agileapes.dragonfly.metadata.TableMetadata;
-import com.agileapes.dragonfly.metadata.TableMetadataAware;
 import com.agileapes.dragonfly.statement.Statement;
+import com.agileapes.dragonfly.statement.StatementType;
 import com.agileapes.dragonfly.statement.impl.StatementRegistry;
+import com.agileapes.dragonfly.tools.MapTools;
 
 import javax.sql.DataSource;
 import java.io.Serializable;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
@@ -48,136 +50,82 @@ public class DefaultDataAccess implements DataAccess {
 
     @Override
     public <E> void save(E entity) {
-        final DataAccessObject<Serializable> object = checkEntity(entity);
+        final DataAccessObject<E, Serializable> object = checkEntity(entity);
         //noinspection unchecked
-        final TableMetadata<E> tableMetadata = metadataRegistry.getTableMetadata(((TableMetadataAware<E>) entity).getTableMetadata().getEntityType());
+        final TableMetadata<E> tableMetadata = metadataRegistry.getTableMetadata(object.getTableMetadata().getEntityType());
+        int affectedRows = 0;
         try {
             final boolean shouldUpdate = (object.hasKey() && object.accessKey() != null) || find(entity).size() == 1;//object.hasKey() && object.accessKey() != null;
             if (shouldUpdate) {
                 //noinspection unchecked
-                statementRegistry.get(object.getQualifiedName() + ".updateBySample").prepare(dataSource.getConnection(), ((InitializedEntity<E>) entity).getOriginalCopy(), entity).executeUpdate();
+                affectedRows = internalExecuteUpdate(((InitializedEntity<E>) object).getOriginalCopy(), entity, "updateBySample");
+//                statementRegistry.get(object.getQualifiedName() + ".updateBySample").prepare(dataSource.getConnection(), ((InitializedEntity<E>) entity).getOriginalCopy(), entity).executeUpdate();
             } else {
-                final PreparedStatement statement = statementRegistry.get(object.getQualifiedName() + ".insert").prepare(dataSource.getConnection(), entity);
-                statement.executeUpdate();
-                final ResultSet generatedKeys = statement.getGeneratedKeys();
-                if (generatedKeys.next()) {
-                    object.changeKey((Serializable) generatedKeys.getObject(1));
-                }
+                affectedRows = internalExecuteUpdate(entity, "insert", true);
+//                final PreparedStatement statement = statementRegistry.get(object.getQualifiedName() + ".insert").prepare(dataSource.getConnection(), entity);
+//                statement.executeUpdate();
+//                final ResultSet generatedKeys = statement.getGeneratedKeys();
+//                if (generatedKeys.next()) {
+//                    object.changeKey((Serializable) generatedKeys.getObject(1));
+//                }
             }
             //noinspection unchecked
-            ((InitializedEntity<E>) entity).setOriginalCopy(entityCreator.fromMap(tableMetadata, mapCreator.toMap(tableMetadata, entity)));
-        } catch (RegistryException ignored) {
+//            ((InitializedEntity<E>) entity).setOriginalCopy(entityCreator.fromMap(tableMetadata, mapCreator.toMap(tableMetadata, entity)));
+        } catch (Exception ignored) {
             ignored.printStackTrace();
-        } catch (SQLException ignored) {
-            ignored.printStackTrace();
+        }
+        if (affectedRows <= 0) {
+            throw new UnsuccessfulOperationError("Failed to save entity " + object.getQualifiedName());
         }
     }
 
     @Override
     public <E> void delete(E entity) {
-        final DataAccessObject<Serializable> object = checkEntity(entity);
-        try {
-            statementRegistry.get(object.getQualifiedName() + ".deleteLike").prepare(dataSource.getConnection(), entity).executeUpdate();
-        } catch (RegistryException e) {
-            e.printStackTrace();
-        } catch (SQLException e) {
-            e.printStackTrace();
+        if (internalExecuteUpdate(entity, "deleteLike", true) <= 0) {
+            throw new UnsupportedOperationException("Failed to delete entity");
         }
     }
 
     @Override
     public <E, K extends Serializable> void delete(Class<E> entityType, K key) {
-        try {
-            final Statement statement = statementRegistry.get(entityType.getCanonicalName() + ".deleteByKey");
-            //noinspection unchecked
-            final DataAccessObject<K> object = (DataAccessObject<K>) getInstance(entityType);
-            object.changeKey(key);
-            statement.prepare(dataSource.getConnection(), object).executeUpdate();
-        } catch (RegistryException ignored) {
-        } catch (SQLException ignored) {
-        }
+        final E entity = getInstance(entityType);
+        //noinspection unchecked
+        final DataAccessObject<E, K> object = (DataAccessObject<E, K>) entity;
+        object.changeKey(key);
+        delete(entity);
     }
 
     @Override
     public <E> void deleteAll(Class<E> entityType) {
-        try {
-            statementRegistry.get(entityType.getCanonicalName() + ".deleteAll").prepare(dataSource.getConnection()).executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } catch (RegistryException e) {
-            e.printStackTrace();
+        if (internalExecuteUpdate(entityType, "deleteAll", true) <= 0) {
+            throw new UnsupportedOperationException("Failed to delete entity");
         }
     }
 
     @Override
     public <E> List<E> find(E sample) {
-        final DataAccessObject<Serializable> object = checkEntity(sample);
-        final ArrayList<E> result = new ArrayList<E>();
-        try {
-            //noinspection unchecked
-            final TableMetadata<E> tableMetadata = ((TableMetadataAware<E>) object).getTableMetadata();
-            final PreparedStatement statement = statementRegistry.get(object.getQualifiedName() + ".findLike").prepare(dataSource.getConnection(), sample);
-            final ResultSet resultSet = statement.executeQuery();
-            while (resultSet.next()) {
-                final Map<String, Object> map = rowHandler.handleRow(tableMetadata, resultSet);
-                final E entity = entityCreator.fromMap(tableMetadata, map);
-                result.add(entity);
-            }
-        } catch (RegistryException e) {
-            e.printStackTrace();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return result;
+        return internalExecuteQuery(sample, "findLike");
     }
 
     @Override
     public <E, K extends Serializable> E find(Class<E> entityType, K key) {
-        try {
-            final TableMetadata<E> tableMetadata = metadataRegistry.getTableMetadata(entityType);
-            final Statement statement = statementRegistry.get(entityType.getCanonicalName() + ".findByKey");
-            //noinspection unchecked
-            final DataAccessObject<K> object = (DataAccessObject<K>) getInstance(entityType);
-            object.changeKey(key);
-            final ResultSet resultSet = statement.prepare(dataSource.getConnection(), object).executeQuery();
-            resultSet.next();
-            final Map<String, Object> map = rowHandler.handleRow(tableMetadata, resultSet);
-            final E result = entityCreator.fromMap(tableMetadata, map);
-            //noinspection unchecked
-            ((InitializedEntity<E>) result).setOriginalCopy(entityCreator.fromMap(tableMetadata, map));
-            return result;
-        } catch (RegistryException ignored) {
-            ignored.printStackTrace();
-            return null;
-        } catch (SQLException ignored) {
-            ignored.printStackTrace();
-            return null;
+        final E entity = getInstance(entityType);
+        //noinspection unchecked
+        final DataAccessObject<E, K> object = (DataAccessObject<E, K>) entity;
+        object.changeKey(key);
+        final List<E> result = internalExecuteQuery(entity, "findByKey");
+        if (result.isEmpty()) {
+            throw new ObjectNotFoundError(entityType, key);
         }
+        if (result.size() > 1) {
+            throw new AmbiguousObjectKeyError(entityType, key);
+        }
+        return result.get(0);
     }
 
     @Override
     public <E> List<E> findAll(Class<E> entityType) {
-        final TableMetadata<E> tableMetadata = metadataRegistry.getTableMetadata(entityType);
-        final Statement statement;
-        try {
-            statement = statementRegistry.get(entityType.getCanonicalName() + ".findAll");
-        } catch (RegistryException ignored) {
-            return null;
-        }
-        final PreparedStatement preparedStatement;
-        final ArrayList<E> result = new ArrayList<E>();
-        try {
-            preparedStatement = statement.prepare(dataSource.getConnection());
-            final ResultSet resultSet = preparedStatement.executeQuery();
-            while (resultSet.next()) {
-                final Map<String,Object> map = rowHandler.handleRow(tableMetadata, resultSet);
-                result.add(entityCreator.fromMap(tableMetadata, map));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
-        }
-        return result;
+        return executeQuery(entityType, "findAll", Collections.<String, Object>emptyMap());
     }
 
     @Override
@@ -186,13 +134,102 @@ public class DefaultDataAccess implements DataAccess {
         return (K) checkEntity(entity).accessKey();
     }
 
-    private DataAccessObject<Serializable> checkEntity(Object entity) {
+    private <E> int internalExecuteUpdate(E original, E replacement, String queryName) {
+        final DataAccessObject<E, Serializable> object = checkEntity(original);
+        final Map<String, Object> map = MapTools.prefixKeys(mapCreator.toMap(object.getTableMetadata(), original), "value.");
+        map.putAll(MapTools.prefixKeys(mapCreator.toMap(object.getTableMetadata(), original), "old."));
+        map.putAll(MapTools.prefixKeys(mapCreator.toMap(object.getTableMetadata(), replacement), "new."));
+        return executeUpdate(object.getTableMetadata().getEntityType(), queryName, map);
+    }
+
+    private <E> List<E> internalExecuteQuery(E sample, String queryName) {
+        final DataAccessObject<E, Serializable> object = checkEntity(sample);
+        return executeQuery(object.getTableMetadata().getEntityType(), queryName, MapTools.prefixKeys(mapCreator.toMap(object.getTableMetadata(), sample), "value."));
+    }
+
+    @Override
+    public <E> int executeUpdate(Class<E> entityType, String queryName, Map<String, Object> values) {
+        try {
+            return statementRegistry.get(entityType.getCanonicalName() + "." + queryName).prepare(dataSource.getConnection(), values).executeUpdate();
+        } catch (RegistryException e) {
+            e.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    @Override
+    public <E> int executeUpdate(E sample, String queryName) {
+        return internalExecuteUpdate(sample, queryName, "");
+    }
+
+    private <E> int internalExecuteUpdate(E sample, String queryName, boolean prefix) {
+        final DataAccessObject<E, Serializable> object = checkEntity(sample);
+        final Map<String, Object> map = new HashMap<String, Object>();
+        if (prefix) {
+            map.putAll(MapTools.prefixKeys(mapCreator.toMap(object.getTableMetadata(), sample), "value."));
+        } else {
+            map.putAll(mapCreator.toMap(object.getTableMetadata(), sample));
+        }
+        try {
+            final Statement statement = statementRegistry.get(object.getQualifiedName() + "." + queryName);
+            final PreparedStatement preparedStatement = statement.prepare(dataSource.getConnection(), map);
+            final int affectedRows = preparedStatement.executeUpdate();
+            if (StatementType.INSERT.equals(statement.getType())) {
+                final ResultSet generatedKeys = preparedStatement.getGeneratedKeys();
+                if (generatedKeys.next()) {
+                    object.changeKey((Serializable) generatedKeys.getObject(1));
+                } else {
+                    throw new UnsupportedOperationException("Failed to obtain generated key values for the entity");
+                }
+            }
+            return affectedRows;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } catch (RegistryException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    @Override
+    public <E> List<E> executeQuery(Class<E> entityType, String queryName, Map<String, Object> values) {
+        try {
+            final TableMetadata<E> tableMetadata = metadataRegistry.getTableMetadata(entityType);
+            final Statement statement = statementRegistry.get(entityType.getCanonicalName() + "." + queryName);
+            final PreparedStatement preparedStatement = statement.prepare(dataSource.getConnection(), values);
+            final ResultSet resultSet = preparedStatement.executeQuery();
+            final ArrayList<E> result = new ArrayList<E>();
+            while (resultSet.next()) {
+                final E entity = entityCreator.fromMap(tableMetadata, rowHandler.handleRow(tableMetadata, resultSet));
+                //noinspection unchecked
+                ((InitializedEntity<E>) entity).setOriginalCopy(entity);
+                result.add(entity);
+            }
+            return result;
+        } catch (RegistryException e) {
+            e.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public <E> List<E> executeQuery(E sample, String queryName) {
+        final DataAccessObject<E, Serializable> object = checkEntity(sample);
+        final Map<String, Object> map = mapCreator.toMap(object.getTableMetadata(), sample);
+        return executeQuery(object.getTableMetadata().getEntityType(), queryName, map);
+    }
+
+    private <E, K extends Serializable> DataAccessObject<E, K> checkEntity(E entity) {
         Assert.assertNotNull(entity);
         if (!entityContext.has(entity)) {
             throw new EntityOutOfContextError(entity.getClass());
         }
         //noinspection unchecked
-        return (DataAccessObject<Serializable>) entity;
+        return (DataAccessObject<E, K>) entity;
     }
 
     @Override

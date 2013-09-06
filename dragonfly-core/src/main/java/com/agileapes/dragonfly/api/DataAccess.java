@@ -4,6 +4,7 @@ import com.agileapes.dragonfly.entity.EntityContext;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
@@ -26,5 +27,13 @@ public interface DataAccess extends EntityContext {
     <E> List<E> findAll(Class<E> entityType);
 
     <E, K extends Serializable> K getKey(E entity);
+
+    <E> int executeUpdate(Class<E> entityType, String queryName, Map<String, Object> values);
+
+    <E> int executeUpdate(E sample, String queryName);
+
+    <E> List<E> executeQuery(Class<E> entityType, String queryName, Map<String, Object> values);
+
+    <E> List<E> executeQuery(E sample, String queryName);
 
 }
