@@ -1,1 +1,1 @@
-INSERT INTO ${qualify(table)} (<#list isNotKey(table.columns) as column>${qualify(column)}<#if column_has_next>,</#if></#list>) VALUES(<#list isNotKey(table.columns) as column>${value[column.propertyName]}<#if column_has_next>,</#if></#list>);
+INSERT INTO ${qualify(table)} (<#list isNotGenerated(table.columns) as column>${qualify(column)}<#if column_has_next>,</#if></#list>) VALUES(<#list isNotGenerated(table.columns) as column>${value[column.propertyName]}<#if column_has_next>,</#if></#list>);
