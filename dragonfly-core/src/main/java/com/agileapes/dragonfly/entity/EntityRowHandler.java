@@ -11,6 +11,6 @@ import java.util.Map;
  */
 public interface EntityRowHandler {
 
-    <E> Map<String, Object> handleRow(TableMetadata<E> tableMetadata, ResultSet resultSet);
+    <E> Map<String, Object> handleRow(ResultSet resultSet);
 
 }

@@ -1,5 +1,6 @@
 package com.agileapes.dragonfly.error;
 
+import com.agileapes.dragonfly.statement.StatementType;
 import com.agileapes.dragonfly.statement.Statements;
 
 /**
@@ -8,12 +9,17 @@ import com.agileapes.dragonfly.statement.Statements;
  */
 public class UnsupportedStatementTypeError extends DatabaseError {
 
+    private static final String ERROR_MESSAGE = "Statements of type %s are not available in this context";
+
     public UnsupportedStatementTypeError(Statements.Definition type) {
-        super("Statements of type " + type + " are not available in this context");
+        super(String.format(ERROR_MESSAGE, type));
     }
 
     public UnsupportedStatementTypeError(Statements.Manipulation type) {
-        super("Statements of type " + type + " are not available in this context");
+        super(String.format(ERROR_MESSAGE, type));
     }
 
+    public UnsupportedStatementTypeError(StatementType statementType) {
+        super(String.format(ERROR_MESSAGE, statementType));
+    }
 }

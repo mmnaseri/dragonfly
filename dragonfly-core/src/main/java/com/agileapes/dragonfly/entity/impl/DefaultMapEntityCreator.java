@@ -12,6 +12,7 @@ import com.agileapes.dragonfly.metadata.ColumnMetadata;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.tools.ColumnNameFilter;
 
+import java.util.Collection;
 import java.util.Map;
 
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
@@ -36,9 +37,14 @@ public class DefaultMapEntityCreator implements MapEntityCreator {
         } catch (Exception e) {
             throw new EntityInitializationError(tableMetadata.getEntityType(), e);
         }
+        return fromMap(entity, tableMetadata.getColumns(), values);
+    }
+
+    @Override
+    public <E> E fromMap(E entity, Collection<ColumnMetadata> columns, Map<String, Object> values) {
         final BeanWrapper<E> wrapper = new MethodBeanWrapper<E>(entity);
         for (Map.Entry<String, Object> value : values.entrySet()) {
-            final ColumnMetadata columnMetadata = with(tableMetadata.getColumns()).keep(new ColumnNameFilter(value.getKey())).first();
+            final ColumnMetadata columnMetadata = with(columns).keep(new ColumnNameFilter(value.getKey())).first();
             if (columnMetadata == null) {
                 //as of this moment, we have chosen to ignore column clashes between
                 //the map and the entity
@@ -49,9 +55,9 @@ public class DefaultMapEntityCreator implements MapEntityCreator {
             } catch (NoSuchPropertyException e) {
                 //ditto here
             } catch (PropertyAccessException e) {
-                throw new EntityInitializationError(tableMetadata.getEntityType(), e);
+                throw new EntityInitializationError(entity.getClass(), e);
             } catch (PropertyTypeMismatchException e) {
-                throw new EntityInitializationError(tableMetadata.getEntityType(), e);
+                throw new EntityInitializationError(entity.getClass(), e);
             }
         }
         return entity;

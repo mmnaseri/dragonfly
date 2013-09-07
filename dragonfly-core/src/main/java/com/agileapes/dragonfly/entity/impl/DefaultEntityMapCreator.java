@@ -14,6 +14,7 @@ import com.agileapes.dragonfly.tools.ColumnPropertyFilter;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,10 +29,15 @@ public class DefaultEntityMapCreator implements EntityMapCreator {
 
     @Override
     public <E> Map<String, Object> toMap(TableMetadata<E> tableMetadata, E entity) {
+        return toMap(tableMetadata.getColumns(), entity);
+    }
+
+    @Override
+    public <E> Map<String, Object> toMap(Collection<ColumnMetadata> columns, E entity) {
         final HashMap<String, Object> map = new HashMap<String, Object>();
         final BeanAccessor<E> accessor = new MethodBeanAccessor<E>(entity);
         for (String propertyName : accessor.getPropertyNames()) {
-            ColumnMetadata column = with(tableMetadata.getColumns()).keep(new ColumnPropertyFilter(propertyName)).first();
+            ColumnMetadata column = with(columns).keep(new ColumnPropertyFilter(propertyName)).first();
             if (column == null) {
                 continue;
             }
@@ -52,13 +58,13 @@ public class DefaultEntityMapCreator implements EntityMapCreator {
                 if (column.getForeignReference().getName() == null || column.getForeignReference().getName().isEmpty()) {
                     final ConstraintMetadata primaryKey = column.getForeignReference().getTable().getPrimaryKey();
                     if (primaryKey == null) {
-                        throw new Error("Entity " + tableMetadata.getEntityType().getCanonicalName() + " references a non-existent primary key in " + column.getName());
+                        throw new Error("Entity " + entity.getClass().getCanonicalName() + " references a non-existent primary key in " + column.getName());
                     }
                     target = primaryKey.getColumns().iterator().next();
                 } else {
                     target = with(column.getForeignReference().getTable().getColumns()).keep(new ColumnNameFilter(column.getForeignReference().getName())).first();
                     if (target == null) {
-                        throw new Error("Entity " + tableMetadata.getEntityType().getCanonicalName() + " references a non-existent column in " + column.getName());
+                        throw new Error("Entity " + entity.getClass().getCanonicalName() + " references a non-existent column in " + column.getName());
                     }
                 }
                 final BeanAccessor<?> targetAccessor = new MethodBeanAccessor<Object>(value);

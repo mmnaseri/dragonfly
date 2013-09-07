@@ -2,7 +2,6 @@ package com.agileapes.dragonfly.entity.impl;
 
 import com.agileapes.dragonfly.entity.EntityRowHandler;
 import com.agileapes.dragonfly.error.MetadataAccessException;
-import com.agileapes.dragonfly.metadata.TableMetadata;
 
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -17,7 +16,7 @@ import java.util.Map;
 public class DefaultEntityRowHandler implements EntityRowHandler {
 
     @Override
-    public <E> Map<String, Object> handleRow(TableMetadata<E> tableMetadata, ResultSet resultSet) {
+    public <E> Map<String, Object> handleRow(ResultSet resultSet) {
         final HashMap<String, Object> map = new HashMap<String, Object>();
         final ResultSetMetaData metaData;
         final int columnCount;
@@ -30,7 +29,6 @@ public class DefaultEntityRowHandler implements EntityRowHandler {
         } catch (SQLException e) {
             throw new MetadataAccessException(e);
         }
-
         return map;
     }
 

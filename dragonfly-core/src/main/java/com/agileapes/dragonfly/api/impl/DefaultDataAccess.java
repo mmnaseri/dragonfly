@@ -2,19 +2,21 @@ package com.agileapes.dragonfly.api.impl;
 
 import com.agileapes.couteau.basics.assets.Assert;
 import com.agileapes.couteau.context.error.RegistryException;
-import com.agileapes.dragonfly.api.DataAccess;
+import com.agileapes.couteau.reflection.beans.BeanInitializer;
+import com.agileapes.couteau.reflection.beans.impl.ConstructorBeanInitializer;
+import com.agileapes.couteau.reflection.error.BeanInstantiationException;
+import com.agileapes.dragonfly.annotations.Partial;
 import com.agileapes.dragonfly.api.DataAccessObject;
+import com.agileapes.dragonfly.api.PartialDataAccess;
 import com.agileapes.dragonfly.entity.*;
 import com.agileapes.dragonfly.entity.impl.DefaultEntityContext;
 import com.agileapes.dragonfly.entity.impl.DefaultEntityMapCreator;
 import com.agileapes.dragonfly.entity.impl.DefaultEntityRowHandler;
 import com.agileapes.dragonfly.entity.impl.DefaultMapEntityCreator;
-import com.agileapes.dragonfly.error.AmbiguousObjectKeyError;
-import com.agileapes.dragonfly.error.EntityOutOfContextError;
-import com.agileapes.dragonfly.error.ObjectNotFoundError;
-import com.agileapes.dragonfly.error.UnsuccessfulOperationError;
+import com.agileapes.dragonfly.error.*;
 import com.agileapes.dragonfly.metadata.MetadataRegistry;
 import com.agileapes.dragonfly.metadata.TableMetadata;
+import com.agileapes.dragonfly.metadata.impl.ColumnMappingMetadataCollector;
 import com.agileapes.dragonfly.statement.Statement;
 import com.agileapes.dragonfly.statement.StatementType;
 import com.agileapes.dragonfly.statement.impl.StatementRegistry;
@@ -31,7 +33,7 @@ import java.util.*;
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/5, 19:16)
  */
-public class DefaultDataAccess implements DataAccess {
+public class DefaultDataAccess implements PartialDataAccess {
 
     private final DataSource dataSource;
     private final StatementRegistry statementRegistry;
@@ -40,6 +42,8 @@ public class DefaultDataAccess implements DataAccess {
     private final EntityRowHandler rowHandler;
     private final MapEntityCreator entityCreator;
     private final EntityMapCreator mapCreator;
+    private final BeanInitializer beanInitializer;
+    private final ColumnMappingMetadataCollector columnMappingMetadataCollector;
 
     public DefaultDataAccess(DataSource dataSource, StatementRegistry statementRegistry, MetadataRegistry metadataRegistry) {
         this.dataSource = dataSource;
@@ -49,6 +53,8 @@ public class DefaultDataAccess implements DataAccess {
         this.rowHandler = new DefaultEntityRowHandler();
         this.entityCreator = new DefaultMapEntityCreator(entityContext);
         this.mapCreator = new DefaultEntityMapCreator();
+        beanInitializer = new ConstructorBeanInitializer();
+        columnMappingMetadataCollector = new ColumnMappingMetadataCollector();
     }
 
     @Override
@@ -195,7 +201,7 @@ public class DefaultDataAccess implements DataAccess {
             final ResultSet resultSet = preparedStatement.executeQuery();
             final ArrayList<E> result = new ArrayList<E>();
             while (resultSet.next()) {
-                final E entity = entityCreator.fromMap(tableMetadata, rowHandler.handleRow(tableMetadata, resultSet));
+                final E entity = entityCreator.fromMap(tableMetadata, rowHandler.handleRow(resultSet));
                 //noinspection unchecked
                 ((InitializedEntity<E>) entity).setOriginalCopy(entity);
                 result.add(entity);
@@ -214,6 +220,89 @@ public class DefaultDataAccess implements DataAccess {
         final DataAccessObject<E, Serializable> object = checkEntity(sample);
         final Map<String, Object> map = mapCreator.toMap(object.getTableMetadata(), sample);
         return executeQuery(object.getTableMetadata().getEntityType(), queryName, map);
+    }
+
+    @Override
+    public <O> List<O> executePartialQuery(O sample) {
+        //noinspection unchecked
+        final Class<O> resultType = (Class<O>) sample.getClass();
+        final Map<String, Object> values = mapCreator.toMap(columnMappingMetadataCollector.collectMetadata(resultType), sample);
+        return executePartialQuery(resultType, values);
+    }
+
+    @Override
+    public <O> List<O> executePartialQuery(Class<O> resultType, Map<String, Object> values) {
+        if (!resultType.isAnnotationPresent(Partial.class)) {
+            throw new PartialEntityDefinitionError("Expected to find @Partial on " + resultType.getCanonicalName());
+        }
+        final Partial annotation = resultType.getAnnotation(Partial.class);
+        if (void.class.equals(annotation.targetEntity()) || annotation.query().isEmpty()) {
+            throw new PartialEntityDefinitionError("Could not resolve query for partial entity " + resultType.getCanonicalName());
+        }
+        return executePartialQuery(annotation.targetEntity(), annotation.query(), resultType, values);
+    }
+
+    @Override
+    public <E, O> List<O> executePartialQuery(Class<E> entityType, String queryName, Class<O> resultType, Map<String, Object> values) {
+        final List<O> list = new ArrayList<O>();
+        final List<Map<String, Object>> maps = executePartialQuery(entityType, queryName, values);
+        for (Map<String, Object> map : maps) {
+            final O entity;
+            try {
+                entity = beanInitializer.initialize(resultType, new Class[0]);
+            } catch (BeanInstantiationException e) {
+                throw new EntityInitializationError(resultType, e);
+            }
+            entityCreator.fromMap(entity, columnMappingMetadataCollector.collectMetadata(resultType), map);
+            list.add(entity);
+        }
+        return list;
+    }
+
+    @Override
+    public <E> List<Map<String, Object>> executePartialQuery(Class<E> entityType, String queryName, Map<String, Object> values) {
+        final ArrayList<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        try {
+            final Statement statement = statementRegistry.get(entityType.getCanonicalName() + "." + queryName);
+            if (!StatementType.QUERY.equals(statement.getType())) {
+                throw new UnsupportedStatementTypeError(statement.getType());
+            }
+            final PreparedStatement preparedStatement = statement.prepare(dataSource.getConnection(), values);
+            final ResultSet resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                list.add(rowHandler.handleRow(resultSet));
+            }
+        } catch (RegistryException e) {
+            e.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    @Override
+    public <O> int executePartialUpdate(O sample) {
+        final Class<?> resultType = sample.getClass();
+        if (!resultType.isAnnotationPresent(Partial.class)) {
+            throw new PartialEntityDefinitionError("Expected to find @Partial on " + resultType.getCanonicalName());
+        }
+        final Partial annotation = resultType.getAnnotation(Partial.class);
+        if (void.class.equals(annotation.targetEntity()) || annotation.query().isEmpty()) {
+            throw new PartialEntityDefinitionError("Could not resolve query for partial entity " + resultType.getCanonicalName());
+        }
+        return executePartialUpdate(annotation.targetEntity(), annotation.query(), mapCreator.toMap(columnMappingMetadataCollector.collectMetadata(resultType), sample));
+    }
+
+    @Override
+    public <E> int executePartialUpdate(Class<E> entityType, String queryName, Map<String, Object> values) {
+        try {
+            final Statement statement = statementRegistry.get(entityType.getCanonicalName() + "." + queryName);
+            final PreparedStatement preparedStatement = statement.prepare(dataSource.getConnection(), values);
+            return preparedStatement.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 
     private <E, K extends Serializable> DataAccessObject<E, K> checkEntity(E entity) {

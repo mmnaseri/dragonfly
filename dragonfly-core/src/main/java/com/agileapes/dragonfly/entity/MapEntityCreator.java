@@ -1,7 +1,9 @@
 package com.agileapes.dragonfly.entity;
 
+import com.agileapes.dragonfly.metadata.ColumnMetadata;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -11,5 +13,7 @@ import java.util.Map;
 public interface MapEntityCreator {
 
     <E> E fromMap(TableMetadata<E> tableMetadata, Map<String, Object> values);
+
+    <E> E fromMap(E entity, Collection<ColumnMetadata> columns, Map<String, Object> values);
 
 }

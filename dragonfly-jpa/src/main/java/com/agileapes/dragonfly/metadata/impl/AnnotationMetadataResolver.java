@@ -3,6 +3,7 @@ package com.agileapes.dragonfly.metadata.impl;
 import com.agileapes.couteau.basics.api.Transformer;
 import com.agileapes.couteau.reflection.util.ReflectionUtils;
 import com.agileapes.couteau.reflection.util.assets.AnnotatedElementFilter;
+import com.agileapes.couteau.reflection.util.assets.GetterMethodFilter;
 import com.agileapes.dragonfly.error.EntityDefinitionError;
 import com.agileapes.dragonfly.error.InvalidForeignReferenceDefinition;
 import com.agileapes.dragonfly.error.NoSuchColumnError;
@@ -55,6 +56,7 @@ public class AnnotationMetadataResolver implements MetadataResolver {
         //noinspection unchecked
         final Collection<ColumnMetadata> tableColumns = withMethods(entityType)
         .keep(new AnnotatedElementFilter(Column.class, JoinColumn.class))
+        .keep(new GetterMethodFilter())
         .drop(new AnnotatedElementFilter(OneToMany.class))
         .transform(new Transformer<Method, ColumnMetadata>() {
             @Override
