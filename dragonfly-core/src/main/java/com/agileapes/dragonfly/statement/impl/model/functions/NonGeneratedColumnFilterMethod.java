@@ -16,13 +16,18 @@ import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/1, 13:46)
  */
-public class NonKeyColumnFilterMethod extends FilteringMethodModel<ColumnMetadata> {
+public class NonGeneratedColumnFilterMethod extends FilteringMethodModel<ColumnMetadata> {
 
     private final Collection<ColumnMetadata> keys = new HashSet<ColumnMetadata>();
 
-    public NonKeyColumnFilterMethod(TableMetadata<?> tableMetadata) {
+    public NonGeneratedColumnFilterMethod(TableMetadata<?> tableMetadata) {
         try {
-            keys.addAll(tableMetadata.getPrimaryKey().getColumns());
+            final Collection<ColumnMetadata> columns = tableMetadata.getPrimaryKey().getColumns();
+            for (ColumnMetadata column : columns) {
+                if (column.getGenerationType() != null) {
+                    keys.add(column);
+                }
+            }
         } catch (MetadataCollectionError ignored) {}
     }
 

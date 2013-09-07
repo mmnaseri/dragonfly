@@ -33,8 +33,8 @@ public class FreemarkerStatementModel implements TemplateHashModel {
         items.put("old", new UnresolvedMapModel("old"));
         items.put("new", new UnresolvedMapModel("new"));
         items.put("qualify", new DatabaseIdentifierQualifierMethod(dialect));
-        items.put("isNotKey", new NonKeyColumnFilterMethod(tableMetadata));
-        items.put("isKey", new KeyColumnFilterMethod(tableMetadata));
+        items.put("isNotGenerated", new NonGeneratedColumnFilterMethod(tableMetadata));
+        items.put("isGenerated", new GeneratedColumnFilterMethod(tableMetadata));
         items.put("isNotReference", new NonForeignKeyFilterMethod());
         items.put("isReference", new ForeignKeyFilterMethod());
         items.put("isSet", new ValueColumnSelectorMethod(value));
