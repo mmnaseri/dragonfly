@@ -5,7 +5,10 @@ import com.agileapes.couteau.context.error.RegistryException;
 import com.agileapes.dragonfly.api.DataAccess;
 import com.agileapes.dragonfly.api.DataAccessObject;
 import com.agileapes.dragonfly.entity.*;
-import com.agileapes.dragonfly.entity.impl.*;
+import com.agileapes.dragonfly.entity.impl.DefaultEntityContext;
+import com.agileapes.dragonfly.entity.impl.DefaultEntityMapCreator;
+import com.agileapes.dragonfly.entity.impl.DefaultEntityRowHandler;
+import com.agileapes.dragonfly.entity.impl.DefaultMapEntityCreator;
 import com.agileapes.dragonfly.error.AmbiguousObjectKeyError;
 import com.agileapes.dragonfly.error.EntityOutOfContextError;
 import com.agileapes.dragonfly.error.ObjectNotFoundError;
@@ -52,25 +55,15 @@ public class DefaultDataAccess implements DataAccess {
     public <E> void save(E entity) {
         final DataAccessObject<E, Serializable> object = checkEntity(entity);
         //noinspection unchecked
-        final TableMetadata<E> tableMetadata = metadataRegistry.getTableMetadata(object.getTableMetadata().getEntityType());
         int affectedRows = 0;
         try {
-            final boolean shouldUpdate = (object.hasKey() && object.accessKey() != null) || find(entity).size() == 1;//object.hasKey() && object.accessKey() != null;
+            final boolean shouldUpdate = (object.hasKey() && object.accessKey() != null) || ((InitializedEntity) object).isDirtied() && find(entity).size() == 1;//object.hasKey() && object.accessKey() != null;
             if (shouldUpdate) {
                 //noinspection unchecked
                 affectedRows = internalExecuteUpdate(((InitializedEntity<E>) object).getOriginalCopy(), entity, "updateBySample");
-//                statementRegistry.get(object.getQualifiedName() + ".updateBySample").prepare(dataSource.getConnection(), ((InitializedEntity<E>) entity).getOriginalCopy(), entity).executeUpdate();
             } else {
                 affectedRows = internalExecuteUpdate(entity, "insert", true);
-//                final PreparedStatement statement = statementRegistry.get(object.getQualifiedName() + ".insert").prepare(dataSource.getConnection(), entity);
-//                statement.executeUpdate();
-//                final ResultSet generatedKeys = statement.getGeneratedKeys();
-//                if (generatedKeys.next()) {
-//                    object.changeKey((Serializable) generatedKeys.getObject(1));
-//                }
             }
-            //noinspection unchecked
-//            ((InitializedEntity<E>) entity).setOriginalCopy(entityCreator.fromMap(tableMetadata, mapCreator.toMap(tableMetadata, entity)));
         } catch (Exception ignored) {
             ignored.printStackTrace();
         }

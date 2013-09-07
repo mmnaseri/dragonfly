@@ -85,7 +85,14 @@ public class AnnotationMetadataResolver implements MetadataResolver {
                 return columnMetadata;
             }
         }).list();
-        final ResolvedTableMetadata<E> tableMetadata = new ResolvedTableMetadata<E>(entityType, schema, tableName, constraints, tableColumns);
+        final HashSet<NamedQueryMetadata> namedQueries = new HashSet<NamedQueryMetadata>();
+        if (entityType.isAnnotationPresent(NamedNativeQueries.class)) {
+            final NamedNativeQuery[] queries = entityType.getAnnotation(NamedNativeQueries.class).value();
+            for (NamedNativeQuery query : queries) {
+                namedQueries.add(new ImmutableNamedQueryMetadata(query.name(), query.name()));
+            }
+        }
+        final ResolvedTableMetadata<E> tableMetadata = new ResolvedTableMetadata<E>(entityType, schema, tableName, constraints, tableColumns, namedQueries);
         if (!keyColumns.isEmpty()) {
             constraints.add(new PrimaryKeyConstraintMetadata(tableMetadata, with(keyColumns).transform(new Transformer<String, ColumnMetadata>() {
                 @Override

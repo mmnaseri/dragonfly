@@ -14,4 +14,6 @@ public interface InitializedEntity<E> {
 
     E getOriginalCopy();
 
+    boolean isDirtied();
+
 }

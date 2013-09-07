@@ -28,4 +28,6 @@ public interface TableMetadata<E> {
 
     boolean hasPrimaryKey();
 
+    Collection<NamedQueryMetadata> getNamedQueries();
+
 }

@@ -7,7 +7,8 @@ package com.agileapes.dragonfly.error;
 public class EntityOutOfContextError extends DatabaseError {
 
     public EntityOutOfContextError(Class<?> entityType) {
-        super("Given entity of type " + entityType.getCanonicalName() + " is out of context");
+        super("Given entity of type " + entityType.getCanonicalName() + " is out of context. You have perhaps not instantiated " +
+                "the persistent object through an EntityContext");
     }
 
 }

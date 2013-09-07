@@ -4,6 +4,7 @@ import com.agileapes.dragonfly.error.MetadataCollectionError;
 import com.agileapes.dragonfly.error.UnresolvedTableMetadataError;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
 import com.agileapes.dragonfly.metadata.ConstraintMetadata;
+import com.agileapes.dragonfly.metadata.NamedQueryMetadata;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 
 import java.util.Collection;
@@ -40,6 +41,11 @@ public class UnresolvedTableMetadata<E> extends AbstractTableMetadata<E> {
 
     @Override
     public boolean hasPrimaryKey() {
+        throw new MetadataCollectionError("Metadata is not available", new UnresolvedTableMetadataError());
+    }
+
+    @Override
+    public Collection<NamedQueryMetadata> getNamedQueries() {
         throw new MetadataCollectionError("Metadata is not available", new UnresolvedTableMetadataError());
     }
 

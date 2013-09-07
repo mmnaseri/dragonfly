@@ -178,6 +178,11 @@ public class EntityProxy<E> extends InterfaceInterceptor implements InitializedE
     }
 
     @Override
+    public boolean isDirtied() {
+        return !dirtiedProperties.isEmpty();
+    }
+
+    @Override
     public boolean hasKey() {
         return keyProperty != null;
     }
