@@ -120,6 +120,10 @@ public class EntityProxy<E> extends InterfaceInterceptor implements InitializedE
                 }
             }
         });
+        dirtiedProperties.clear();
+        if (keyProperty != null) {
+            dirtiedProperties.add(keyProperty);
+        }
     }
 
     @Override
@@ -131,6 +135,21 @@ public class EntityProxy<E> extends InterfaceInterceptor implements InitializedE
     public void delete() {
         dataAccess.delete(entityType, accessKey());
         deleted = true;
+    }
+
+    @Override
+    public List<E> findLike() {
+        return dataAccess.find(entity);
+    }
+
+    @Override
+    public List<E> query(String queryName) {
+        return dataAccess.executeQuery(entity, queryName);
+    }
+
+    @Override
+    public int update(String queryName) {
+        return dataAccess.executeUpdate(entity, queryName);
     }
 
     @Override

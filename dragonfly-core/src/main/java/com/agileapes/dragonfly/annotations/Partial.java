@@ -15,6 +15,7 @@ import java.lang.annotation.Target;
  * <p>You can bind a partial entity to a certain named query by specifying the entity
  * for which the named query is defined and the name of that query.</p>
  *
+ * @see Mapping
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/7, 13:09)
  */

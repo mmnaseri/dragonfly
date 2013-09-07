@@ -30,6 +30,13 @@ import java.sql.SQLException;
 import java.util.*;
 
 /**
+ * <p>This is the default implementation of the {@link com.agileapes.dragonfly.api.DataAccess}
+ * and {@link PartialDataAccess} interfaces, using the available session and provided metadata
+ * registries for all actions.</p>
+ *
+ * <p>This implementation relies on reflection for providing conversion of entities to maps
+ * and vice versa.</p>
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/5, 19:16)
  */
@@ -99,6 +106,11 @@ public class DefaultDataAccess implements PartialDataAccess {
         if (internalExecuteUpdate(entityType, "deleteAll", true) <= 0) {
             throw new UnsupportedOperationException("Failed to delete entity");
         }
+    }
+
+    @Override
+    public <E> void truncate(Class<E> entityType) {
+        executeUpdate(entityType, "truncate", Collections.<String, Object>emptyMap());
     }
 
     @Override
@@ -195,13 +207,15 @@ public class DefaultDataAccess implements PartialDataAccess {
     @Override
     public <E> List<E> executeQuery(Class<E> entityType, String queryName, Map<String, Object> values) {
         try {
-            final TableMetadata<E> tableMetadata = metadataRegistry.getTableMetadata(entityType);
+//            final TableMetadata<E> tableMetadata = metadataRegistry.getTableMetadata(entityType);
             final Statement statement = statementRegistry.get(entityType.getCanonicalName() + "." + queryName);
             final PreparedStatement preparedStatement = statement.prepare(session.getConnection(), values);
             final ResultSet resultSet = preparedStatement.executeQuery();
             final ArrayList<E> result = new ArrayList<E>();
             while (resultSet.next()) {
-                final E entity = entityCreator.fromMap(tableMetadata, rowHandler.handleRow(resultSet));
+                final E entity = getInstance(entityType);
+                //noinspection unchecked
+                entityCreator.fromMap(entity, ((DataAccessObject) entity).getTableMetadata().getColumns(), rowHandler.handleRow(resultSet));
                 //noinspection unchecked
                 ((InitializedEntity<E>) entity).setOriginalCopy(entity);
                 result.add(entity);
@@ -223,20 +237,20 @@ public class DefaultDataAccess implements PartialDataAccess {
     }
 
     @Override
-    public <O> List<O> executePartialQuery(O sample) {
+    public <O> List<O> executeQuery(O sample) {
         //noinspection unchecked
         final Class<O> resultType = (Class<O>) sample.getClass();
         final Map<String, Object> values = mapCreator.toMap(columnMappingMetadataCollector.collectMetadata(resultType), sample);
-        return executePartialQuery(resultType, values);
+        return executeQuery(resultType, values);
     }
 
     @Override
-    public <O> List<O> executePartialQuery(Class<O> resultType) {
-        return executePartialQuery(resultType, Collections.<String, Object>emptyMap());
+    public <O> List<O> executeQuery(Class<O> resultType) {
+        return executeQuery(resultType, Collections.<String, Object>emptyMap());
     }
 
     @Override
-    public <O> List<O> executePartialQuery(Class<O> resultType, Map<String, Object> values) {
+    public <O> List<O> executeQuery(Class<O> resultType, Map<String, Object> values) {
         if (!resultType.isAnnotationPresent(Partial.class)) {
             throw new PartialEntityDefinitionError("Expected to find @Partial on " + resultType.getCanonicalName());
         }
@@ -244,13 +258,13 @@ public class DefaultDataAccess implements PartialDataAccess {
         if (void.class.equals(annotation.targetEntity()) || annotation.query().isEmpty()) {
             throw new PartialEntityDefinitionError("Could not resolve query for partial entity " + resultType.getCanonicalName());
         }
-        return executePartialQuery(annotation.targetEntity(), annotation.query(), resultType, values);
+        return executeQuery(annotation.targetEntity(), annotation.query(), resultType, values);
     }
 
     @Override
-    public <E, O> List<O> executePartialQuery(Class<E> entityType, String queryName, Class<O> resultType, Map<String, Object> values) {
+    public <E, O> List<O> executeQuery(Class<E> entityType, String queryName, Class<O> resultType, Map<String, Object> values) {
         final List<O> list = new ArrayList<O>();
-        final List<Map<String, Object>> maps = executePartialQuery(entityType, queryName, values);
+        final List<Map<String, Object>> maps = executeUntypedQuery(entityType, queryName, values);
         for (Map<String, Object> map : maps) {
             final O entity;
             try {
@@ -265,7 +279,7 @@ public class DefaultDataAccess implements PartialDataAccess {
     }
 
     @Override
-    public <E> List<Map<String, Object>> executePartialQuery(Class<E> entityType, String queryName, Map<String, Object> values) {
+    public <E> List<Map<String, Object>> executeUntypedQuery(Class<E> entityType, String queryName, Map<String, Object> values) {
         final ArrayList<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
         try {
             final Statement statement = statementRegistry.get(entityType.getCanonicalName() + "." + queryName);
@@ -286,7 +300,7 @@ public class DefaultDataAccess implements PartialDataAccess {
     }
 
     @Override
-    public <O> int executePartialUpdate(O sample) {
+    public <O> int executeUpdate(O sample) {
         final Class<?> resultType = sample.getClass();
         if (!resultType.isAnnotationPresent(Partial.class)) {
             throw new PartialEntityDefinitionError("Expected to find @Partial on " + resultType.getCanonicalName());
@@ -295,24 +309,7 @@ public class DefaultDataAccess implements PartialDataAccess {
         if (void.class.equals(annotation.targetEntity()) || annotation.query().isEmpty()) {
             throw new PartialEntityDefinitionError("Could not resolve query for partial entity " + resultType.getCanonicalName());
         }
-        return executePartialUpdate(annotation.targetEntity(), annotation.query(), mapCreator.toMap(columnMappingMetadataCollector.collectMetadata(resultType), sample));
-    }
-
-    @Override
-    public <E> int executePartialUpdate(Class<E> entityType, String queryName, Map<String, Object> values) {
-        try {
-            final Statement statement = statementRegistry.get(entityType.getCanonicalName() + "." + queryName);
-            final PreparedStatement preparedStatement = statement.prepare(session.getConnection(), values);
-            return preparedStatement.executeUpdate();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return 0;
-    }
-
-    @Override
-    public <E> int executePartialUpdate(Class<E> entityType, String queryName) {
-        return executePartialUpdate(entityType, queryName, Collections.<String, Object>emptyMap());
+        return executeUpdate(annotation.targetEntity(), annotation.query(), mapCreator.toMap(columnMappingMetadataCollector.collectMetadata(resultType), sample));
     }
 
     private <E, K extends Serializable> DataAccessObject<E, K> checkEntity(E entity) {
