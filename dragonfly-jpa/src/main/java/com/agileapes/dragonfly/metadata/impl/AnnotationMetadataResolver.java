@@ -91,7 +91,7 @@ public class AnnotationMetadataResolver implements MetadataResolver {
         if (entityType.isAnnotationPresent(NamedNativeQueries.class)) {
             final NamedNativeQuery[] queries = entityType.getAnnotation(NamedNativeQueries.class).value();
             for (NamedNativeQuery query : queries) {
-                namedQueries.add(new ImmutableNamedQueryMetadata(query.name(), query.name()));
+                namedQueries.add(new ImmutableNamedQueryMetadata(query.name(), query.query()));
             }
         }
         final ResolvedTableMetadata<E> tableMetadata = new ResolvedTableMetadata<E>(entityType, schema, tableName, constraints, tableColumns, namedQueries);

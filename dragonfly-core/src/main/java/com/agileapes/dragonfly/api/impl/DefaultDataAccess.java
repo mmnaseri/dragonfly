@@ -8,6 +8,7 @@ import com.agileapes.couteau.reflection.error.BeanInstantiationException;
 import com.agileapes.dragonfly.annotations.Partial;
 import com.agileapes.dragonfly.api.DataAccessObject;
 import com.agileapes.dragonfly.api.PartialDataAccess;
+import com.agileapes.dragonfly.data.DataAccessSession;
 import com.agileapes.dragonfly.entity.*;
 import com.agileapes.dragonfly.entity.impl.DefaultEntityContext;
 import com.agileapes.dragonfly.entity.impl.DefaultEntityMapCreator;
@@ -22,7 +23,6 @@ import com.agileapes.dragonfly.statement.StatementType;
 import com.agileapes.dragonfly.statement.impl.StatementRegistry;
 import com.agileapes.dragonfly.tools.MapTools;
 
-import javax.sql.DataSource;
 import java.io.Serializable;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -35,7 +35,7 @@ import java.util.*;
  */
 public class DefaultDataAccess implements PartialDataAccess {
 
-    private final DataSource dataSource;
+    private final DataAccessSession session;
     private final StatementRegistry statementRegistry;
     private final EntityContext entityContext;
     private final MetadataRegistry metadataRegistry;
@@ -45,8 +45,8 @@ public class DefaultDataAccess implements PartialDataAccess {
     private final BeanInitializer beanInitializer;
     private final ColumnMappingMetadataCollector columnMappingMetadataCollector;
 
-    public DefaultDataAccess(DataSource dataSource, StatementRegistry statementRegistry, MetadataRegistry metadataRegistry) {
-        this.dataSource = dataSource;
+    public DefaultDataAccess(DataAccessSession session, StatementRegistry statementRegistry, MetadataRegistry metadataRegistry) {
+        this.session = session;
         this.statementRegistry = statementRegistry;
         this.metadataRegistry = metadataRegistry;
         this.entityContext = new DefaultEntityContext(this);
@@ -149,7 +149,7 @@ public class DefaultDataAccess implements PartialDataAccess {
     @Override
     public <E> int executeUpdate(Class<E> entityType, String queryName, Map<String, Object> values) {
         try {
-            return statementRegistry.get(entityType.getCanonicalName() + "." + queryName).prepare(dataSource.getConnection(), values).executeUpdate();
+            return statementRegistry.get(entityType.getCanonicalName() + "." + queryName).prepare(session.getConnection(), values).executeUpdate();
         } catch (RegistryException e) {
             e.printStackTrace();
         } catch (SQLException e) {
@@ -173,15 +173,15 @@ public class DefaultDataAccess implements PartialDataAccess {
         }
         try {
             final Statement statement = statementRegistry.get(object.getQualifiedName() + "." + queryName);
-            final PreparedStatement preparedStatement = statement.prepare(dataSource.getConnection(), map);
+            final PreparedStatement preparedStatement = statement.prepare(session.getConnection(), map);
             final int affectedRows = preparedStatement.executeUpdate();
             if (StatementType.INSERT.equals(statement.getType())) {
                 final ResultSet generatedKeys = preparedStatement.getGeneratedKeys();
-                if (generatedKeys.next()) {
-                    object.changeKey((Serializable) generatedKeys.getObject(1));
-                } else {
+                final Serializable key = session.getDatabaseDialect().retrieveKey(generatedKeys, object.getTableMetadata());
+                if (key == null) {
                     throw new UnsupportedOperationException("Failed to obtain generated key values for the entity");
                 }
+                object.changeKey(key);
             }
             return affectedRows;
         } catch (SQLException e) {
@@ -197,7 +197,7 @@ public class DefaultDataAccess implements PartialDataAccess {
         try {
             final TableMetadata<E> tableMetadata = metadataRegistry.getTableMetadata(entityType);
             final Statement statement = statementRegistry.get(entityType.getCanonicalName() + "." + queryName);
-            final PreparedStatement preparedStatement = statement.prepare(dataSource.getConnection(), values);
+            final PreparedStatement preparedStatement = statement.prepare(session.getConnection(), values);
             final ResultSet resultSet = preparedStatement.executeQuery();
             final ArrayList<E> result = new ArrayList<E>();
             while (resultSet.next()) {
@@ -272,7 +272,7 @@ public class DefaultDataAccess implements PartialDataAccess {
             if (!StatementType.QUERY.equals(statement.getType())) {
                 throw new UnsupportedStatementTypeError(statement.getType());
             }
-            final PreparedStatement preparedStatement = statement.prepare(dataSource.getConnection(), values);
+            final PreparedStatement preparedStatement = statement.prepare(session.getConnection(), values);
             final ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
                 list.add(rowHandler.handleRow(resultSet));
@@ -302,7 +302,7 @@ public class DefaultDataAccess implements PartialDataAccess {
     public <E> int executePartialUpdate(Class<E> entityType, String queryName, Map<String, Object> values) {
         try {
             final Statement statement = statementRegistry.get(entityType.getCanonicalName() + "." + queryName);
-            final PreparedStatement preparedStatement = statement.prepare(dataSource.getConnection(), values);
+            final PreparedStatement preparedStatement = statement.prepare(session.getConnection(), values);
             return preparedStatement.executeUpdate();
         } catch (Exception e) {
             e.printStackTrace();

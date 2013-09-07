@@ -16,12 +16,16 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/3, 18:02)
  */
 public class ImmutableStatement implements Statement {
+
+    public static final Pattern STATEMENT_PATTERN = Pattern.compile("(%\\{.*?\\}|<%.*?>|</%.*>)", Pattern.DOTALL);
+    public static final Pattern VALUE_PATTERN = Pattern.compile("(?:[%\\$]\\{[^\\}]*?\\b(?:value|new|old)|<[\\$%].*?\\b(?:value|new|old))");
 
     private final TableMetadata<?> tableMetadata;
     private final DatabaseDialect dialect;
@@ -30,6 +34,10 @@ public class ImmutableStatement implements Statement {
     private final boolean parameters;
     private final StatementType type;
     private final StatementPreparator preparator;
+
+    public ImmutableStatement(TableMetadata<?> tableMetadata, DatabaseDialect dialect, String sql) {
+        this(tableMetadata, dialect, sql, STATEMENT_PATTERN.matcher(sql).find(), VALUE_PATTERN.matcher(sql).find(), StatementType.getStatementType(sql));
+    }
 
     public ImmutableStatement(TableMetadata<?> tableMetadata, DatabaseDialect dialect, String sql, boolean dynamic, boolean parameters, StatementType type) {
         this.tableMetadata = tableMetadata;

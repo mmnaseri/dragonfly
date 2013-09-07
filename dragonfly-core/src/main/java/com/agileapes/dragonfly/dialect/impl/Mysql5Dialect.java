@@ -3,13 +3,16 @@ package com.agileapes.dragonfly.dialect.impl;
 import com.agileapes.couteau.freemarker.utils.FreemarkerUtils;
 import com.agileapes.dragonfly.dialect.DatabaseDialect;
 import com.agileapes.dragonfly.error.DatabaseMetadataAccessError;
+import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.statement.StatementBuilderContext;
 import com.agileapes.dragonfly.statement.Statements;
 import com.agileapes.dragonfly.statement.impl.FreemarkerStatementBuilder;
 import com.agileapes.dragonfly.statement.impl.FreemarkerStatementBuilderContext;
 import freemarker.template.Configuration;
 
+import java.io.Serializable;
 import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
@@ -51,6 +54,24 @@ public class Mysql5Dialect extends GenericDatabaseDialect {
     @Override
     public StatementBuilderContext getStatementBuilderContext() {
         return statementBuilderContext;
+    }
+
+    @Override
+    public Serializable retrieveKey(ResultSet generatedKeys, TableMetadata<?> tableMetadata) throws SQLException{
+        if (generatedKeys.next()) {
+            return generatedKeys.getLong(1);
+        }
+        return null;
+    }
+
+    @Override
+    public String getName() {
+        return "mysql";
+    }
+
+    @Override
+    public int getDefaultPort() {
+        return 3306;
     }
 
 }

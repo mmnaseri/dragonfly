@@ -14,7 +14,6 @@ import freemarker.template.TemplateModelException;
 
 import java.io.IOException;
 import java.io.StringWriter;
-import java.util.regex.Pattern;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
@@ -22,8 +21,6 @@ import java.util.regex.Pattern;
  */
 public class FreemarkerStatementBuilder implements StatementBuilder {
 
-    public static final Pattern STATEMENT_PATTERN = Pattern.compile("(%\\{.*?\\}|<%.*?>|</%.*>)", Pattern.DOTALL);
-    public static final Pattern VALUE_PATTERN = Pattern.compile("(?:[%\\$]\\{[^\\}]*?\\b(?:value|new|old)|<[\\$%].*?\\b(?:value|new|old))");
     private final String templateName;
     private final Configuration configuration;
     private final DatabaseDialect dialect;
@@ -55,7 +52,7 @@ public class FreemarkerStatementBuilder implements StatementBuilder {
         } catch (Exception ignored) {
         }
         final String sql = writer.toString().trim();
-        return new ImmutableStatement(tableMetadata, dialect, sql, STATEMENT_PATTERN.matcher(sql).find(), VALUE_PATTERN.matcher(sql).find(), StatementType.getStatementType(sql));
+        return new ImmutableStatement(tableMetadata, dialect, sql, ImmutableStatement.STATEMENT_PATTERN.matcher(sql).find(), ImmutableStatement.VALUE_PATTERN.matcher(sql).find(), StatementType.getStatementType(sql));
     }
 
     @Override
