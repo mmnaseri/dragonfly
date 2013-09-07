@@ -11,6 +11,8 @@ public interface PartialDataAccess extends DataAccess {
 
     <O> List<O> executePartialQuery(O sample);
 
+    <O> List<O> executePartialQuery(Class<O> resultType);
+
     <O> List<O> executePartialQuery(Class<O> resultType, Map<String, Object> values);
 
     <E, O> List<O> executePartialQuery(Class<E> entityType, String queryName, Class<O> resultType, Map<String, Object> values);
@@ -20,5 +22,7 @@ public interface PartialDataAccess extends DataAccess {
     <O> int executePartialUpdate(O sample);
 
     <E> int executePartialUpdate(Class<E> entityType, String queryName, Map<String, Object> values);
+
+    <E> int executePartialUpdate(Class<E> entityType, String queryName);
 
 }

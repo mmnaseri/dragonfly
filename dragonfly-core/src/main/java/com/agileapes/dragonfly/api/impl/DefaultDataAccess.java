@@ -231,6 +231,11 @@ public class DefaultDataAccess implements PartialDataAccess {
     }
 
     @Override
+    public <O> List<O> executePartialQuery(Class<O> resultType) {
+        return executePartialQuery(resultType, Collections.<String, Object>emptyMap());
+    }
+
+    @Override
     public <O> List<O> executePartialQuery(Class<O> resultType, Map<String, Object> values) {
         if (!resultType.isAnnotationPresent(Partial.class)) {
             throw new PartialEntityDefinitionError("Expected to find @Partial on " + resultType.getCanonicalName());
@@ -303,6 +308,11 @@ public class DefaultDataAccess implements PartialDataAccess {
             e.printStackTrace();
         }
         return 0;
+    }
+
+    @Override
+    public <E> int executePartialUpdate(Class<E> entityType, String queryName) {
+        return executePartialUpdate(entityType, queryName, Collections.<String, Object>emptyMap());
     }
 
     private <E, K extends Serializable> DataAccessObject<E, K> checkEntity(E entity) {
