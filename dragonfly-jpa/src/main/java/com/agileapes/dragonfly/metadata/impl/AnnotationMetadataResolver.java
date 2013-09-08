@@ -243,4 +243,9 @@ public class AnnotationMetadataResolver implements MetadataResolver {
         }
     }
 
+    @Override
+    public boolean accepts(Class<?> entityType) {
+        return entityType.isAnnotationPresent(Entity.class);
+    }
+
 }
