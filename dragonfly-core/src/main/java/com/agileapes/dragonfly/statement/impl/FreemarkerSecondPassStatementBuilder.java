@@ -1,7 +1,7 @@
 package com.agileapes.dragonfly.statement.impl;
 
 import com.agileapes.dragonfly.dialect.DatabaseDialect;
-import com.agileapes.dragonfly.metadata.ConstraintMetadata;
+import com.agileapes.dragonfly.metadata.Metadata;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.statement.Statement;
 import com.agileapes.dragonfly.statement.StatementBuilder;
@@ -45,7 +45,12 @@ public class FreemarkerSecondPassStatementBuilder implements StatementBuilder {
     }
 
     @Override
-    public Statement getStatement(TableMetadata<?> tableMetadata, ConstraintMetadata constraintMetadata) {
+    public Statement getStatement(TableMetadata<?> tableMetadata, Metadata metadata) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Statement getStatement(TableMetadata<?> tableMetadata) {
         final FreemarkerStatementModel model;
         try {
             model = new FreemarkerStatementModel(tableMetadata, dialect, value);
@@ -59,11 +64,6 @@ public class FreemarkerSecondPassStatementBuilder implements StatementBuilder {
         }
         final String sql = writer.toString();
         return new ImmutableStatement(tableMetadata, dialect, sql, false, statement.hasParameters(), StatementType.getStatementType(sql));
-    }
-
-    @Override
-    public Statement getStatement(TableMetadata<?> tableMetadata) {
-        return getStatement(tableMetadata, null);
     }
 
 }

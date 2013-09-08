@@ -1,1 +1,1 @@
-ALTER TABLE ${qualify(table)} DROP FOREIGN KEY ${escape(constraint.name)};
+ALTER TABLE ${qualify(table)} DROP FOREIGN KEY ${escape(metadata.name)};

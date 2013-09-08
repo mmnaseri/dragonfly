@@ -19,10 +19,9 @@ public class DefaultEntityRowHandler implements EntityRowHandler {
     public <E> Map<String, Object> handleRow(ResultSet resultSet) {
         final HashMap<String, Object> map = new HashMap<String, Object>();
         final ResultSetMetaData metaData;
-        final int columnCount;
         try {
             metaData = resultSet.getMetaData();
-            columnCount = metaData.getColumnCount();
+            final int columnCount = metaData.getColumnCount();
             for (int i = 1; i <= columnCount; i ++) {
                 map.put(metaData.getColumnName(i), resultSet.getObject(i));
             }

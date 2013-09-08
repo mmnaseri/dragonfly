@@ -1,6 +1,5 @@
 package com.agileapes.dragonfly.error;
 
-import com.agileapes.dragonfly.statement.StatementType;
 import com.agileapes.dragonfly.statement.Statements;
 
 /**
@@ -19,7 +18,4 @@ public class UnsupportedStatementTypeError extends DatabaseError {
         super(String.format(ERROR_MESSAGE, type));
     }
 
-    public UnsupportedStatementTypeError(StatementType statementType) {
-        super(String.format(ERROR_MESSAGE, statementType));
-    }
 }

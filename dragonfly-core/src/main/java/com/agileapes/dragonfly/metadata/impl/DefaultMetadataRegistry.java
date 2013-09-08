@@ -49,7 +49,7 @@ public class DefaultMetadataRegistry implements MetadataRegistry {
     }
 
     @Override
-    public <E> void addTableMetadata(TableMetadata<E> tableMetadata) {
+    public synchronized <E> void addTableMetadata(TableMetadata<E> tableMetadata) {
         final String key = mapper.map(tableMetadata.getEntityType());
         try {
             registry.register(key, tableMetadata);
@@ -61,7 +61,7 @@ public class DefaultMetadataRegistry implements MetadataRegistry {
     }
 
     @Override
-    public boolean contains(Class<?> entityType) {
+    public synchronized boolean contains(Class<?> entityType) {
         return registry.contains(mapper.map(entityType));
     }
 

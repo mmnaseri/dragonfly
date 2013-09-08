@@ -52,6 +52,7 @@ public class AnnotationMetadataResolver implements MetadataResolver {
             tableName = entityType.getSimpleName();
             schema = NO_SCHEMA;
         }
+        final Collection<SequenceMetadata> sequences = new HashSet<SequenceMetadata>();
         final HashSet<ConstraintMetadata> constraints = new HashSet<ConstraintMetadata>();
         //noinspection unchecked
         final Collection<ColumnMetadata> tableColumns = withMethods(entityType)
@@ -84,6 +85,10 @@ public class AnnotationMetadataResolver implements MetadataResolver {
                 if (method.isAnnotationPresent(Id.class)) {
                     keyColumns.add(name);
                 }
+                if (method.isAnnotationPresent(SequenceGenerator.class)) {
+                    final SequenceGenerator annotation = method.getAnnotation(SequenceGenerator.class);
+                    sequences.add(new DefaultSequenceMetadata(annotation.name(), annotation.initialValue(), annotation.allocationSize()));
+                }
                 return columnMetadata;
             }
         }).list();
@@ -94,7 +99,11 @@ public class AnnotationMetadataResolver implements MetadataResolver {
                 namedQueries.add(new ImmutableNamedQueryMetadata(query.name(), query.query()));
             }
         }
-        final ResolvedTableMetadata<E> tableMetadata = new ResolvedTableMetadata<E>(entityType, schema, tableName, constraints, tableColumns, namedQueries);
+        if (entityType.isAnnotationPresent(SequenceGenerator.class)) {
+            final SequenceGenerator annotation = entityType.getAnnotation(SequenceGenerator.class);
+            sequences.add(new DefaultSequenceMetadata(annotation.name(), annotation.initialValue(), annotation.allocationSize()));
+        }
+        final ResolvedTableMetadata<E> tableMetadata = new ResolvedTableMetadata<E>(entityType, schema, tableName, constraints, tableColumns, namedQueries, sequences);
         if (!keyColumns.isEmpty()) {
             constraints.add(new PrimaryKeyConstraintMetadata(tableMetadata, with(keyColumns).transform(new Transformer<String, ColumnMetadata>() {
                 @Override

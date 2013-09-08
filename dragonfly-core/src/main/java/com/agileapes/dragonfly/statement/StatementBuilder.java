@@ -1,6 +1,7 @@
 package com.agileapes.dragonfly.statement;
 
 import com.agileapes.dragonfly.metadata.ConstraintMetadata;
+import com.agileapes.dragonfly.metadata.Metadata;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 
 /**
@@ -9,7 +10,7 @@ import com.agileapes.dragonfly.metadata.TableMetadata;
  */
 public interface StatementBuilder {
 
-    Statement getStatement(TableMetadata<?> tableMetadata, ConstraintMetadata constraintMetadata);
+    Statement getStatement(TableMetadata<?> tableMetadata, Metadata metadata);
 
     Statement getStatement(TableMetadata<?> tableMetadata);
 

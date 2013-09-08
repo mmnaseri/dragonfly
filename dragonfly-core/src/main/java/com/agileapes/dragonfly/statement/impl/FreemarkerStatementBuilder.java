@@ -2,7 +2,7 @@ package com.agileapes.dragonfly.statement.impl;
 
 import com.agileapes.dragonfly.dialect.DatabaseDialect;
 import com.agileapes.dragonfly.error.StatementError;
-import com.agileapes.dragonfly.metadata.ConstraintMetadata;
+import com.agileapes.dragonfly.metadata.Metadata;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.statement.Statement;
 import com.agileapes.dragonfly.statement.StatementBuilder;
@@ -32,7 +32,7 @@ public class FreemarkerStatementBuilder implements StatementBuilder {
     }
 
     @Override
-    public Statement getStatement(TableMetadata<?> tableMetadata, ConstraintMetadata constraintMetadata) {
+    public Statement getStatement(TableMetadata<?> tableMetadata, Metadata metadata) {
         final Template template;
         try {
             template = configuration.getTemplate(templateName);
@@ -45,7 +45,7 @@ public class FreemarkerStatementBuilder implements StatementBuilder {
         } catch (TemplateModelException ignored) {
             return null;
         }
-        model.introduce("constraint", constraintMetadata);
+        model.introduce("metadata", metadata);
         final StringWriter writer = new StringWriter();
         try {
             template.process(model, writer);

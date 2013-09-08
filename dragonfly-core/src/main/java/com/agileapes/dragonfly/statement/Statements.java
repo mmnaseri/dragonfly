@@ -18,7 +18,9 @@ public class Statements {
         CREATE_UNIQUE_CONSTRAINT,
         DROP_UNIQUE_CONSTRAINT,
         CREATE_SEQUENCE,
-        DROP_SEQUENCE
+        DROP_SEQUENCE,
+        BIND_SEQUENCE,
+        UNBIND_SEQUENCE
     }
 
     public static enum Manipulation {

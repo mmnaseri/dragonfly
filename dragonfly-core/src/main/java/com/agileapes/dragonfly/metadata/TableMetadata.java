@@ -8,7 +8,7 @@ import java.util.Collection;
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/8/29, 14:06)
  */
-public interface TableMetadata<E> {
+public interface TableMetadata<E> extends Metadata {
 
     Class<E> getEntityType();
 
@@ -29,5 +29,7 @@ public interface TableMetadata<E> {
     boolean hasPrimaryKey();
 
     Collection<NamedQueryMetadata> getNamedQueries();
+
+    Collection<SequenceMetadata> getSequences();
 
 }

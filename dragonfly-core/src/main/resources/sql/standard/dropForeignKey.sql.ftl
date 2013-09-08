@@ -1,1 +1,1 @@
-ALTER TABLE ${qualify(table)} DROP CONSTRAINT ${escape(constraint.name)};
+ALTER TABLE ${qualify(table)} DROP CONSTRAINT ${escape(metadata.name)};

@@ -3,6 +3,7 @@ package com.agileapes.dragonfly.dialect.impl;
 import com.agileapes.couteau.freemarker.utils.FreemarkerUtils;
 import com.agileapes.dragonfly.dialect.DatabaseDialect;
 import com.agileapes.dragonfly.error.DatabaseMetadataAccessError;
+import com.agileapes.dragonfly.error.MetadataCollectionError;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.statement.StatementBuilderContext;
 import com.agileapes.dragonfly.statement.Statements;
@@ -26,10 +27,10 @@ public class Mysql5Dialect extends GenericDatabaseDialect {
     public Mysql5Dialect() {
         statementBuilderContext = super.getStatementBuilderContext();
         final Configuration configuration = FreemarkerUtils.getConfiguration(getClass(), "/sql/mysql5");
-        ((FreemarkerStatementBuilderContext) statementBuilderContext).register(Statements.Definition.CREATE_SEQUENCE, new FreemarkerStatementBuilder(configuration, "createSequence.sql.ftl", getDatabaseDialect()));
+        ((FreemarkerStatementBuilderContext) statementBuilderContext).register(Statements.Definition.BIND_SEQUENCE, new FreemarkerStatementBuilder(configuration, "bindSequence.sql.ftl", getDatabaseDialect()));
+        ((FreemarkerStatementBuilderContext) statementBuilderContext).register(Statements.Definition.UNBIND_SEQUENCE, new FreemarkerStatementBuilder(configuration, "unbindSequence.sql.ftl", getDatabaseDialect()));
         ((FreemarkerStatementBuilderContext) statementBuilderContext).register(Statements.Definition.DROP_FOREIGN_KEY, new FreemarkerStatementBuilder(configuration, "dropForeignKey.sql.ftl", getDatabaseDialect()));
         ((FreemarkerStatementBuilderContext) statementBuilderContext).register(Statements.Definition.DROP_PRIMARY_KEY, new FreemarkerStatementBuilder(configuration, "dropPrimaryKey.sql.ftl", getDatabaseDialect()));
-        ((FreemarkerStatementBuilderContext) statementBuilderContext).register(Statements.Definition.DROP_SEQUENCE, new FreemarkerStatementBuilder(configuration, "dropSequence.sql.ftl", getDatabaseDialect()));
     }
 
     @Override
@@ -72,6 +73,16 @@ public class Mysql5Dialect extends GenericDatabaseDialect {
     @Override
     public int getDefaultPort() {
         return 3306;
+    }
+
+    @Override
+    public <E> boolean hasTable(DatabaseMetaData databaseMetadata, TableMetadata<E> tableMetadata) {
+        try {
+            String schema = tableMetadata.getSchema() != null && !tableMetadata.getSchema().isEmpty() ? tableMetadata.getSchema() : databaseMetadata.getConnection().getCatalog();
+            return databaseMetadata.getTables(schema, null, tableMetadata.getName(), new String[]{"TABLE"}).next();
+        } catch (SQLException e) {
+            throw new MetadataCollectionError("Failed to recognize database metadata", e);
+        }
     }
 
 }

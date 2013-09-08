@@ -6,7 +6,7 @@ package com.agileapes.dragonfly.error;
  */
 public class UnresolvedTableMetadataError extends DatabaseError {
 
-    public UnresolvedTableMetadataError() {
-        super("Table metadata has not been resolved yet");
+    public UnresolvedTableMetadataError(Class<?> entityType) {
+        super("Table metadata has not been resolved yet for entity " + entityType.getCanonicalName());
     }
 }

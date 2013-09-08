@@ -36,12 +36,12 @@ public class DefaultMetadataContext extends DefaultMetadataRegistry implements M
     }
 
     @Override
-    public void addMetadataRegistry(MetadataRegistry registry) {
+    public synchronized void addMetadataRegistry(MetadataRegistry registry) {
         registries.add(registry);
         registry.setChangeCallback(new Processor<MetadataRegistry>() {
             @Override
             public void process(MetadataRegistry registry) {
-                entityTypes.addAll(registry.getEntityTypes());
+                entityTypes.addAll((registry == DefaultMetadataContext.this) ? DefaultMetadataContext.super.getEntityTypes() : registry.getEntityTypes());
                 ready = false;
             }
         });
@@ -51,6 +51,9 @@ public class DefaultMetadataContext extends DefaultMetadataRegistry implements M
     public <E> TableMetadata<E> getTableMetadata(final Class<E> entityType) {
         if (!ready) {
             rebuildCache();
+        }
+        if (!metadataCache.contains(entityType)) {
+            throw new UnresolvedTableMetadataError(entityType);
         }
         //noinspection unchecked
         return (TableMetadata<E>) metadataCache.read(entityType);

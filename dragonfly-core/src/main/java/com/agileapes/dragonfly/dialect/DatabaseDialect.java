@@ -32,4 +32,6 @@ public interface DatabaseDialect extends Filter<DatabaseMetaData> {
 
     int getDefaultPort();
 
+    <E> boolean hasTable(DatabaseMetaData databaseMetadata, TableMetadata<E> tableMetadata);
+
 }

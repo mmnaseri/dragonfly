@@ -33,7 +33,7 @@ public abstract class AbstractConstraintMetadata implements ConstraintMetadata {
     @Override
     public String getName() {
         if (name == null) {
-            throw new MetadataCollectionError("Constraint name not available", new UnresolvedTableMetadataError());
+            throw new MetadataCollectionError("Constraint name not available", new UnresolvedTableMetadataError(table.getEntityType()));
         }
         return name;
     }

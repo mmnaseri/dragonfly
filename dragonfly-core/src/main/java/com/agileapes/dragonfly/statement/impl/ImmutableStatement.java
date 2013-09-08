@@ -99,7 +99,7 @@ public class ImmutableStatement implements Statement {
         final PreparedStatement statement;
         System.out.println(finalSql);
         if (hasParameters()) {
-            EntityMapCreator mapCreator = new DefaultEntityMapCreator();
+            final EntityMapCreator mapCreator = new DefaultEntityMapCreator();
             final Map<String,Object> map = new HashMap<String, Object>();
             if (!(value instanceof Map)) {
                 //noinspection unchecked

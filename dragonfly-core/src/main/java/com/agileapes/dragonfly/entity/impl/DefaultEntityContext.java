@@ -24,7 +24,8 @@ public class DefaultEntityContext implements EntityContext {
 
     @Override
     public <E> E getInstance(Class<E> entityType) {
-        return null;
+        throw new UnsupportedOperationException("This context cannot generate instances " +
+                "without direct access to table metadata");
     }
 
     @Override

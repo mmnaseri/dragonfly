@@ -3,10 +3,7 @@ package com.agileapes.dragonfly.metadata.impl;
 import com.agileapes.couteau.basics.api.Transformer;
 import com.agileapes.dragonfly.error.MetadataCollectionError;
 import com.agileapes.dragonfly.error.NoPrimaryKeyDefinedError;
-import com.agileapes.dragonfly.metadata.ColumnMetadata;
-import com.agileapes.dragonfly.metadata.ConstraintMetadata;
-import com.agileapes.dragonfly.metadata.NamedQueryMetadata;
-import com.agileapes.dragonfly.metadata.TableMetadata;
+import com.agileapes.dragonfly.metadata.*;
 import com.agileapes.dragonfly.tools.ConstraintTypeFilter;
 
 import java.util.Collection;
@@ -24,10 +21,11 @@ public class ResolvedTableMetadata<E> extends AbstractTableMetadata<E> {
     private final String schema;
     private final Collection<ConstraintMetadata> constraints;
     private final Collection<ColumnMetadata> columns;
+    private final Collection<SequenceMetadata> sequences;
     private PrimaryKeyConstraintMetadata primaryKey = null;
     private final Collection<NamedQueryMetadata> namedQueries;
 
-    public ResolvedTableMetadata(Class<E> entityType, String schema, String name, Collection<ConstraintMetadata> constraints, Collection<ColumnMetadata> columns, Collection<NamedQueryMetadata> namedQueries) {
+    public ResolvedTableMetadata(Class<E> entityType, String schema, String name, Collection<ConstraintMetadata> constraints, Collection<ColumnMetadata> columns, Collection<NamedQueryMetadata> namedQueries, Collection<SequenceMetadata> sequences) {
         super(entityType);
         this.schema = schema;
         this.name = name;
@@ -43,6 +41,7 @@ public class ResolvedTableMetadata<E> extends AbstractTableMetadata<E> {
         for (ConstraintMetadata constraint : constraints) {
             ((AbstractConstraintMetadata) constraint).setTable(this);
         }
+        this.sequences = sequences;
     }
 
     @Override
@@ -74,6 +73,11 @@ public class ResolvedTableMetadata<E> extends AbstractTableMetadata<E> {
     @Override
     public Collection<NamedQueryMetadata> getNamedQueries() {
         return namedQueries;
+    }
+
+    @Override
+    public Collection<SequenceMetadata> getSequences() {
+        return sequences;
     }
 
     @Override
