@@ -97,9 +97,7 @@ public class DefaultDataAccess implements PartialDataAccess {
 
     @Override
     public <E> void deleteAll(Class<E> entityType) {
-        if (internalExecuteUpdate(getInstance(entityType), "deleteAll", true) <= 0) {
-            throw new UnsupportedOperationException("Failed to delete entity");
-        }
+        internalExecuteUpdate(getInstance(entityType), "deleteAll", true);
     }
 
     @Override
