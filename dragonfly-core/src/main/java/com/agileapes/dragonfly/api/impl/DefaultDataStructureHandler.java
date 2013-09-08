@@ -14,7 +14,9 @@ import com.agileapes.dragonfly.statement.Statement;
 import com.agileapes.dragonfly.statement.Statements;
 import com.agileapes.dragonfly.tools.SequenceColumnFilter;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;

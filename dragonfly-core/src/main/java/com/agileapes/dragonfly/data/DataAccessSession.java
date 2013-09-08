@@ -1,5 +1,7 @@
 package com.agileapes.dragonfly.data;
 
+import com.agileapes.dragonfly.api.DataStructureHandler;
+import com.agileapes.dragonfly.api.impl.DefaultDataStructureHandler;
 import com.agileapes.dragonfly.dialect.DatabaseDialect;
 import com.agileapes.dragonfly.metadata.MetadataRegistry;
 import com.agileapes.dragonfly.statement.impl.StatementRegistry;
@@ -8,7 +10,6 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Collection;
-import java.util.HashSet;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
@@ -27,6 +28,8 @@ public class DataAccessSession {
     private final DataSource dataSource;
     private final StatementRegistry statementRegistry;
     private final MetadataRegistry metadataRegistry;
+    private final DataStructureHandler dataStructureHandler;
+    private boolean initialized = false;
 
     private static String getConnectionString(DatabaseDialect databaseDialect, String hostName, Integer port, String databaseName) {
         return JDBC_PREFIX + databaseDialect.getName() + PROTOCOL_SPECIFIER + (hostName == null ? DEFAULT_HOST : hostName) + PORT_SEPARATOR + (port == null ? databaseDialect.getDefaultPort() : port) + DB_SEPARATOR + (databaseName == null ? "" : databaseName);
@@ -67,6 +70,7 @@ public class DataAccessSession {
         this.dataSource = dataSource;
         this.username = username;
         this.password = password;
+        this.dataStructureHandler = new DefaultDataStructureHandler(this);
     }
 
     public Connection getConnection() throws SQLException {
@@ -91,6 +95,14 @@ public class DataAccessSession {
 
     public Collection<Class<?>> getRegisteredEntities() {
         return metadataRegistry.getEntityTypes();
+    }
+
+    public void initialize() {
+        dataStructureHandler.initialize();
+    }
+
+    public boolean isInitialized() {
+        return initialized;
     }
 
 }

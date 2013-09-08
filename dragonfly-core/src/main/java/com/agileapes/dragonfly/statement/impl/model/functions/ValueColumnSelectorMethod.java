@@ -9,7 +9,6 @@ import com.agileapes.couteau.reflection.error.PropertyAccessException;
 import com.agileapes.dragonfly.error.MetadataCollectionError;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;

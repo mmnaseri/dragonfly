@@ -120,6 +120,7 @@ public class EntityProxy<E> extends InterfaceInterceptor implements InitializedE
                 }
             }
         });
+        original = found;
         dirtiedProperties.clear();
         if (keyProperty != null) {
             dirtiedProperties.add(keyProperty);

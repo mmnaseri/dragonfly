@@ -38,10 +38,10 @@ import java.util.*;
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/5, 19:16)
  */
-public class DefaultDataAccess implements PartialDataAccess {
+public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityContext {
 
     private final DataAccessSession session;
-    private final EntityContext entityContext;
+    private final ModifiableEntityContext entityContext;
     private final EntityRowHandler rowHandler;
     private final MapEntityCreator entityCreator;
     private final EntityMapCreator mapCreator;
@@ -49,7 +49,18 @@ public class DefaultDataAccess implements PartialDataAccess {
     private final ColumnMappingMetadataCollector columnMappingMetadataCollector;
 
     public DefaultDataAccess(DataAccessSession session) {
+        this(session, true);
+    }
+
+    public DefaultDataAccess(DataAccessSession session, boolean autoInitialize) {
         this.session = session;
+        if (autoInitialize) {
+            synchronized (this.session) {
+                if (!this.session.isInitialized()) {
+                    this.session.initialize();
+                }
+            }
+        }
         this.entityContext = new DefaultEntityContext(this);
         this.rowHandler = new DefaultEntityRowHandler();
         this.entityCreator = new DefaultMapEntityCreator(entityContext);
@@ -334,6 +345,11 @@ public class DefaultDataAccess implements PartialDataAccess {
     @Override
     public <E> boolean has(E entity) {
         return entityContext.has(entity);
+    }
+
+    @Override
+    public <I> void addInterface(Class<I> ifc, Class<? extends I> implementation) {
+        entityContext.addInterface(ifc, implementation);
     }
 
 }

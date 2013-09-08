@@ -1,25 +1,36 @@
 package com.agileapes.dragonfly.entity.impl;
 
 import com.agileapes.dragonfly.api.DataAccess;
-import com.agileapes.dragonfly.entity.EntityContext;
 import com.agileapes.dragonfly.entity.InitializedEntity;
+import com.agileapes.dragonfly.entity.ModifiableEntityContext;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import net.sf.cglib.proxy.Enhancer;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/5, 15:24)
  */
-public class DefaultEntityContext implements EntityContext {
+public class DefaultEntityContext implements ModifiableEntityContext {
 
     private final String key;
     private final DataAccess dataAccess;
+    private final Map<Class<?>, Class<?>> interfaces = new HashMap<Class<?>, Class<?>>();
 
     public DefaultEntityContext(DataAccess dataAccess) {
         this.dataAccess = dataAccess;
-        key = UUID.randomUUID().toString();
+        this.key = UUID.randomUUID().toString();
+        for (Class<?> aClass : EntityProxy.class.getInterfaces()) {
+            interfaces.put(aClass, null);
+        }
+    }
+    
+    @Override
+    public <I> void addInterface(Class<I> ifc, Class<? extends I> implementation) {
+        this.interfaces.put(ifc, implementation);
     }
 
     @Override
@@ -30,11 +41,13 @@ public class DefaultEntityContext implements EntityContext {
 
     @Override
     public <E> E getInstance(TableMetadata<E> tableMetadata) {
+        final EntityProxy<E> callback = new EntityProxy<E>(dataAccess, tableMetadata);
+        callback.addInterfaces(interfaces);
         final E proxy = tableMetadata.getEntityType().cast(
                 Enhancer.create(
                         tableMetadata.getEntityType(),
-                        EntityProxy.class.getInterfaces(),
-                        new EntityProxy<E>(dataAccess, tableMetadata)
+                        interfaces.keySet().toArray(new Class[interfaces.size()]),
+                        callback
                 )
         );
         //noinspection unchecked

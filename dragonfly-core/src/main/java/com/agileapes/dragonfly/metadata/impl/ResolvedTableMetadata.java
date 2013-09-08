@@ -32,6 +32,7 @@ public class ResolvedTableMetadata<E> extends AbstractTableMetadata<E> {
         this.constraints = constraints;
         this.columns = columns;
         this.namedQueries = namedQueries;
+        this.sequences = sequences;
         for (ColumnMetadata column : columns) {
             if (column instanceof ResolvedColumnMetadata) {
                 ResolvedColumnMetadata metadata = (ResolvedColumnMetadata) column;
@@ -41,7 +42,6 @@ public class ResolvedTableMetadata<E> extends AbstractTableMetadata<E> {
         for (ConstraintMetadata constraint : constraints) {
             ((AbstractConstraintMetadata) constraint).setTable(this);
         }
-        this.sequences = sequences;
     }
 
     @Override

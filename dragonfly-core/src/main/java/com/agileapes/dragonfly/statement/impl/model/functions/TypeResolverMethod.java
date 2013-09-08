@@ -4,9 +4,6 @@ import com.agileapes.couteau.freemarker.api.Invokable;
 import com.agileapes.couteau.freemarker.model.TypedMethodModel;
 import com.agileapes.dragonfly.dialect.DatabaseDialect;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
-import com.agileapes.dragonfly.metadata.TableMetadata;
-
-import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)

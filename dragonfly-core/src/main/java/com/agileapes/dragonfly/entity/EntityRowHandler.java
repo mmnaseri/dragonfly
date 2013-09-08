@@ -1,7 +1,5 @@
 package com.agileapes.dragonfly.entity;
 
-import com.agileapes.dragonfly.metadata.TableMetadata;
-
 import java.sql.ResultSet;
 import java.util.Map;
 
