@@ -1,4 +1,4 @@
-package com.agileapes.dragonfly.annotations;
+package com.agileapes.dragonfly.api.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -9,13 +9,13 @@ import java.lang.annotation.Target;
  * <p>This annotation lets you bind properties of an arbitrary, non-persistent entity to
  * values as specified in a database.</p>
  *
- * <p>This annotation is used in conjunction with {@link Mapping} to specify and
+ * <p>This annotation is used in conjunction with {@link MappedColumn} to specify and
  * designate said mappings.</p>
  *
  * <p>You can bind a partial entity to a certain named query by specifying the entity
  * for which the named query is defined and the name of that query.</p>
  *
- * @see Mapping
+ * @see MappedColumn
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/7, 13:09)
  */

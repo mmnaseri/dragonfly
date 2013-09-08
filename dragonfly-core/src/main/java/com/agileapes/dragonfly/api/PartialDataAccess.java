@@ -1,6 +1,6 @@
 package com.agileapes.dragonfly.api;
 
-import com.agileapes.dragonfly.annotations.Partial;
+import com.agileapes.dragonfly.api.annotations.Partial;
 
 import java.util.List;
 import java.util.Map;

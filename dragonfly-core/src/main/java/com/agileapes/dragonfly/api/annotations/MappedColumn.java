@@ -1,4 +1,4 @@
-package com.agileapes.dragonfly.annotations;
+package com.agileapes.dragonfly.api.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -18,7 +18,7 @@ import java.lang.annotation.Target;
  *
  *         private long count;
  *
- *        {@literal @Mapping}(column = "cnt")
+ *        {@literal @MappedColumn}(column = "cnt")
  *         public long getCount() {
  *             return this.count;
  *         }
@@ -39,12 +39,12 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface Mapping {
+public @interface MappedColumn {
 
     /**
      * The column name to which this property is bound.
      */
-    String column();
+    String column() default "";
 
     /**
      * Whether the existence of this property is optional in the result set.

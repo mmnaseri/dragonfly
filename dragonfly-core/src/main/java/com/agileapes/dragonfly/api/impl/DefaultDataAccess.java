@@ -5,7 +5,7 @@ import com.agileapes.couteau.context.error.RegistryException;
 import com.agileapes.couteau.reflection.beans.BeanInitializer;
 import com.agileapes.couteau.reflection.beans.impl.ConstructorBeanInitializer;
 import com.agileapes.couteau.reflection.error.BeanInstantiationException;
-import com.agileapes.dragonfly.annotations.Partial;
+import com.agileapes.dragonfly.api.annotations.Partial;
 import com.agileapes.dragonfly.api.DataAccessObject;
 import com.agileapes.dragonfly.api.PartialDataAccess;
 import com.agileapes.dragonfly.data.DataAccessSession;
