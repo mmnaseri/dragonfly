@@ -15,6 +15,9 @@ import com.agileapes.dragonfly.entity.impl.DefaultEntityMapCreator;
 import com.agileapes.dragonfly.entity.impl.DefaultEntityRowHandler;
 import com.agileapes.dragonfly.entity.impl.DefaultMapEntityCreator;
 import com.agileapes.dragonfly.error.*;
+import com.agileapes.dragonfly.events.DataAccessEventHandler;
+import com.agileapes.dragonfly.events.EventHandlerContext;
+import com.agileapes.dragonfly.events.impl.CompositeDataAccessEventHandler;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.metadata.impl.ColumnMappingMetadataCollector;
 import com.agileapes.dragonfly.statement.Statement;
@@ -38,7 +41,7 @@ import java.util.*;
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/5, 19:16)
  */
-public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityContext {
+public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityContext, EventHandlerContext {
 
     private final DataAccessSession session;
     private final ModifiableEntityContext entityContext;
@@ -47,6 +50,7 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
     private final EntityMapCreator mapCreator;
     private final BeanInitializer beanInitializer;
     private final ColumnMappingMetadataCollector columnMappingMetadataCollector;
+    private final CompositeDataAccessEventHandler eventHandler;
 
     public DefaultDataAccess(DataAccessSession session) {
         this(session, true);
@@ -67,62 +71,85 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
         this.mapCreator = new DefaultEntityMapCreator();
         beanInitializer = new ConstructorBeanInitializer();
         columnMappingMetadataCollector = new ColumnMappingMetadataCollector();
+        eventHandler = new CompositeDataAccessEventHandler();
     }
 
     @Override
     public <E> void save(E entity) {
+        eventHandler.beforeSave(entity);
         final DataAccessObject<E, Serializable> object = checkEntity(entity);
         //noinspection unchecked
         int affectedRows = 0;
+        final boolean shouldUpdate;
         try {
-            final boolean shouldUpdate = (object.hasKey() && object.accessKey() != null) || ((InitializedEntity) object).isDirtied() && find(entity).size() == 1;//object.hasKey() && object.accessKey() != null;
+            shouldUpdate = (object.hasKey() && object.accessKey() != null) || ((InitializedEntity) object).isDirtied() && find(entity).size() == 1;
             if (shouldUpdate) {
+                eventHandler.beforeUpdate(entity);
                 //noinspection unchecked
                 affectedRows = internalExecuteUpdate(((InitializedEntity<E>) object).getOriginalCopy(), entity, "updateBySample");
             } else {
+                eventHandler.beforeInsert(entity);
                 affectedRows = internalExecuteUpdate(entity, "insert", true);
             }
-        } catch (Exception ignored) {
-            ignored.printStackTrace();
+        } catch (Exception e) {
+            throw new StatementExecutionFailureError("Failed to execute save statement", e);
         }
         if (affectedRows <= 0) {
             throw new UnsuccessfulOperationError("Failed to save entity " + object.getQualifiedName());
         }
+        if (shouldUpdate) {
+            eventHandler.afterUpdate(entity);
+        } else {
+            eventHandler.afterInsert(entity);
+        }
+        eventHandler.afterSave(entity);
     }
 
     @Override
     public <E> void delete(E entity) {
+        eventHandler.beforeDelete(entity);
         if (internalExecuteUpdate(entity, "deleteLike", true) <= 0) {
             throw new UnsupportedOperationException("Failed to delete entity");
         }
+        eventHandler.afterDelete(entity);
     }
 
     @Override
     public <E, K extends Serializable> void delete(Class<E> entityType, K key) {
+        eventHandler.beforeDelete(entityType, key);
         final E entity = getInstance(entityType);
         //noinspection unchecked
         final DataAccessObject<E, K> object = (DataAccessObject<E, K>) entity;
         object.changeKey(key);
         delete(entity);
+        eventHandler.afterDelete(entityType, key);
     }
 
     @Override
     public <E> void deleteAll(Class<E> entityType) {
+        eventHandler.beforeDeleteAll(entityType);
         internalExecuteUpdate(getInstance(entityType), "deleteAll", true);
+        eventHandler.afterDeleteAll(entityType);
     }
 
     @Override
     public <E> void truncate(Class<E> entityType) {
+        eventHandler.beforeTruncate(entityType);
         executeUpdate(entityType, "truncate", Collections.<String, Object>emptyMap());
+        eventHandler.afterTruncate(entityType);
     }
 
     @Override
     public <E> List<E> find(E sample) {
-        return internalExecuteQuery(sample, "findLike");
+        eventHandler.beforeFind(sample);
+        final List<E> list = internalExecuteQuery(sample, "findLike");
+        eventHandler.afterFind(sample, list);
+        return list;
     }
 
     @Override
     public <E, K extends Serializable> E find(Class<E> entityType, K key) {
+        eventHandler.beforeFind(entityType, key);
         final E entity = getInstance(entityType);
         //noinspection unchecked
         final DataAccessObject<E, K> object = (DataAccessObject<E, K>) entity;
@@ -134,12 +161,17 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
         if (result.size() > 1) {
             throw new AmbiguousObjectKeyError(entityType, key);
         }
-        return result.get(0);
+        final E found = result.get(0);
+        eventHandler.afterFind(entityType, key, found);
+        return found;
     }
 
     @Override
     public <E> List<E> findAll(Class<E> entityType) {
-        return executeQuery(entityType, "findAll", Collections.<String, Object>emptyMap());
+        eventHandler.beforeFindAll(entityType);
+        final List<E> list = executeQuery(entityType, "findAll", Collections.<String, Object>emptyMap());
+        eventHandler.afterFindAll(entityType, list);
+        return list;
     }
 
     @Override
@@ -163,23 +195,28 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
 
     @Override
     public <E> int executeUpdate(Class<E> entityType, String queryName, Map<String, Object> values) {
+        eventHandler.beforeExecuteUpdate(entityType, queryName, values);
+        final int affectedRows;
         try {
             final Statement statement = session.getStatementRegistry().get(entityType.getCanonicalName() + "." + queryName);
             if (StatementType.DEFINITION.equals(statement.getType()) || StatementType.QUERY.equals(statement.getType())) {
                 throw new InvalidStatementTypeError(statement.getType());
             }
-            return statement.prepare(session.getConnection(), values).executeUpdate();
+            affectedRows = statement.prepare(session.getConnection(), values).executeUpdate();
         } catch (RegistryException e) {
-            e.printStackTrace();
+            throw new UnrecognizedStatementError(entityType, queryName);
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new StatementExecutionFailureError("Failed to execute update statement " + queryName, e);
         }
-        return 0;
+        return affectedRows;
     }
 
     @Override
     public <E> int executeUpdate(E sample, String queryName) {
-        return internalExecuteUpdate(sample, queryName, "");
+        eventHandler.beforeExecuteUpdate(sample, queryName);
+        final int affectedRows = internalExecuteUpdate(sample, queryName, false);
+        eventHandler.afterExecuteUpdate(sample, queryName, affectedRows);
+        return affectedRows;
     }
 
     private <E> int internalExecuteUpdate(E sample, String queryName, boolean prefix) {
@@ -190,10 +227,11 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
         } else {
             map.putAll(mapCreator.toMap(object.getTableMetadata(), sample));
         }
+        final int affectedRows;
         try {
             final Statement statement = session.getStatementRegistry().get(object.getQualifiedName() + "." + queryName);
             final PreparedStatement preparedStatement = statement.prepare(session.getConnection(), map);
-            final int affectedRows = preparedStatement.executeUpdate();
+            affectedRows = preparedStatement.executeUpdate();
             if (StatementType.INSERT.equals(statement.getType()) && object.hasKey() && object.isKeyAutoGenerated()) {
                 if (affectedRows <= 0) {
                     throw new UnsuccessfulOperationError("Failed to insert item");
@@ -205,17 +243,18 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
                 }
                 object.changeKey(key);
             }
-            return affectedRows;
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new StatementExecutionFailureError("Failed to execute update", e);
         } catch (RegistryException e) {
-            e.printStackTrace();
+            throw new UnrecognizedStatementError(object.getTableMetadata().getEntityType(), queryName);
         }
-        return 0;
+        return affectedRows;
     }
 
     @Override
     public <E> List<E> executeQuery(Class<E> entityType, String queryName, Map<String, Object> values) {
+        eventHandler.beforeExecuteQuery(entityType, queryName, values);
+        final ArrayList<E> result;
         try {
             final Statement statement = session.getStatementRegistry().get(entityType.getCanonicalName() + "." + queryName);
             if (!StatementType.QUERY.equals(statement.getType())) {
@@ -223,7 +262,7 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
             }
             final PreparedStatement preparedStatement = statement.prepare(session.getConnection(), values);
             final ResultSet resultSet = preparedStatement.executeQuery();
-            final ArrayList<E> result = new ArrayList<E>();
+            result = new ArrayList<E>();
             while (resultSet.next()) {
                 final E entity = getInstance(entityType);
                 //noinspection unchecked
@@ -232,20 +271,23 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
                 ((InitializedEntity<E>) entity).setOriginalCopy(entity);
                 result.add(entity);
             }
-            return result;
         } catch (RegistryException e) {
-            e.printStackTrace();
+            throw new UnrecognizedStatementError(entityType, queryName);
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new StatementExecutionFailureError("Failed to execute query", e);
         }
-        return null;
+        eventHandler.afterExecuteQuery(entityType, queryName, values, result);
+        return result;
     }
 
     @Override
     public <E> List<E> executeQuery(E sample, String queryName) {
+        eventHandler.beforeExecuteQuery(sample, queryName);
         final DataAccessObject<E, Serializable> object = checkEntity(sample);
         final Map<String, Object> map = mapCreator.toMap(object.getTableMetadata(), sample);
-        return executeQuery(object.getTableMetadata().getEntityType(), queryName, map);
+        final List<E> result = executeQuery(object.getTableMetadata().getEntityType(), queryName, map);
+        eventHandler.afterExecuteQuery(sample, queryName, result);
+        return result;
     }
 
     @Override
@@ -303,9 +345,9 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
                 list.add(rowHandler.handleRow(resultSet));
             }
         } catch (RegistryException e) {
-            e.printStackTrace();
+            throw new UnrecognizedStatementError(entityType, queryName);
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new StatementExecutionFailureError("Failed to execute untyped query", e);
         }
         return list;
     }
@@ -350,6 +392,11 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
     @Override
     public <I> void addInterface(Class<I> ifc, Class<? extends I> implementation) {
         entityContext.addInterface(ifc, implementation);
+    }
+
+    @Override
+    public void addHandler(DataAccessEventHandler eventHandler) {
+        this.eventHandler.addHandler(eventHandler);
     }
 
 }

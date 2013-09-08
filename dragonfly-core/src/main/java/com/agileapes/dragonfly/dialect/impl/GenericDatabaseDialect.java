@@ -112,11 +112,6 @@ public abstract class GenericDatabaseDialect implements DatabaseDialect {
     }
 
     @Override
-    public boolean accepts(DatabaseMetaData databaseMetaData) {
-        return true;
-    }
-
-    @Override
     public StatementBuilderContext getStatementBuilderContext() {
         return statementBuilderContext;
     }

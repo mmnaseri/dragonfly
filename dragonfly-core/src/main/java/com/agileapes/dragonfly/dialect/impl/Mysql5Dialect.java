@@ -22,10 +22,8 @@ import java.sql.SQLException;
  */
 public class Mysql5Dialect extends GenericDatabaseDialect {
 
-    private final StatementBuilderContext statementBuilderContext;
-
     public Mysql5Dialect() {
-        statementBuilderContext = super.getStatementBuilderContext();
+        StatementBuilderContext statementBuilderContext = getStatementBuilderContext();
         final Configuration configuration = FreemarkerUtils.getConfiguration(getClass(), "/sql/mysql5");
         ((FreemarkerStatementBuilderContext) statementBuilderContext).register(Statements.Definition.BIND_SEQUENCE, new FreemarkerStatementBuilder(configuration, "bindSequence.sql.ftl", getDatabaseDialect()));
         ((FreemarkerStatementBuilderContext) statementBuilderContext).register(Statements.Definition.UNBIND_SEQUENCE, new FreemarkerStatementBuilder(configuration, "unbindSequence.sql.ftl", getDatabaseDialect()));
@@ -50,11 +48,6 @@ public class Mysql5Dialect extends GenericDatabaseDialect {
         } catch (SQLException e) {
             throw new DatabaseMetadataAccessError(e);
         }
-    }
-
-    @Override
-    public StatementBuilderContext getStatementBuilderContext() {
-        return statementBuilderContext;
     }
 
     @Override
