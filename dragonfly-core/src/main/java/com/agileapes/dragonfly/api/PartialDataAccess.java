@@ -53,23 +53,6 @@ public interface PartialDataAccess extends DataAccess {
 
     /**
      * This method will execute the given named query from the given entity type, and then
-     * attempt to return values of the desired result type by injecting values from the
-     * provided map into the named query where necessary.
-     * @param entityType    the type of the entity. This must be an entity for which
-     *                      table metadata has been previously decided, or can be
-     *                      readily determined.
-     * @param queryName     the name of the query to be executed. This query has to be
-     *                      of a value-returning (query) type.
-     * @param resultType    the desired type of items
-     * @param values        the map of values
-     * @param <E>           type of the entity
-     * @param <O>           type of result items
-     * @return a list of all matching items.
-     */
-    <E, O> List<O> executeQuery(Class<E> entityType, String queryName, Class<O> resultType, Map<String, Object> values);
-
-    /**
-     * This method will execute the given named query from the given entity type, and then
      * attempt to return key-value maps of the query's result by injecting values from the
      * provided map into the named query where necessary.
      * @param entityType    the type of the entity. This must be an entity for which

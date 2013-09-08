@@ -161,7 +161,11 @@ public class DefaultDataAccess implements PartialDataAccess {
     @Override
     public <E> int executeUpdate(Class<E> entityType, String queryName, Map<String, Object> values) {
         try {
-            return statementRegistry.get(entityType.getCanonicalName() + "." + queryName).prepare(session.getConnection(), values).executeUpdate();
+            final Statement statement = statementRegistry.get(entityType.getCanonicalName() + "." + queryName);
+            if (StatementType.DEFINITION.equals(statement.getType()) || StatementType.QUERY.equals(statement.getType())) {
+                throw new InvalidStatementTypeError(statement.getType());
+            }
+            return statement.prepare(session.getConnection(), values).executeUpdate();
         } catch (RegistryException e) {
             e.printStackTrace();
         } catch (SQLException e) {
@@ -207,8 +211,10 @@ public class DefaultDataAccess implements PartialDataAccess {
     @Override
     public <E> List<E> executeQuery(Class<E> entityType, String queryName, Map<String, Object> values) {
         try {
-//            final TableMetadata<E> tableMetadata = metadataRegistry.getTableMetadata(entityType);
             final Statement statement = statementRegistry.get(entityType.getCanonicalName() + "." + queryName);
+            if (!StatementType.QUERY.equals(statement.getType())) {
+                throw new InvalidStatementTypeError(statement.getType());
+            }
             final PreparedStatement preparedStatement = statement.prepare(session.getConnection(), values);
             final ResultSet resultSet = preparedStatement.executeQuery();
             final ArrayList<E> result = new ArrayList<E>();
@@ -261,8 +267,7 @@ public class DefaultDataAccess implements PartialDataAccess {
         return executeQuery(annotation.targetEntity(), annotation.query(), resultType, values);
     }
 
-    @Override
-    public <E, O> List<O> executeQuery(Class<E> entityType, String queryName, Class<O> resultType, Map<String, Object> values) {
+    private <E, O> List<O> executeQuery(Class<E> entityType, String queryName, Class<O> resultType, Map<String, Object> values) {
         final List<O> list = new ArrayList<O>();
         final List<Map<String, Object>> maps = executeUntypedQuery(entityType, queryName, values);
         for (Map<String, Object> map : maps) {

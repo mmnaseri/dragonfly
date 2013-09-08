@@ -1,5 +1,6 @@
 package com.agileapes.dragonfly.dialect;
 
+import com.agileapes.couteau.basics.api.Filter;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.statement.StatementBuilderContext;
@@ -13,7 +14,7 @@ import java.sql.SQLException;
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/1, 1:33)
  */
-public interface DatabaseDialect {
+public interface DatabaseDialect extends Filter<DatabaseMetaData> {
 
     Character getIdentifierEscapeCharacter();
 
@@ -22,8 +23,6 @@ public interface DatabaseDialect {
     Character getStringEscapeCharacter();
 
     String getType(ColumnMetadata columnMetadata);
-
-    boolean accepts(DatabaseMetaData databaseMetaData);
 
     StatementBuilderContext getStatementBuilderContext();
 

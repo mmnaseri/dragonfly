@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
  * <p>This annotation is used in conjunction with {@link MappedColumn} to specify and
  * designate said mappings.</p>
  *
- * <p>You can bind a partial entity to a certain named query by specifying the entity
+ * <p>You must bind a partial entity to a certain named query by specifying the entity
  * for which the named query is defined and the name of that query.</p>
  *
  * @see MappedColumn
@@ -27,12 +27,12 @@ public @interface Partial {
      * The entity whose named query will be used to retrieve the values of this object.
      * Both this and {@link #query()} must be set for the feature to work.
      */
-    Class<?> targetEntity() default void.class;
+    Class<?> targetEntity();
 
     /**
      * The name of the query to be used. Both this and the {@link #targetEntity()} must be
      * set for the feature to work.
      */
-    String query() default "";
+    String query();
 
 }

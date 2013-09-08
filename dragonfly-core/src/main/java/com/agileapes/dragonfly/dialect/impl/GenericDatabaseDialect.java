@@ -4,17 +4,13 @@ import com.agileapes.couteau.freemarker.utils.FreemarkerUtils;
 import com.agileapes.dragonfly.dialect.DatabaseDialect;
 import com.agileapes.dragonfly.error.UnknownColumnTypeError;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
-import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.statement.StatementBuilderContext;
 import com.agileapes.dragonfly.statement.Statements;
 import com.agileapes.dragonfly.statement.impl.FreemarkerStatementBuilder;
 import com.agileapes.dragonfly.statement.impl.FreemarkerStatementBuilderContext;
 import freemarker.template.Configuration;
 
-import java.io.Serializable;
 import java.sql.DatabaseMetaData;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Types;
 
 /**
