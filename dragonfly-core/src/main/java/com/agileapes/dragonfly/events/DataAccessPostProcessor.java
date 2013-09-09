@@ -1,6 +1,6 @@
 package com.agileapes.dragonfly.events;
 
-import com.agileapes.dragonfly.api.DataAccess;
+import com.agileapes.dragonfly.data.DataAccess;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)

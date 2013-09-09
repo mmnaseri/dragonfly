@@ -1,7 +1,7 @@
-package com.agileapes.dragonfly.api.impl;
+package com.agileapes.dragonfly.data.impl;
 
 import com.agileapes.couteau.basics.api.Processor;
-import com.agileapes.dragonfly.api.DataStructureHandler;
+import com.agileapes.dragonfly.data.DataStructureHandler;
 import com.agileapes.dragonfly.data.DataAccessSession;
 import com.agileapes.dragonfly.error.UnknownTableSchemaError;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;

@@ -1,4 +1,4 @@
-package com.agileapes.dragonfly.api;
+package com.agileapes.dragonfly.data;
 
 import java.sql.Timestamp;
 import java.util.Date;

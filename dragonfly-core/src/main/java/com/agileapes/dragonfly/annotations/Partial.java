@@ -1,4 +1,4 @@
-package com.agileapes.dragonfly.api.annotations;
+package com.agileapes.dragonfly.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

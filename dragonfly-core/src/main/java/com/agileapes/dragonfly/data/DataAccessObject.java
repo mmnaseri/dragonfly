@@ -1,4 +1,4 @@
-package com.agileapes.dragonfly.api;
+package com.agileapes.dragonfly.data;
 
 import com.agileapes.dragonfly.metadata.TableMetadata;
 

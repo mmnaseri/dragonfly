@@ -1,6 +1,7 @@
 package com.agileapes.dragonfly.entity.impl;
 
-import com.agileapes.dragonfly.api.DataAccess;
+import com.agileapes.dragonfly.data.DataAccess;
+import com.agileapes.dragonfly.cg.StaticNamingPolicy;
 import com.agileapes.dragonfly.entity.InitializedEntity;
 import com.agileapes.dragonfly.entity.ModifiableEntityContext;
 import com.agileapes.dragonfly.metadata.TableMetadata;
@@ -43,13 +44,12 @@ public class DefaultEntityContext implements ModifiableEntityContext {
     public <E> E getInstance(TableMetadata<E> tableMetadata) {
         final EntityProxy<E> callback = new EntityProxy<E>(dataAccess, tableMetadata);
         callback.addInterfaces(interfaces);
-        final E proxy = tableMetadata.getEntityType().cast(
-                Enhancer.create(
-                        tableMetadata.getEntityType(),
-                        interfaces.keySet().toArray(new Class[interfaces.size()]),
-                        callback
-                )
-        );
+        final Enhancer enhancer = new Enhancer();
+        enhancer.setSuperclass(tableMetadata.getEntityType());
+        enhancer.setInterfaces(interfaces.keySet().toArray(new Class[interfaces.size()]));
+        enhancer.setCallback(callback);
+        enhancer.setNamingPolicy(new StaticNamingPolicy("entity"));
+        final E proxy = tableMetadata.getEntityType().cast(enhancer.create());
         //noinspection unchecked
         ((InitializedEntity<E>) proxy).initialize(tableMetadata.getEntityType(), proxy, key);
         //noinspection unchecked

@@ -1,7 +1,5 @@
 package com.agileapes.dragonfly.events;
 
-import com.agileapes.dragonfly.api.DataAccess;
-
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;

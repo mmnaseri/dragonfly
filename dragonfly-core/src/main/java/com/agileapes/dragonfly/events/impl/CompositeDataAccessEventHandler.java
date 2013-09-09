@@ -1,7 +1,6 @@
 package com.agileapes.dragonfly.events.impl;
 
 import com.agileapes.couteau.context.impl.OrderedBeanComparator;
-import com.agileapes.dragonfly.api.DataAccess;
 import com.agileapes.dragonfly.events.DataAccessEventHandler;
 import com.agileapes.dragonfly.events.EventHandlerContext;
 

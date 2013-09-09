@@ -1,14 +1,15 @@
-package com.agileapes.dragonfly.api.impl;
+package com.agileapes.dragonfly.data.impl;
 
 import com.agileapes.couteau.basics.assets.Assert;
 import com.agileapes.couteau.context.error.RegistryException;
 import com.agileapes.couteau.reflection.beans.BeanInitializer;
 import com.agileapes.couteau.reflection.beans.impl.ConstructorBeanInitializer;
 import com.agileapes.couteau.reflection.error.BeanInstantiationException;
-import com.agileapes.dragonfly.api.DataAccessObject;
-import com.agileapes.dragonfly.api.PartialDataAccess;
-import com.agileapes.dragonfly.api.annotations.Partial;
+import com.agileapes.dragonfly.annotations.Partial;
+import com.agileapes.dragonfly.cg.StaticNamingPolicy;
+import com.agileapes.dragonfly.data.DataAccessObject;
 import com.agileapes.dragonfly.data.DataAccessSession;
+import com.agileapes.dragonfly.data.PartialDataAccess;
 import com.agileapes.dragonfly.entity.*;
 import com.agileapes.dragonfly.entity.impl.DefaultEntityContext;
 import com.agileapes.dragonfly.entity.impl.DefaultEntityMapCreator;
@@ -20,9 +21,11 @@ import com.agileapes.dragonfly.events.EventHandlerContext;
 import com.agileapes.dragonfly.events.impl.CompositeDataAccessEventHandler;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.metadata.impl.ColumnMappingMetadataCollector;
+import com.agileapes.dragonfly.security.DataSecurityManager;
 import com.agileapes.dragonfly.statement.Statement;
 import com.agileapes.dragonfly.statement.StatementType;
 import com.agileapes.dragonfly.tools.MapTools;
+import net.sf.cglib.proxy.Enhancer;
 
 import java.io.Serializable;
 import java.sql.PreparedStatement;
@@ -31,7 +34,7 @@ import java.sql.SQLException;
 import java.util.*;
 
 /**
- * <p>This is the default implementation of the {@link com.agileapes.dragonfly.api.DataAccess}
+ * <p>This is the default implementation of the {@link com.agileapes.dragonfly.data.DataAccess}
  * and {@link PartialDataAccess} interfaces, using the available session and provided metadata
  * registries for all actions.</p>
  *
@@ -52,11 +55,24 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
     private final ColumnMappingMetadataCollector columnMappingMetadataCollector;
     private final CompositeDataAccessEventHandler eventHandler;
 
-    public DefaultDataAccess(DataAccessSession session) {
+    public static DefaultDataAccess getInstance(DataAccessSession session, DataSecurityManager securityManager) {
+        return getInstance(session, true, securityManager);
+    }
+
+    public static DefaultDataAccess getInstance(DataAccessSession session, boolean autoInitialize, DataSecurityManager securityManager) {
+        final Enhancer enhancer = new Enhancer();
+        enhancer.setCallback(new DefaultDataAccessSecurityMonitor(securityManager));
+        enhancer.setInterfaces(DefaultDataAccess.class.getInterfaces());
+        enhancer.setSuperclass(DefaultDataAccess.class);
+        enhancer.setNamingPolicy(new StaticNamingPolicy("dataAccess"));
+        return (DefaultDataAccess) enhancer.create(new Class[]{DataAccessSession.class, boolean.class}, new Object[]{session, autoInitialize});
+    }
+
+    protected DefaultDataAccess(DataAccessSession session) {
         this(session, true);
     }
 
-    public DefaultDataAccess(DataAccessSession session, boolean autoInitialize) {
+    protected DefaultDataAccess(DataAccessSession session, boolean autoInitialize) {
         this.session = session;
         if (autoInitialize) {
             synchronized (this.session) {

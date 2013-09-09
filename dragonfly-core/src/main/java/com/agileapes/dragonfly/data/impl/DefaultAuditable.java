@@ -1,6 +1,6 @@
-package com.agileapes.dragonfly.api.impl;
+package com.agileapes.dragonfly.data.impl;
 
-import com.agileapes.dragonfly.api.Auditable;
+import com.agileapes.dragonfly.data.Auditable;
 
 import java.sql.Timestamp;
 

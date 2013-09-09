@@ -1,7 +1,6 @@
 package com.agileapes.dragonfly.data;
 
-import com.agileapes.dragonfly.api.DataStructureHandler;
-import com.agileapes.dragonfly.api.impl.DefaultDataStructureHandler;
+import com.agileapes.dragonfly.data.impl.DefaultDataStructureHandler;
 import com.agileapes.dragonfly.dialect.DatabaseDialect;
 import com.agileapes.dragonfly.metadata.MetadataRegistry;
 import com.agileapes.dragonfly.statement.impl.StatementRegistry;

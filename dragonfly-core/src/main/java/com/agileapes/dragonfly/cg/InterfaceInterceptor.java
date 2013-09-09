@@ -1,4 +1,4 @@
-package com.agileapes.dragonfly.entity.impl;
+package com.agileapes.dragonfly.cg;
 
 import com.agileapes.couteau.basics.api.Filter;
 import com.agileapes.couteau.basics.api.Transformer;

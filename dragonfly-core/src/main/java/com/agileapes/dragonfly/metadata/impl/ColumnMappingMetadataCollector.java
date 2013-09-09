@@ -6,8 +6,8 @@ import com.agileapes.couteau.basics.api.impl.ConcurrentCache;
 import com.agileapes.couteau.reflection.util.ReflectionUtils;
 import com.agileapes.couteau.reflection.util.assets.AnnotatedElementFilter;
 import com.agileapes.couteau.reflection.util.assets.GetterMethodFilter;
-import com.agileapes.dragonfly.api.annotations.MappedColumn;
-import com.agileapes.dragonfly.api.annotations.Partial;
+import com.agileapes.dragonfly.annotations.MappedColumn;
+import com.agileapes.dragonfly.annotations.Partial;
 import com.agileapes.dragonfly.error.PartialEntityDefinitionError;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
 
