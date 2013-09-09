@@ -3,6 +3,7 @@ package com.agileapes.dragonfly.metadata.impl;
 import com.agileapes.couteau.basics.api.Cache;
 import com.agileapes.couteau.basics.api.impl.ConcurrentCache;
 import com.agileapes.couteau.basics.api.impl.MirrorFilter;
+import com.agileapes.couteau.context.impl.OrderedBeanComparator;
 import com.agileapes.dragonfly.error.EntityDefinitionError;
 import com.agileapes.dragonfly.metadata.*;
 
@@ -37,7 +38,7 @@ public class DefaultMetadataResolverContext implements MetadataResolverContext {
 
     public DefaultMetadataResolverContext(MetadataResolveStrategy resolveStrategy, List<TableMetadataInterceptor> interceptors) {
         this.resolveStrategy = resolveStrategy;
-        this.interceptors = interceptors;
+        this.interceptors = with(interceptors).sort(new OrderedBeanComparator()).list();
     }
 
     @Override
