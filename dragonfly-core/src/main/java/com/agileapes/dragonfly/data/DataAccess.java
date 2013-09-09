@@ -173,4 +173,6 @@ public interface DataAccess extends EntityContext {
      */
     <E> List<E> executeQuery(E sample, String queryName);
 
+    <E, R> List<R> call(Class<E> entityType, String procedureName, Object... parameters);
+
 }

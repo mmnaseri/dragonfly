@@ -32,7 +32,8 @@ public class Statements {
         FIND_LIKE,
         INSERT,
         UPDATE,
-        TRUNCATE
+        TRUNCATE,
+        CALL
     }
 
 }

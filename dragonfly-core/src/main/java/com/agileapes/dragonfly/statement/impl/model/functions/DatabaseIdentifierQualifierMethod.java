@@ -4,6 +4,7 @@ import com.agileapes.couteau.freemarker.api.Invokable;
 import com.agileapes.couteau.freemarker.model.TypedMethodModel;
 import com.agileapes.dragonfly.dialect.DatabaseDialect;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
+import com.agileapes.dragonfly.metadata.StoredProcedureMetadata;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 
 import java.util.ArrayList;
@@ -37,6 +38,15 @@ public class DatabaseIdentifierQualifierMethod extends TypedMethodModel {
         String name = escape.escape(columnMetadata.getName());
         if (columnMetadata.getTable() != null) {
             name = getTableName(columnMetadata.getTable()) + dialect.getSchemaSeparator() + name;
+        }
+        return name;
+    }
+
+    @Invokable
+    public String getProcedureName(StoredProcedureMetadata procedureMetadata) {
+        String name = escape.escape(procedureMetadata.getName());
+        if (procedureMetadata.getTable() != null && procedureMetadata.getTable().getSchema() != null && !procedureMetadata.getTable().getSchema().isEmpty()) {
+            name = escape.escape(procedureMetadata.getTable().getSchema()) + dialect.getSchemaSeparator() + name;
         }
         return name;
     }

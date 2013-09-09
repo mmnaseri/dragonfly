@@ -3,14 +3,12 @@ package com.agileapes.dragonfly.statement.impl;
 import com.agileapes.couteau.context.error.RegistryException;
 import com.agileapes.dragonfly.dialect.DatabaseDialect;
 import com.agileapes.dragonfly.error.MetadataCollectionError;
-import com.agileapes.dragonfly.metadata.MetadataRegistry;
-import com.agileapes.dragonfly.metadata.MetadataResolver;
-import com.agileapes.dragonfly.metadata.NamedQueryMetadata;
-import com.agileapes.dragonfly.metadata.TableMetadata;
+import com.agileapes.dragonfly.metadata.*;
 import com.agileapes.dragonfly.statement.StatementBuilder;
 import com.agileapes.dragonfly.statement.Statements;
 import freemarker.cache.StringTemplateLoader;
 import freemarker.template.Configuration;
+import freemarker.template.utility.StringUtil;
 
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -63,7 +61,9 @@ public class StatementRegistryPreparator {
                     loader.putTemplate("sql", namedQueryMetadata.getQuery());
                     statementRegistry.register(entity.getCanonicalName() + "." + namedQueryMetadata.getName(), statementBuilder.getStatement(tableMetadata));
                 }
-
+                for (StoredProcedureMetadata procedure : tableMetadata.getProcedures()) {
+                    statementRegistry.register(entity.getCanonicalName() + ".call" + StringUtil.capitalize(procedure.getName()), new ProcedureCallStatement(dialect.getStatementBuilderContext().getManipulationStatementBuilder(Statements.Manipulation.CALL).getStatement(tableMetadata, procedure), dialect));
+                }
             } catch (RegistryException e) {
                 throw new MetadataCollectionError("Failed to prepare statements for entity " + entity.getCanonicalName(), e);
             }

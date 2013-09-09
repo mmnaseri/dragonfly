@@ -26,6 +26,12 @@ import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
  */
 public class DefaultStatementPreparator implements StatementPreparator {
 
+    private final boolean preparesCalls;
+
+    public DefaultStatementPreparator(boolean preparesCalls) {
+        this.preparesCalls = preparesCalls;
+    }
+
     @Override
     public PreparedStatement prepare(Connection connection, TableMetadata<?> tableMetadata, Map<String, Object> value, String sql) {
         final Configuration configuration = new Configuration();
@@ -46,7 +52,11 @@ public class DefaultStatementPreparator implements StatementPreparator {
         }
         PreparedStatement preparedStatement = null;
         try {
-            preparedStatement = connection.prepareStatement(writer.toString(), Statement.RETURN_GENERATED_KEYS);
+            if (!preparesCalls) {
+                preparedStatement = connection.prepareStatement(writer.toString(), Statement.RETURN_GENERATED_KEYS);
+            } else {
+                preparedStatement = connection.prepareCall(writer.toString());
+            }
         } catch (SQLException ignored) {
         }
         assert preparedStatement != null;

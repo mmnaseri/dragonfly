@@ -1,15 +1,19 @@
 package com.agileapes.dragonfly.data.impl;
 
+import com.agileapes.couteau.basics.api.Filter;
 import com.agileapes.couteau.basics.assets.Assert;
 import com.agileapes.couteau.context.error.RegistryException;
 import com.agileapes.couteau.reflection.beans.BeanInitializer;
 import com.agileapes.couteau.reflection.beans.impl.ConstructorBeanInitializer;
 import com.agileapes.couteau.reflection.error.BeanInstantiationException;
+import com.agileapes.couteau.reflection.util.ReflectionUtils;
+import com.agileapes.dragonfly.annotations.ParameterMode;
 import com.agileapes.dragonfly.annotations.Partial;
 import com.agileapes.dragonfly.cg.StaticNamingPolicy;
 import com.agileapes.dragonfly.data.DataAccessObject;
 import com.agileapes.dragonfly.data.DataAccessSession;
 import com.agileapes.dragonfly.data.PartialDataAccess;
+import com.agileapes.dragonfly.data.Reference;
 import com.agileapes.dragonfly.entity.*;
 import com.agileapes.dragonfly.entity.impl.DefaultEntityContext;
 import com.agileapes.dragonfly.entity.impl.DefaultEntityMapCreator;
@@ -19,19 +23,26 @@ import com.agileapes.dragonfly.error.*;
 import com.agileapes.dragonfly.events.DataAccessEventHandler;
 import com.agileapes.dragonfly.events.EventHandlerContext;
 import com.agileapes.dragonfly.events.impl.CompositeDataAccessEventHandler;
+import com.agileapes.dragonfly.metadata.ParameterMetadata;
+import com.agileapes.dragonfly.metadata.StoredProcedureMetadata;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.metadata.impl.ColumnMappingMetadataCollector;
 import com.agileapes.dragonfly.security.DataSecurityManager;
 import com.agileapes.dragonfly.statement.Statement;
 import com.agileapes.dragonfly.statement.StatementType;
+import com.agileapes.dragonfly.statement.impl.ProcedureCallStatement;
 import com.agileapes.dragonfly.tools.MapTools;
+import freemarker.template.utility.StringUtil;
 import net.sf.cglib.proxy.Enhancer;
 
 import java.io.Serializable;
+import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
+
+import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 
 /**
  * <p>This is the default implementation of the {@link com.agileapes.dragonfly.data.DataAccess}
@@ -220,7 +231,7 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
             }
             affectedRows = statement.prepare(session.getConnection(), values).executeUpdate();
         } catch (RegistryException e) {
-            throw new UnrecognizedStatementError(entityType, queryName);
+            throw new UnrecognizedQueryError(entityType, queryName);
         } catch (SQLException e) {
             throw new StatementExecutionFailureError("Failed to execute update statement " + queryName, e);
         }
@@ -262,7 +273,7 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
         } catch (SQLException e) {
             throw new StatementExecutionFailureError("Failed to execute update", e);
         } catch (RegistryException e) {
-            throw new UnrecognizedStatementError(object.getTableMetadata().getEntityType(), queryName);
+            throw new UnrecognizedQueryError(object.getTableMetadata().getEntityType(), queryName);
         }
         return affectedRows;
     }
@@ -288,7 +299,7 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
                 result.add(entity);
             }
         } catch (RegistryException e) {
-            throw new UnrecognizedStatementError(entityType, queryName);
+            throw new UnrecognizedQueryError(entityType, queryName);
         } catch (SQLException e) {
             throw new StatementExecutionFailureError("Failed to execute query", e);
         }
@@ -303,6 +314,76 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
         final Map<String, Object> map = mapCreator.toMap(object.getTableMetadata(), sample);
         final List<E> result = executeQuery(object.getTableMetadata().getEntityType(), queryName, map);
         eventHandler.afterExecuteQuery(sample, queryName, result);
+        return result;
+    }
+
+    @Override
+    public <E, R> List<R> call(Class<E> entityType, final String procedureName, Object... parameters) {
+        final TableMetadata<E> tableMetadata = session.getMetadataRegistry().getTableMetadata(entityType);
+        //noinspection unchecked
+        final StoredProcedureMetadata procedureMetadata = with(tableMetadata.getProcedures()).keep(new Filter<StoredProcedureMetadata>() {
+            @Override
+            public boolean accepts(StoredProcedureMetadata item) {
+                return item.getName().equals(procedureName);
+            }
+        }).first();
+        if (procedureMetadata == null) {
+            throw new UnrecognizedProcedureError(entityType, procedureName);
+        }
+        if (procedureMetadata.getParameters().size() != parameters.length) {
+            throw new MismatchedParametersNumberError(entityType, procedureName, procedureMetadata.getParameters().size(), parameters.length);
+        }
+        for (int i = 0; i < procedureMetadata.getParameters().size(); i++) {
+            ParameterMetadata metadata = procedureMetadata.getParameters().get(i);
+            if (metadata.getParameterMode().equals(ParameterMode.IN)) {
+                if (parameters[i] != null && !ReflectionUtils.mapType(metadata.getParameterType()).isInstance(parameters[i])) {
+                    throw new MismatchedParameterTypeError(entityType, procedureName, i, metadata.getParameterType(), parameters[i].getClass());
+                }
+            } else {
+                if (parameters[i] == null) {
+                    throw new NullPointerException(metadata.getParameterMode() + " parameter cannot be null");
+                }
+                if (!(parameters[i] instanceof Reference<?>)) {
+                    throw new ReferenceParameterExpectedError(entityType, procedureName, i);
+                }
+            }
+        }
+        final ProcedureCallStatement statement;
+        try {
+            statement = (ProcedureCallStatement) session.getStatementRegistry().get(entityType.getCanonicalName() + ".call" + StringUtil.capitalize(procedureName));
+        } catch (RegistryException e) {
+            throw new UnrecognizedProcedureError(entityType, procedureName);
+        }
+        final Map<String, Object> values = new HashMap<String, Object>();
+        for (int i = 0; i < parameters.length; i++) {
+            values.put("value.parameter" + i, parameters[i] instanceof Reference ? ((Reference<?>) parameters[i]).getValue() : parameters[i]);
+        }
+        final CallableStatement callableStatement;
+        final ArrayList<R> result = new ArrayList<R>();
+        try {
+            callableStatement = statement.prepare(session.getConnection(), values);
+            for (int i = 0; i < procedureMetadata.getParameters().size(); i++) {
+                final ParameterMetadata metadata = procedureMetadata.getParameters().get(i);
+                if (!metadata.getParameterMode().equals(ParameterMode.IN)) {
+                    callableStatement.registerOutParameter(i + 1, metadata.getType());
+                }
+            }
+            if (procedureMetadata.getResultType().equals(void.class)) {
+                callableStatement.executeUpdate();
+            } else {
+                final ResultSet resultSet = callableStatement.executeQuery();
+                //todo implement result set mapping
+            }
+            for (int i = 0; i < procedureMetadata.getParameters().size(); i++) {
+                ParameterMetadata metadata = procedureMetadata.getParameters().get(i);
+                if (!metadata.getParameterMode().equals(ParameterMode.IN)) {
+                    //noinspection unchecked
+                    ((Reference) parameters[i]).setValue(callableStatement.getObject(i + 1));
+                }
+            }
+        } catch (SQLException e) {
+            throw new StatementExecutionFailureError("Failed to call procedure " + procedureName, e);
+        }
         return result;
     }
 
@@ -361,7 +442,7 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
                 list.add(rowHandler.handleRow(resultSet));
             }
         } catch (RegistryException e) {
-            throw new UnrecognizedStatementError(entityType, queryName);
+            throw new UnrecognizedQueryError(entityType, queryName);
         } catch (SQLException e) {
             throw new StatementExecutionFailureError("Failed to execute untyped query", e);
         }

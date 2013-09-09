@@ -41,6 +41,7 @@ public abstract class GenericDatabaseDialect implements DatabaseDialect {
         statementBuilderContext.register(Statements.Manipulation.INSERT, new FreemarkerStatementBuilder(configuration, "insert.sql.ftl", getDatabaseDialect()));
         statementBuilderContext.register(Statements.Manipulation.UPDATE, new FreemarkerStatementBuilder(configuration, "updateBySample.sql.ftl", getDatabaseDialect()));
         statementBuilderContext.register(Statements.Manipulation.TRUNCATE, new FreemarkerStatementBuilder(configuration, "truncate.sql.ftl", getDatabaseDialect()));
+        statementBuilderContext.register(Statements.Manipulation.CALL, new FreemarkerStatementBuilder(configuration, "callProcedure.sql.ftl", getDatabaseDialect()));
     }
 
     protected DatabaseDialect getDatabaseDialect() {

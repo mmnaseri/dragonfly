@@ -46,7 +46,7 @@ public class ImmutableStatement implements Statement {
         this.dynamic = dynamic;
         this.parameters = parameters;
         this.type = type;
-        preparator = parameters ? new DefaultStatementPreparator() : null;
+        preparator = parameters ? new DefaultStatementPreparator(false) : null;
     }
 
     @Override
@@ -116,14 +116,17 @@ public class ImmutableStatement implements Statement {
             }
             statement = preparator.prepare(connection, tableMetadata, map, finalSql);
         } else {
-            try {
-                statement = connection.prepareStatement(finalSql);
-            } catch (SQLException e) {
-                throw new StatementError("Failed to prepare statement through connection", e);
-            }
+            statement = prepare(connection);
         }
         return statement;
     }
 
+    protected StatementPreparator getPreparator() {
+        return preparator;
+    }
+
+    protected DatabaseDialect getDialect() {
+        return dialect;
+    }
 
 }

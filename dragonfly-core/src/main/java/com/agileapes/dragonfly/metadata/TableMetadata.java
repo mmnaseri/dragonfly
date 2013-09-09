@@ -32,4 +32,6 @@ public interface TableMetadata<E> extends Metadata {
 
     Collection<SequenceMetadata> getSequences();
 
+    Collection<StoredProcedureMetadata> getProcedures();
+
 }

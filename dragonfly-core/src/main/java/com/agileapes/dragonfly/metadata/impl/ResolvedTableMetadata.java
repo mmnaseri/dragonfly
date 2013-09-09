@@ -22,10 +22,11 @@ public class ResolvedTableMetadata<E> extends AbstractTableMetadata<E> {
     private final Collection<ConstraintMetadata> constraints;
     private final Collection<ColumnMetadata> columns;
     private final Collection<SequenceMetadata> sequences;
+    private final Collection<StoredProcedureMetadata> procedures;
     private PrimaryKeyConstraintMetadata primaryKey = null;
     private final Collection<NamedQueryMetadata> namedQueries;
 
-    public ResolvedTableMetadata(Class<E> entityType, String schema, String name, Collection<ConstraintMetadata> constraints, Collection<ColumnMetadata> columns, Collection<NamedQueryMetadata> namedQueries, Collection<SequenceMetadata> sequences) {
+    public ResolvedTableMetadata(Class<E> entityType, String schema, String name, Collection<ConstraintMetadata> constraints, Collection<ColumnMetadata> columns, Collection<NamedQueryMetadata> namedQueries, Collection<SequenceMetadata> sequences, Collection<StoredProcedureMetadata> storedProcedures) {
         super(entityType);
         this.schema = schema;
         this.name = name;
@@ -33,6 +34,7 @@ public class ResolvedTableMetadata<E> extends AbstractTableMetadata<E> {
         this.columns = columns;
         this.namedQueries = namedQueries;
         this.sequences = sequences;
+        this.procedures = storedProcedures;
         for (ColumnMetadata column : columns) {
             if (column instanceof ResolvedColumnMetadata) {
                 ResolvedColumnMetadata metadata = (ResolvedColumnMetadata) column;
@@ -41,6 +43,9 @@ public class ResolvedTableMetadata<E> extends AbstractTableMetadata<E> {
         }
         for (ConstraintMetadata constraint : constraints) {
             ((AbstractConstraintMetadata) constraint).setTable(this);
+        }
+        for (StoredProcedureMetadata procedure : procedures) {
+            ((ImmutableStoredProcedureMetadata) procedure).setTable(this);
         }
     }
 
@@ -78,6 +83,11 @@ public class ResolvedTableMetadata<E> extends AbstractTableMetadata<E> {
     @Override
     public Collection<SequenceMetadata> getSequences() {
         return sequences;
+    }
+
+    @Override
+    public Collection<StoredProcedureMetadata> getProcedures() {
+        return procedures;
     }
 
     @Override

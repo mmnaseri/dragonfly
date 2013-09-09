@@ -4,6 +4,9 @@ import com.agileapes.couteau.basics.api.Transformer;
 import com.agileapes.couteau.reflection.util.ReflectionUtils;
 import com.agileapes.couteau.reflection.util.assets.AnnotatedElementFilter;
 import com.agileapes.couteau.reflection.util.assets.GetterMethodFilter;
+import com.agileapes.dragonfly.annotations.StoredProcedure;
+import com.agileapes.dragonfly.annotations.StoredProcedureParameter;
+import com.agileapes.dragonfly.annotations.StoredProcedures;
 import com.agileapes.dragonfly.error.EntityDefinitionError;
 import com.agileapes.dragonfly.error.InvalidForeignReferenceDefinition;
 import com.agileapes.dragonfly.error.NoSuchColumnError;
@@ -15,6 +18,7 @@ import javax.persistence.*;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.sql.Time;
 import java.sql.Types;
 import java.util.*;
 
@@ -51,6 +55,15 @@ public class AnnotationMetadataResolver implements MetadataResolver {
         } else {
             tableName = entityType.getSimpleName();
             schema = NO_SCHEMA;
+        }
+        final Set<StoredProcedureMetadata> storedProcedures = new HashSet<StoredProcedureMetadata>();
+        if (entityType.isAnnotationPresent(StoredProcedure.class)) {
+            storedProcedures.add(getStoredProcedureMetadata(entityType.getAnnotation(StoredProcedure.class)));
+        } else if (entityType.isAnnotationPresent(StoredProcedures.class)) {
+            final StoredProcedure[] procedures = entityType.getAnnotation(StoredProcedures.class).value();
+            for (StoredProcedure procedure : procedures) {
+                storedProcedures.add(getStoredProcedureMetadata(procedure));
+            }
         }
         final Collection<SequenceMetadata> sequences = new HashSet<SequenceMetadata>();
         final HashSet<ConstraintMetadata> constraints = new HashSet<ConstraintMetadata>();
@@ -103,7 +116,7 @@ public class AnnotationMetadataResolver implements MetadataResolver {
             final SequenceGenerator annotation = entityType.getAnnotation(SequenceGenerator.class);
             sequences.add(new DefaultSequenceMetadata(annotation.name(), annotation.initialValue(), annotation.allocationSize()));
         }
-        final ResolvedTableMetadata<E> tableMetadata = new ResolvedTableMetadata<E>(entityType, schema, tableName, constraints, tableColumns, namedQueries, sequences);
+        final ResolvedTableMetadata<E> tableMetadata = new ResolvedTableMetadata<E>(entityType, schema, tableName, constraints, tableColumns, namedQueries, sequences, storedProcedures);
         if (!keyColumns.isEmpty()) {
             constraints.add(new PrimaryKeyConstraintMetadata(tableMetadata, with(keyColumns).transform(new Transformer<String, ColumnMetadata>() {
                 @Override
@@ -156,9 +169,22 @@ public class AnnotationMetadataResolver implements MetadataResolver {
         return tableMetadata;
     }
 
+    private StoredProcedureMetadata getStoredProcedureMetadata(StoredProcedure annotation) {
+        final ArrayList<ParameterMetadata> parameters = new ArrayList<ParameterMetadata>();
+        final StoredProcedureMetadata metadata = new ImmutableStoredProcedureMetadata(annotation.name(), annotation.resultType(), parameters);
+        for (StoredProcedureParameter parameter : annotation.parameters()) {
+            parameters.add(new ImmutableParameterMetadata(parameter.mode(), getColumnType(parameter.type(), null, null), parameter.type()));
+        }
+        return metadata;
+    }
+
     private static int getColumnType(Method method, ColumnMetadata foreignReference) {
-        final Class<?> javaType = ReflectionUtils.mapType(ReflectionUtils.getComponentType(method.getReturnType()));
-        final int dimensions = ReflectionUtils.getArrayDimensions(method.getReturnType());
+        return getColumnType(method.getReturnType(), method, foreignReference);
+    }
+    
+    private static int getColumnType(Class<?> javaType, Method method, ColumnMetadata foreignReference) {
+        final int dimensions = ReflectionUtils.getArrayDimensions(javaType);
+        javaType = ReflectionUtils.mapType(ReflectionUtils.getComponentType(javaType));
         if (dimensions > 1) {
             throw new UnsupportedColumnTypeError("Arrays of dimension > 1 are not supported");
         }
@@ -181,13 +207,20 @@ public class AnnotationMetadataResolver implements MetadataResolver {
         } else if (Character.class.equals(javaType)) {
             return Types.CHAR;
         } else if (String.class.equals(javaType)) {
-            if (method.isAnnotationPresent(Column.class) && method.getAnnotation(Column.class).length() > 0) {
+            if (method != null && method.isAnnotationPresent(Column.class) && method.getAnnotation(Column.class).length() > 0) {
                 return Types.VARCHAR;
             } else {
                 return Types.LONGVARCHAR;
             }
         } else if (Date.class.isAssignableFrom(javaType)) {
-            final TemporalType temporalType = method.isAnnotationPresent(Temporal.class) ?  method.getAnnotation(Temporal.class).value() : null;
+            if (javaType.equals(java.sql.Date.class)) {
+                return Types.DATE;
+            } else if (javaType.equals(Time.class)) {
+                return Types.TIME;
+            } else if (javaType.equals(java.sql.Timestamp.class)) {
+                return Types.TIMESTAMP;
+            }
+            final TemporalType temporalType = method != null && method.isAnnotationPresent(Temporal.class) ?  method.getAnnotation(Temporal.class).value() : null;
             return (temporalType == null || temporalType.equals(TemporalType.TIMESTAMP)) ? Types.TIMESTAMP : (temporalType.equals(TemporalType.DATE) ? Types.DATE : Types.TIME);
         } else if (Byte.class.equals(javaType) && dimensions > 0) {
             return Types.VARBINARY;
