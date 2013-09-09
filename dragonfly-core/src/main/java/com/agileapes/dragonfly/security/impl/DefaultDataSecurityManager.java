@@ -1,6 +1,7 @@
 package com.agileapes.dragonfly.security.impl;
 
 import com.agileapes.couteau.basics.api.Filter;
+import com.agileapes.couteau.reflection.util.ClassUtils;
 import com.agileapes.dragonfly.security.*;
 
 import java.util.HashSet;
@@ -26,9 +27,18 @@ public class DefaultDataSecurityManager implements DataSecurityManager {
     public boolean isAllowed(final Actor actor, final Subject subject) {
         synchronized (policies) {
             //noinspection unchecked
-            final List<SecurityPolicyDescriptor> applyingPolicies = with(policies).keep(new Filter<SecurityPolicyDescriptor>() {
+            final List<SecurityPolicyDescriptor> applyingPolicies = with(policies)
+            .keep(new Filter<SecurityPolicyDescriptor>() {
                 @Override
                 public boolean accepts(SecurityPolicyDescriptor item) {
+                    final Class<?> subjectType = ClassUtils.resolveTypeArgument(item.getSubjectFilter().getClass(), Filter.class);
+                    return subjectType != null && subjectType.isInstance(subject);
+                }
+            })
+            .keep(new Filter<SecurityPolicyDescriptor>() {
+                @Override
+                public boolean accepts(SecurityPolicyDescriptor item) {
+                    //noinspection unchecked
                     return item.getSubjectFilter().accepts(subject);
                 }
             }).list();

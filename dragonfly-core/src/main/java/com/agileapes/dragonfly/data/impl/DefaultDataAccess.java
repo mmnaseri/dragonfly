@@ -28,6 +28,8 @@ import com.agileapes.dragonfly.metadata.StoredProcedureMetadata;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.metadata.impl.ColumnMappingMetadataCollector;
 import com.agileapes.dragonfly.security.DataSecurityManager;
+import com.agileapes.dragonfly.security.impl.ImmutableActor;
+import com.agileapes.dragonfly.security.impl.StoredProcedureSubject;
 import com.agileapes.dragonfly.statement.Statement;
 import com.agileapes.dragonfly.statement.StatementType;
 import com.agileapes.dragonfly.statement.impl.ProcedureCallStatement;
@@ -65,6 +67,7 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
     private final BeanInitializer beanInitializer;
     private final ColumnMappingMetadataCollector columnMappingMetadataCollector;
     private final CompositeDataAccessEventHandler eventHandler;
+    private final DataSecurityManager securityManager;
 
     public static DefaultDataAccess getInstance(DataAccessSession session, DataSecurityManager securityManager) {
         return getInstance(session, true, securityManager);
@@ -76,15 +79,16 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
         enhancer.setInterfaces(DefaultDataAccess.class.getInterfaces());
         enhancer.setSuperclass(DefaultDataAccess.class);
         enhancer.setNamingPolicy(new StaticNamingPolicy("dataAccess"));
-        return (DefaultDataAccess) enhancer.create(new Class[]{DataAccessSession.class, boolean.class}, new Object[]{session, autoInitialize});
+        return (DefaultDataAccess) enhancer.create(new Class[]{DataAccessSession.class, DataSecurityManager.class, boolean.class}, new Object[]{session, securityManager, autoInitialize});
     }
 
-    protected DefaultDataAccess(DataAccessSession session) {
-        this(session, true);
+    protected DefaultDataAccess(DataAccessSession session, DataSecurityManager securityManager) {
+        this(session, securityManager, true);
     }
 
-    protected DefaultDataAccess(DataAccessSession session, boolean autoInitialize) {
+    protected DefaultDataAccess(DataAccessSession session, DataSecurityManager securityManager, boolean autoInitialize) {
         this.session = session;
+        this.securityManager = securityManager;
         if (autoInitialize) {
             synchronized (this.session) {
                 if (!this.session.isInitialized()) {
@@ -106,7 +110,7 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
         eventHandler.beforeSave(entity);
         final DataAccessObject<E, Serializable> object = checkEntity(entity);
         //noinspection unchecked
-        int affectedRows = 0;
+        int affectedRows;
         final boolean shouldUpdate;
         try {
             shouldUpdate = (object.hasKey() && object.accessKey() != null) || ((InitializedEntity) object).isDirtied() && find(entity).size() == 1;
@@ -353,6 +357,9 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
             statement = (ProcedureCallStatement) session.getStatementRegistry().get(entityType.getCanonicalName() + ".call" + StringUtil.capitalize(procedureName));
         } catch (RegistryException e) {
             throw new UnrecognizedProcedureError(entityType, procedureName);
+        }
+        if (!securityManager.isAllowed(new ImmutableActor(entityType), new StoredProcedureSubject(procedureMetadata, parameters))) {
+            throw new SecurityException("Access to " + entityType.getCanonicalName() + "." + procedureName + " was denied");
         }
         final Map<String, Object> values = new HashMap<String, Object>();
         for (int i = 0; i < parameters.length; i++) {

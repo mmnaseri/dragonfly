@@ -1,5 +1,6 @@
 package com.agileapes.dragonfly.security.impl;
 
+import com.agileapes.dragonfly.cg.EnhancementUtils;
 import com.agileapes.dragonfly.security.Actor;
 
 import java.lang.reflect.Method;
@@ -12,6 +13,10 @@ public class ImmutableActor implements Actor {
 
     private final Class<?> actorClass;
     private final Method method;
+
+    public ImmutableActor(Class<?> actorClass) {
+        this(actorClass, EnhancementUtils.getCallerMethod());
+    }
 
     public ImmutableActor(Class<?> actorClass, Method method) {
         this.actorClass = actorClass;

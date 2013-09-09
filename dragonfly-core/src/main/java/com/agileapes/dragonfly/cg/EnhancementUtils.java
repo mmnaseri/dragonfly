@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public abstract class EnhancementUtils {
 
-    public static Method getCallerMethod() throws Exception {
+    public static Method getCallerMethod() {
         return getMethod(getCaller());
     }
 
