@@ -1,5 +1,6 @@
 package com.agileapes.dragonfly.metadata.impl;
 
+import com.agileapes.dragonfly.annotations.Partial;
 import com.agileapes.dragonfly.metadata.ParameterMetadata;
 import com.agileapes.dragonfly.metadata.StoredProcedureMetadata;
 import com.agileapes.dragonfly.metadata.TableMetadata;
@@ -41,6 +42,11 @@ public class ImmutableStoredProcedureMetadata implements StoredProcedureMetadata
     @Override
     public List<ParameterMetadata> getParameters() {
         return parameters;
+    }
+
+    @Override
+    public boolean isPartial() {
+        return resultType.isAnnotationPresent(Partial.class);
     }
 
     public void setTable(TableMetadata<?> tableMetadata) {

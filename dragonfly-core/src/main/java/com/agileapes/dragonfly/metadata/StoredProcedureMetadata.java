@@ -16,4 +16,6 @@ public interface StoredProcedureMetadata extends Metadata {
 
     List<ParameterMetadata> getParameters();
 
+    boolean isPartial();
+
 }

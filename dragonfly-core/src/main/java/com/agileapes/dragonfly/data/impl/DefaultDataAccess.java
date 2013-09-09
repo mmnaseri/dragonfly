@@ -318,7 +318,7 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
     }
 
     @Override
-    public <E, R> List<R> call(Class<E> entityType, final String procedureName, Object... parameters) {
+    public <E> List<?> call(Class<E> entityType, final String procedureName, Object... parameters) {
         final TableMetadata<E> tableMetadata = session.getMetadataRegistry().getTableMetadata(entityType);
         //noinspection unchecked
         final StoredProcedureMetadata procedureMetadata = with(tableMetadata.getProcedures()).keep(new Filter<StoredProcedureMetadata>() {
@@ -359,7 +359,7 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
             values.put("value.parameter" + i, parameters[i] instanceof Reference ? ((Reference<?>) parameters[i]).getValue() : parameters[i]);
         }
         final CallableStatement callableStatement;
-        final ArrayList<R> result = new ArrayList<R>();
+        final ArrayList<Object> result = new ArrayList<Object>();
         try {
             callableStatement = statement.prepare(session.getConnection(), values);
             for (int i = 0; i < procedureMetadata.getParameters().size(); i++) {
@@ -372,7 +372,24 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
                 callableStatement.executeUpdate();
             } else {
                 final ResultSet resultSet = callableStatement.executeQuery();
-                //todo implement result set mapping
+                final TableMetadata<?> resultTableMetadata;
+                if (procedureMetadata.isPartial()) {
+                    resultTableMetadata = null;
+                } else {
+                    resultTableMetadata = session.getMetadataRegistry().getTableMetadata(procedureMetadata.getResultType());
+                }
+                while (resultSet.next()) {
+                    final Map<String, Object> map = rowHandler.handleRow(resultSet);
+                    if (resultTableMetadata == null) {
+                        try {
+                            result.add(entityCreator.fromMap(beanInitializer.initialize(procedureMetadata.getResultType(), new Class[0]), columnMappingMetadataCollector.collectMetadata(procedureMetadata.getResultType()), map));
+                        } catch (BeanInstantiationException e) {
+                            throw new EntityInitializationError(procedureMetadata.getResultType(), e);
+                        }
+                    } else {
+                        result.add(entityCreator.fromMap(resultTableMetadata, map));
+                    }
+                }
             }
             for (int i = 0; i < procedureMetadata.getParameters().size(); i++) {
                 ParameterMetadata metadata = procedureMetadata.getParameters().get(i);
