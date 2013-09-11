@@ -8,6 +8,6 @@ public interface DataSecurityManager {
 
     void addPolicy(String name, ActorFilter actorFilter, SubjectFilter subjectFilter, SecurityPolicy securityPolicy);
 
-    boolean isAllowed(Actor actor, Subject subject);
+    void checkAccess(Subject subject);
 
 }

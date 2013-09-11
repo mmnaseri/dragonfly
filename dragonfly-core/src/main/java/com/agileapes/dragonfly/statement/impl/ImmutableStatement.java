@@ -76,8 +76,8 @@ public class ImmutableStatement implements Statement {
 
     @Override
     public PreparedStatement prepare(Connection connection) {
-        System.out.println(sql);
         try {
+//            System.out.println(sql);
             return connection.prepareStatement(sql);
         } catch (SQLException e) {
             throw new StatementError("Failed to prepare statement through connection", e);
@@ -97,7 +97,6 @@ public class ImmutableStatement implements Statement {
             finalSql = builder.getStatement(tableMetadata).getSql();
         }
         final PreparedStatement statement;
-        System.out.println(finalSql);
         if (hasParameters()) {
             final EntityMapCreator mapCreator = new DefaultEntityMapCreator();
             final Map<String,Object> map = new HashMap<String, Object>();
@@ -114,6 +113,7 @@ public class ImmutableStatement implements Statement {
                 //noinspection unchecked
                 map.putAll((Map) value);
             }
+//            System.out.println(finalSql);
             statement = preparator.prepare(connection, tableMetadata, map, finalSql);
         } else {
             statement = prepare(connection);

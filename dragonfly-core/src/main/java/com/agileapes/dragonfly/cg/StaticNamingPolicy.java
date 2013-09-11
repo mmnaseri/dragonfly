@@ -1,7 +1,7 @@
 package com.agileapes.dragonfly.cg;
 
-import net.sf.cglib.core.NamingPolicy;
-import net.sf.cglib.core.Predicate;
+import com.agileapes.couteau.enhancer.api.ClassEnhancer;
+import com.agileapes.couteau.enhancer.api.NamingPolicy;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -18,9 +18,14 @@ public class StaticNamingPolicy implements NamingPolicy {
         this.name = name;
     }
 
+//    @Override
+//    public String getClassName(String prefix, String source, Object key, Predicate names) {
+//        return prefix + "$ENHANCED$" + name + "$" + index.getAndIncrement();
+//    }
+
     @Override
-    public String getClassName(String prefix, String source, Object key, Predicate names) {
-        return prefix + "$ENHANCED$" + name + "$" + index.getAndIncrement();
+    public String getClassName(Class<?> originalClass, ClassEnhancer<?> classEnhancer) {
+        return originalClass.getCanonicalName() + "$ENHANCED$" + name + "$" + index.getAndIncrement();
     }
 
 }

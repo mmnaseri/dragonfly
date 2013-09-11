@@ -44,6 +44,9 @@ public class DefaultMapEntityCreator implements MapEntityCreator {
     public <E> E fromMap(E entity, Collection<ColumnMetadata> columns, Map<String, Object> values) {
         final BeanWrapper<E> wrapper = new MethodBeanWrapper<E>(entity);
         for (Map.Entry<String, Object> value : values.entrySet()) {
+            if (value.getValue() == null) {
+                continue;
+            }
             final ColumnMetadata columnMetadata = with(columns).keep(new ColumnNameFilter(value.getKey())).first();
             if (columnMetadata == null) {
                 //as of this moment, we have chosen to ignore column clashes between

@@ -1,9 +1,8 @@
 package com.agileapes.dragonfly.security.impl;
 
 import com.agileapes.couteau.basics.api.Filter;
+import com.agileapes.couteau.enhancer.api.MethodDescriptor;
 import com.agileapes.dragonfly.security.SubjectFilter;
-
-import java.lang.reflect.Method;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
@@ -11,9 +10,9 @@ import java.lang.reflect.Method;
  */
 public class MethodSubjectFilter implements SubjectFilter<MethodSubject> {
 
-    private final Filter<? super Method> filter;
+    private final Filter<? super MethodDescriptor> filter;
 
-    public MethodSubjectFilter(Filter<? super Method> filter) {
+    public MethodSubjectFilter(Filter<? super MethodDescriptor> filter) {
         this.filter = filter;
     }
 

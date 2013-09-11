@@ -19,13 +19,8 @@
         </dependency>
         <dependency>
             <groupId>com.agileapes.couteau</groupId>
-            <artifactId>couteau-freemarker</artifactId>
+            <artifactId>couteau-enhancer</artifactId>
             <version>1.0</version>
-        </dependency>
-        <dependency>
-            <groupId>cglib</groupId>
-            <artifactId>cglib</artifactId>
-            <version>2.2</version>
         </dependency>
         <dependency>
             <groupId>asm</groupId>

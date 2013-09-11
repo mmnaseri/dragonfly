@@ -6,6 +6,6 @@ package com.agileapes.dragonfly.entity;
  */
 public interface ModifiableEntityContext extends EntityContext {
 
-
     <I> void addInterface(Class<I> ifc, Class<? extends I> implementation);
+
 }

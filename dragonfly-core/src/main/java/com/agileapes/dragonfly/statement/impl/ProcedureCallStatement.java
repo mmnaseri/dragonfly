@@ -35,7 +35,7 @@ public class ProcedureCallStatement extends ImmutableStatement {
     @Override
     public PreparedStatement prepare(Connection connection) {
         try {
-            System.out.println(getSql());
+//            System.out.println(getSql());
             return connection.prepareCall(getSql());
         } catch (SQLException e) {
             throw new StatementError("Failed to prepare statement through connection", e);
@@ -49,8 +49,8 @@ public class ProcedureCallStatement extends ImmutableStatement {
             final FreemarkerSecondPassStatementBuilder builder = new FreemarkerSecondPassStatementBuilder(this, getDialect(), value);
             finalSql = builder.getStatement(getTableMetadata()).getSql();
         }
+//        System.out.println(finalSql);
         final PreparedStatement statement;
-        System.out.println(finalSql);
         if (hasParameters()) {
             final EntityMapCreator mapCreator = new DefaultEntityMapCreator();
             //noinspection unchecked

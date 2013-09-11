@@ -1,5 +1,6 @@
 package com.agileapes.dragonfly.security.impl;
 
+import com.agileapes.couteau.enhancer.api.MethodDescriptor;
 import com.agileapes.dragonfly.security.Subject;
 
 import java.lang.reflect.Method;
@@ -10,13 +11,13 @@ import java.lang.reflect.Method;
  */
 public class MethodSubject implements Subject {
 
-    private final Method method;
+    private final MethodDescriptor method;
 
-    public MethodSubject(Method method) {
+    public MethodSubject(MethodDescriptor method) {
         this.method = method;
     }
 
-    public Method getMethod() {
+    public MethodDescriptor getMethod() {
         return method;
     }
 

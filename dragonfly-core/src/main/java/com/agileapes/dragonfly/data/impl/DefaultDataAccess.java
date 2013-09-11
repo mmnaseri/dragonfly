@@ -3,12 +3,15 @@ package com.agileapes.dragonfly.data.impl;
 import com.agileapes.couteau.basics.api.Filter;
 import com.agileapes.couteau.basics.assets.Assert;
 import com.agileapes.couteau.context.error.RegistryException;
+import com.agileapes.couteau.enhancer.api.Enhancer;
+import com.agileapes.couteau.enhancer.impl.DefaultEnhancer;
 import com.agileapes.couteau.reflection.beans.BeanInitializer;
 import com.agileapes.couteau.reflection.beans.impl.ConstructorBeanInitializer;
 import com.agileapes.couteau.reflection.error.BeanInstantiationException;
 import com.agileapes.couteau.reflection.util.ReflectionUtils;
 import com.agileapes.dragonfly.annotations.ParameterMode;
 import com.agileapes.dragonfly.annotations.Partial;
+import com.agileapes.dragonfly.cg.SecuredInterfaceInterceptor;
 import com.agileapes.dragonfly.cg.StaticNamingPolicy;
 import com.agileapes.dragonfly.data.DataAccessObject;
 import com.agileapes.dragonfly.data.DataAccessSession;
@@ -28,14 +31,12 @@ import com.agileapes.dragonfly.metadata.StoredProcedureMetadata;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.metadata.impl.ColumnMappingMetadataCollector;
 import com.agileapes.dragonfly.security.DataSecurityManager;
-import com.agileapes.dragonfly.security.impl.ImmutableActor;
 import com.agileapes.dragonfly.security.impl.StoredProcedureSubject;
 import com.agileapes.dragonfly.statement.Statement;
 import com.agileapes.dragonfly.statement.StatementType;
 import com.agileapes.dragonfly.statement.impl.ProcedureCallStatement;
 import com.agileapes.dragonfly.tools.MapTools;
 import freemarker.template.utility.StringUtil;
-import net.sf.cglib.proxy.Enhancer;
 
 import java.io.Serializable;
 import java.sql.CallableStatement;
@@ -74,19 +75,19 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
     }
 
     public static DefaultDataAccess getInstance(DataAccessSession session, boolean autoInitialize, DataSecurityManager securityManager) {
-        final Enhancer enhancer = new Enhancer();
-        enhancer.setCallback(new DefaultDataAccessSecurityMonitor(securityManager));
+        final Enhancer<DefaultDataAccess> enhancer = new DefaultEnhancer<DefaultDataAccess>();
+        enhancer.setInterceptor(new SecuredInterfaceInterceptor(securityManager));
         enhancer.setInterfaces(DefaultDataAccess.class.getInterfaces());
-        enhancer.setSuperclass(DefaultDataAccess.class);
+        enhancer.setSuperClass(DefaultDataAccess.class);
         enhancer.setNamingPolicy(new StaticNamingPolicy("dataAccess"));
         return (DefaultDataAccess) enhancer.create(new Class[]{DataAccessSession.class, DataSecurityManager.class, boolean.class}, new Object[]{session, securityManager, autoInitialize});
     }
 
-    protected DefaultDataAccess(DataAccessSession session, DataSecurityManager securityManager) {
+    public DefaultDataAccess(DataAccessSession session, DataSecurityManager securityManager) {
         this(session, securityManager, true);
     }
 
-    protected DefaultDataAccess(DataAccessSession session, DataSecurityManager securityManager, boolean autoInitialize) {
+    public DefaultDataAccess(DataAccessSession session, DataSecurityManager securityManager, boolean autoInitialize) {
         this.session = session;
         this.securityManager = securityManager;
         if (autoInitialize) {
@@ -96,7 +97,7 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
                 }
             }
         }
-        this.entityContext = new DefaultEntityContext(this);
+        this.entityContext = new DefaultEntityContext(this, securityManager);
         this.rowHandler = new DefaultEntityRowHandler();
         this.entityCreator = new DefaultMapEntityCreator(entityContext);
         this.mapCreator = new DefaultEntityMapCreator();
@@ -358,9 +359,7 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
         } catch (RegistryException e) {
             throw new UnrecognizedProcedureError(entityType, procedureName);
         }
-        if (!securityManager.isAllowed(new ImmutableActor(entityType), new StoredProcedureSubject(procedureMetadata, parameters))) {
-            throw new SecurityException("Access to " + entityType.getCanonicalName() + "." + procedureName + " was denied");
-        }
+        securityManager.checkAccess(new StoredProcedureSubject(procedureMetadata, parameters));
         final Map<String, Object> values = new HashMap<String, Object>();
         for (int i = 0; i < parameters.length; i++) {
             values.put("value.parameter" + i, parameters[i] instanceof Reference ? ((Reference<?>) parameters[i]).getValue() : parameters[i]);
