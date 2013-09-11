@@ -77,7 +77,7 @@ public class ImmutableStatement implements Statement {
     @Override
     public PreparedStatement prepare(Connection connection) {
         try {
-//            System.out.println(sql);
+            System.out.println(sql);
             return connection.prepareStatement(sql);
         } catch (SQLException e) {
             throw new StatementError("Failed to prepare statement through connection", e);
@@ -113,7 +113,7 @@ public class ImmutableStatement implements Statement {
                 //noinspection unchecked
                 map.putAll((Map) value);
             }
-//            System.out.println(finalSql);
+            System.out.println(finalSql);
             statement = preparator.prepare(connection, tableMetadata, map, finalSql);
         } else {
             statement = prepare(connection);

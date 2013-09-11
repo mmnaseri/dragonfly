@@ -11,6 +11,7 @@ import com.agileapes.couteau.reflection.error.NoSuchPropertyException;
 import com.agileapes.couteau.reflection.error.PropertyAccessException;
 import com.agileapes.couteau.reflection.error.PropertyTypeMismatchException;
 import com.agileapes.couteau.reflection.util.ReflectionUtils;
+import com.agileapes.couteau.reflection.util.assets.GetterMethodFilter;
 import com.agileapes.dragonfly.cg.SecuredInterfaceInterceptor;
 import com.agileapes.dragonfly.data.DataAccess;
 import com.agileapes.dragonfly.data.DataAccessObject;
@@ -18,6 +19,8 @@ import com.agileapes.dragonfly.entity.InitializedEntity;
 import com.agileapes.dragonfly.error.EntityDefinitionError;
 import com.agileapes.dragonfly.error.EntityDeletedError;
 import com.agileapes.dragonfly.error.NoPrimaryKeyDefinedError;
+import com.agileapes.dragonfly.metadata.ReferenceMetadata;
+import com.agileapes.dragonfly.metadata.RelationType;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.metadata.impl.PrimaryKeyConstraintMetadata;
 import com.agileapes.dragonfly.security.DataSecurityManager;
@@ -25,6 +28,7 @@ import com.agileapes.dragonfly.tools.ColumnNameFilter;
 import com.agileapes.dragonfly.tools.ColumnPropertyFilter;
 
 import java.io.Serializable;
+import java.lang.reflect.Method;
 import java.util.*;
 
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
@@ -226,7 +230,34 @@ public class EntityProxy<E> extends SecuredInterfaceInterceptor implements Initi
                 dirtiedProperties.add(propertyName);
             }
         }
+        final Method method = methodDescriptor.getMethod();
+        if (new GetterMethodFilter().accepts(method)) {
+            final String propertyName = ReflectionUtils.getPropertyName(method.getName());
+            //noinspection unchecked
+            final ReferenceMetadata<E, ?> referenceMetadata = with(tableMetadata.getForeignReferences()).keep(new Filter<ReferenceMetadata<E, ?>>() {
+                @Override
+                public boolean accepts(ReferenceMetadata<E, ?> item) {
+                    return propertyName.equals(item.getPropertyName());
+                }
+            }).first();
+            if (!dirtiedProperties.contains(propertyName) && referenceMetadata != null && referenceMetadata.getRelationType().equals(RelationType.ONE_TO_MANY) && referenceMetadata.isLazy()) {
+                final BeanWrapper<E> wrapper = new MethodBeanWrapper<E>(entity);
+                wrapper.setPropertyValue(propertyName, loadOneToMany(referenceMetadata));
+            }
+        }
         return methodProxy.callSuper(target, arguments);
+    }
+
+    @Override
+    public Collection<?> loadOneToMany(ReferenceMetadata<E, ?> referenceMetadata) {
+        final Object foreignEntity = dataAccess.getInstance(referenceMetadata.getForeignTable().getEntityType());
+        final BeanWrapper<?> wrapper = new MethodBeanWrapper<Object>(foreignEntity);
+        try {
+            wrapper.setPropertyValue(referenceMetadata.getForeignColumn().getPropertyName(), entity);
+        } catch (Exception e) {
+            throw new Error(e);
+        }
+        return ((DataAccessObject<?, ?>) foreignEntity).findLike();
     }
 
 }

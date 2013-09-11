@@ -10,7 +10,6 @@ import com.agileapes.dragonfly.statement.impl.FreemarkerStatementBuilder;
 import com.agileapes.dragonfly.statement.impl.FreemarkerStatementBuilderContext;
 import freemarker.template.Configuration;
 
-import java.sql.DatabaseMetaData;
 import java.sql.Types;
 
 /**

@@ -5,6 +5,7 @@ import com.agileapes.couteau.basics.api.Transformer;
 import com.agileapes.couteau.reflection.util.ReflectionUtils;
 import com.agileapes.couteau.reflection.util.assets.AnnotatedElementFilter;
 import com.agileapes.couteau.reflection.util.assets.GetterMethodFilter;
+import com.agileapes.couteau.reflection.util.assets.MethodReturnTypeFilter;
 import com.agileapes.dragonfly.annotations.StoredProcedure;
 import com.agileapes.dragonfly.annotations.StoredProcedureParameter;
 import com.agileapes.dragonfly.annotations.StoredProcedures;
@@ -130,6 +131,27 @@ public class AnnotationMetadataResolver implements MetadataResolver {
                 Class<?> foreignEntity = annotation.targetEntity().equals(void.class) ? ((Class) ((ParameterizedType) method.getGenericReturnType()).getActualTypeArguments()[0]) : annotation.targetEntity();
                 String foreignColumnName = annotation.mappedBy();
                 final String propertyName = ReflectionUtils.getPropertyName(method.getName());
+                if (foreignColumnName.isEmpty()) {
+                    //noinspection unchecked
+                    final List<Method> list = withMethods(foreignEntity)
+                            .keep(new AnnotatedElementFilter(JoinColumn.class))
+                            .keep(new AnnotatedElementFilter(ManyToOne.class))
+                            .keep(new MethodReturnTypeFilter(entityType))
+                            .list();
+                    if (list.isEmpty()) {
+                        throw new EntityDefinitionError("No ManyToOne relations for " + entityType.getCanonicalName() + " were found on " + foreignEntity.getCanonicalName());
+                    }
+                    if (list.size() > 1) {
+                        throw new EntityDefinitionError("Ambiguous one to many relationship on " + entityType.getCanonicalName() + "." + propertyName);
+                    }
+                    final Method foreignMethod = list.get(0);
+                    final Column column = method.getAnnotation(Column.class);
+                    final JoinColumn joinColumn = method.getAnnotation(JoinColumn.class);
+                    foreignColumnName = column == null ? joinColumn.name() : column.name();
+                    if (foreignColumnName.isEmpty()) {
+                        foreignColumnName = ReflectionUtils.getPropertyName(foreignMethod.getName());
+                    }
+                }
                 //noinspection unchecked
                 final UnresolvedColumnMetadata foreignColumn = new UnresolvedColumnMetadata(foreignColumnName, new UnresolvedTableMetadata<Object>((Class<Object>) foreignEntity));
                 final ImmutableReferenceMetadata<E, Object> reference = new ImmutableReferenceMetadata<E, Object>(null, propertyName, null, null, getRelationType(method), getCascadeMetadata(method), determineLaziness(method));
