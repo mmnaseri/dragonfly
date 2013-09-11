@@ -3,8 +3,6 @@ package com.agileapes.dragonfly.data.impl;
 import com.agileapes.couteau.basics.api.Filter;
 import com.agileapes.couteau.basics.assets.Assert;
 import com.agileapes.couteau.context.error.RegistryException;
-import com.agileapes.couteau.enhancer.api.Enhancer;
-import com.agileapes.couteau.enhancer.impl.DefaultEnhancer;
 import com.agileapes.couteau.reflection.beans.BeanInitializer;
 import com.agileapes.couteau.reflection.beans.impl.ConstructorBeanInitializer;
 import com.agileapes.couteau.reflection.error.BeanInstantiationException;
@@ -12,7 +10,6 @@ import com.agileapes.couteau.reflection.util.ReflectionUtils;
 import com.agileapes.dragonfly.annotations.ParameterMode;
 import com.agileapes.dragonfly.annotations.Partial;
 import com.agileapes.dragonfly.cg.SecuredInterfaceInterceptor;
-import com.agileapes.dragonfly.cg.StaticNamingPolicy;
 import com.agileapes.dragonfly.data.DataAccessObject;
 import com.agileapes.dragonfly.data.DataAccessSession;
 import com.agileapes.dragonfly.data.PartialDataAccess;
@@ -69,19 +66,6 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
     private final ColumnMappingMetadataCollector columnMappingMetadataCollector;
     private final CompositeDataAccessEventHandler eventHandler;
     private final DataSecurityManager securityManager;
-
-    public static DefaultDataAccess getInstance(DataAccessSession session, DataSecurityManager securityManager) {
-        return getInstance(session, true, securityManager);
-    }
-
-    public static DefaultDataAccess getInstance(DataAccessSession session, boolean autoInitialize, DataSecurityManager securityManager) {
-        final Enhancer<DefaultDataAccess> enhancer = new DefaultEnhancer<DefaultDataAccess>();
-        enhancer.setInterceptor(new SecuredInterfaceInterceptor(securityManager));
-        enhancer.setInterfaces(DefaultDataAccess.class.getInterfaces());
-        enhancer.setSuperClass(DefaultDataAccess.class);
-        enhancer.setNamingPolicy(new StaticNamingPolicy("dataAccess"));
-        return (DefaultDataAccess) enhancer.create(new Class[]{DataAccessSession.class, DataSecurityManager.class, boolean.class}, new Object[]{session, securityManager, autoInitialize});
-    }
 
     public DefaultDataAccess(DataAccessSession session, DataSecurityManager securityManager) {
         this(session, securityManager, true);
