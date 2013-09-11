@@ -4,10 +4,7 @@ import com.agileapes.couteau.basics.api.Cache;
 import com.agileapes.couteau.basics.api.Processor;
 import com.agileapes.couteau.basics.api.impl.ConcurrentCache;
 import com.agileapes.dragonfly.error.*;
-import com.agileapes.dragonfly.metadata.ColumnMetadata;
-import com.agileapes.dragonfly.metadata.MetadataContext;
-import com.agileapes.dragonfly.metadata.MetadataRegistry;
-import com.agileapes.dragonfly.metadata.TableMetadata;
+import com.agileapes.dragonfly.metadata.*;
 import com.agileapes.dragonfly.tools.ColumnNameFilter;
 
 import java.util.*;
@@ -84,32 +81,40 @@ public class DefaultMetadataContext extends DefaultMetadataRegistry implements M
                 if (!(foreignColumn instanceof UnresolvedColumnMetadata)) {
                     continue;
                 }
-                TableMetadata<?> foreignTable = foreignColumn.getTable();
-                final ColumnMetadata resolvedColumn;
-                if (foreignTable instanceof UnresolvedTableMetadata<?>) {
-                    foreignTable = map.get(foreignTable.getEntityType());
-                }
-                if (foreignTable == null || !(foreignTable instanceof ResolvedTableMetadata<?>)) {
-                    throw new NoSuchEntityError(foreignColumn.getTable().getEntityType());
-                }
-                if (foreignColumn.getName() == null || foreignColumn.getName().isEmpty()) {
-                    final PrimaryKeyConstraintMetadata primaryKey = foreignTable.getPrimaryKey();
-                    if (primaryKey.getColumns().size() != 1) {
-                        throw new EntityDefinitionError("Entity " + metadata.getEntityType().getCanonicalName() + " references composite primary key at " + foreignTable.getEntityType().getCanonicalName());
-                    }
-                    resolvedColumn = primaryKey.getColumns().iterator().next();
-                } else {
-                    resolvedColumn = with(foreignTable.getColumns()).keep(new ColumnNameFilter(foreignColumn.getName())).first();
-                    if (resolvedColumn == null) {
-                        throw new NoSuchColumnError(foreignTable.getEntityType(), foreignColumn.getName());
-                    }
-                }
+                final ColumnMetadata resolvedColumn = resolveColumn(map, metadata, foreignColumn);
                 ((ResolvedColumnMetadata) columnMetadata).setForeignReference(resolvedColumn);
+            }
+            for (ReferenceMetadata<?, ?> referenceMetadata : metadata.getForeignReferences()) {
+                ((ImmutableReferenceMetadata) referenceMetadata).setForeignColumn(resolveColumn(map, metadata, referenceMetadata.getForeignColumn()));
             }
         }
         for (Map.Entry<Class<?>, TableMetadata<?>> entry : map.entrySet()) {
             metadataCache.write(entry.getKey(), entry.getValue());
         }
+    }
+
+    private static ColumnMetadata resolveColumn(Map<Class<?>, TableMetadata<?>> map, TableMetadata<?> localTable, ColumnMetadata foreignColumn) {
+        TableMetadata<?> foreignTable = foreignColumn.getTable();
+        final ColumnMetadata resolvedColumn;
+        if (foreignTable instanceof UnresolvedTableMetadata<?>) {
+            foreignTable = map.get(foreignTable.getEntityType());
+        }
+        if (foreignTable == null || !(foreignTable instanceof ResolvedTableMetadata<?>)) {
+            throw new NoSuchEntityError(foreignColumn.getTable().getEntityType());
+        }
+        if (foreignColumn.getName() == null || foreignColumn.getName().isEmpty()) {
+            final PrimaryKeyConstraintMetadata primaryKey = foreignTable.getPrimaryKey();
+            if (primaryKey.getColumns().size() != 1) {
+                throw new EntityDefinitionError("Entity " + localTable.getEntityType().getCanonicalName() + " references composite primary key at " + foreignTable.getEntityType().getCanonicalName());
+            }
+            resolvedColumn = primaryKey.getColumns().iterator().next();
+        } else {
+            resolvedColumn = with(foreignTable.getColumns()).keep(new ColumnNameFilter(foreignColumn.getName())).first();
+            if (resolvedColumn == null) {
+                throw new NoSuchColumnError(foreignTable.getEntityType(), foreignColumn.getName());
+            }
+        }
+        return resolvedColumn;
     }
 
 }

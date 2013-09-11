@@ -22,7 +22,7 @@ public interface TableMetadata<E> extends Metadata {
 
     <C extends ConstraintMetadata> Collection<C> getConstraints(Class<C> constraintType);
 
-    Collection<TableMetadata<?>> getForeignReferences();
+    Collection<ReferenceMetadata<E, ?>> getForeignReferences();
 
     Collection<ColumnMetadata> getColumns();
 

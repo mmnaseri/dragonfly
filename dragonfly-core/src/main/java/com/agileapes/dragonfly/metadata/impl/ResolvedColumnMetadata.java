@@ -103,5 +103,7 @@ public class ResolvedColumnMetadata extends AbstractColumnMetadata {
 
     public void setForeignReference(ColumnMetadata foreignReference) {
         this.foreignReference = foreignReference;
+        ((ResolvedTableMetadata) getTable()).recreateForeignReferences();
     }
+
 }

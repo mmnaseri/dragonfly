@@ -1,5 +1,6 @@
 package com.agileapes.dragonfly.metadata.impl;
 
+import com.agileapes.couteau.basics.api.Processor;
 import com.agileapes.couteau.basics.api.Transformer;
 import com.agileapes.couteau.reflection.util.ReflectionUtils;
 import com.agileapes.couteau.reflection.util.assets.AnnotatedElementFilter;
@@ -16,6 +17,7 @@ import com.agileapes.dragonfly.tools.ColumnNameFilter;
 
 import javax.persistence.*;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Time;
@@ -43,6 +45,7 @@ public class AnnotationMetadataResolver implements MetadataResolver {
         final Set<Set<String>> uniqueColumns = new HashSet<Set<String>>();
         final Set<String> keyColumns = new HashSet<String>();
         final Set<String> foreignKeys = new HashSet<String>();
+        final HashSet<ReferenceMetadata<E, ?>> foreignReferences = new HashSet<ReferenceMetadata<E, ?>>();
         if (entityType.isAnnotationPresent(Table.class)) {
             final Table table = entityType.getAnnotation(Table.class);
             tableName = table.name().isEmpty() ? entityType.getSimpleName() : table.name();
@@ -89,10 +92,10 @@ public class AnnotationMetadataResolver implements MetadataResolver {
                 final int scale = column != null ? column.scale() : 0;
                 final ValueGenerationType generationType = determineValueGenerationType(method);
                 final String valueGenerator = determineValueGenerator(method);
-                final ColumnMetadata foreignReference = joinColumn == null ? null : determineForeignReference(method);
-                final int type = getColumnType(method, foreignReference);
-                final ResolvedColumnMetadata columnMetadata = new ResolvedColumnMetadata(new UnresolvedTableMetadata<E>(entityType), name, type, propertyName, propertyType, nullable, length, precision, scale, generationType, valueGenerator, foreignReference);
-                if (foreignReference != null) {
+                final ColumnMetadata foreignColumn = joinColumn == null ? null : determineForeignReference(method);
+                final int type = getColumnType(method, foreignColumn);
+                final ResolvedColumnMetadata columnMetadata = new ResolvedColumnMetadata(new UnresolvedTableMetadata<E>(entityType), name, type, propertyName, propertyType, nullable, length, precision, scale, generationType, valueGenerator, foreignColumn);
+                if (foreignColumn != null) {
                     foreignKeys.add(name);
                 }
                 if (method.isAnnotationPresent(Id.class)) {
@@ -102,9 +105,38 @@ public class AnnotationMetadataResolver implements MetadataResolver {
                     final SequenceGenerator annotation = method.getAnnotation(SequenceGenerator.class);
                     sequences.add(new DefaultSequenceMetadata(annotation.name(), annotation.initialValue(), annotation.allocationSize()));
                 }
+                if (joinColumn != null) {
+                    final RelationType relationType = getRelationType(method);
+                    final CascadeMetadata cascadeMetadata = getCascadeMetadata(method);
+                    final boolean isLazy = determineLaziness(method);
+                    final ImmutableReferenceMetadata<E, Object> reference = new ImmutableReferenceMetadata<E, Object>(null, columnMetadata.getPropertyName(), null, null, relationType, cascadeMetadata, isLazy);
+                    reference.setForeignColumn(foreignColumn);
+                    foreignReferences.add(reference);
+                }
                 return columnMetadata;
             }
         }).list();
+        //noinspection unchecked
+        withMethods(entityType)
+        .keep(new GetterMethodFilter())
+        .keep(new AnnotatedElementFilter(OneToMany.class))
+        .each(new Processor<Method>() {
+            @Override
+            public void process(Method method) {
+                if (!Collection.class.isAssignableFrom(method.getReturnType())) {
+                    throw new EntityDefinitionError("One to many relations must be collections. Error in " + method);
+                }
+                final OneToMany annotation = method.getAnnotation(OneToMany.class);
+                Class<?> foreignEntity = annotation.targetEntity().equals(void.class) ? ((Class) ((ParameterizedType) method.getGenericReturnType()).getActualTypeArguments()[0]) : annotation.targetEntity();
+                String foreignColumnName = annotation.mappedBy();
+                final String propertyName = ReflectionUtils.getPropertyName(method.getName());
+                //noinspection unchecked
+                final UnresolvedColumnMetadata foreignColumn = new UnresolvedColumnMetadata(foreignColumnName, new UnresolvedTableMetadata<Object>((Class<Object>) foreignEntity));
+                final ImmutableReferenceMetadata<E, Object> reference = new ImmutableReferenceMetadata<E, Object>(null, propertyName, null, null, getRelationType(method), getCascadeMetadata(method), determineLaziness(method));
+                reference.setForeignColumn(foreignColumn);
+                foreignReferences.add(reference);
+            }
+        });
         final HashSet<NamedQueryMetadata> namedQueries = new HashSet<NamedQueryMetadata>();
         if (entityType.isAnnotationPresent(NamedNativeQueries.class)) {
             final NamedNativeQuery[] queries = entityType.getAnnotation(NamedNativeQueries.class).value();
@@ -116,7 +148,7 @@ public class AnnotationMetadataResolver implements MetadataResolver {
             final SequenceGenerator annotation = entityType.getAnnotation(SequenceGenerator.class);
             sequences.add(new DefaultSequenceMetadata(annotation.name(), annotation.initialValue(), annotation.allocationSize()));
         }
-        final ResolvedTableMetadata<E> tableMetadata = new ResolvedTableMetadata<E>(entityType, schema, tableName, constraints, tableColumns, namedQueries, sequences, storedProcedures);
+        final ResolvedTableMetadata<E> tableMetadata = new ResolvedTableMetadata<E>(entityType, schema, tableName, constraints, tableColumns, namedQueries, sequences, storedProcedures, foreignReferences);
         if (!keyColumns.isEmpty()) {
             constraints.add(new PrimaryKeyConstraintMetadata(tableMetadata, with(keyColumns).transform(new Transformer<String, ColumnMetadata>() {
                 @Override
@@ -167,6 +199,43 @@ public class AnnotationMetadataResolver implements MetadataResolver {
             }
         }).list());
         return tableMetadata;
+    }
+
+    private static boolean determineLaziness(Method method) {
+        return method.isAnnotationPresent(OneToOne.class) && method.getAnnotation(OneToOne.class).fetch().equals(FetchType.LAZY)
+                || method.isAnnotationPresent(OneToMany.class) && method.getAnnotation(OneToMany.class).fetch().equals(FetchType.LAZY)
+                || method.isAnnotationPresent(ManyToOne.class) && method.getAnnotation(ManyToOne.class).fetch().equals(FetchType.LAZY)
+                || method.isAnnotationPresent(ManyToMany.class) && method.getAnnotation(ManyToMany.class).fetch().equals(FetchType.LAZY);
+    }
+
+    private static CascadeMetadata getCascadeMetadata(Method method) {
+        final List<CascadeType> cascadeTypes = new ArrayList<CascadeType>();
+        if (method.isAnnotationPresent(OneToOne.class)) {
+            cascadeTypes.addAll(Arrays.asList(method.getAnnotation(OneToOne.class).cascade()));
+        } else if (method.isAnnotationPresent(OneToMany.class)) {
+            cascadeTypes.addAll(Arrays.asList(method.getAnnotation(OneToMany.class).cascade()));
+        } else if (method.isAnnotationPresent(ManyToOne.class)) {
+            cascadeTypes.addAll(Arrays.asList(method.getAnnotation(ManyToOne.class).cascade()));
+        } else if (method.isAnnotationPresent(ManyToMany.class)) {
+            cascadeTypes.addAll(Arrays.asList(method.getAnnotation(ManyToMany.class).cascade()));
+        }
+        final boolean cascadeAll = cascadeTypes.contains(CascadeType.ALL);
+        return new ImmutableCascadeMetadata(
+                cascadeAll || cascadeTypes.contains(CascadeType.PERSIST),
+                cascadeAll || cascadeTypes.contains(CascadeType.MERGE),
+                cascadeAll || cascadeTypes.contains(CascadeType.REMOVE),
+                cascadeAll || cascadeTypes.contains(CascadeType.REFRESH));
+    }
+
+    private static RelationType getRelationType(Method method) {
+        if (method.isAnnotationPresent(OneToMany.class)) {
+            return RelationType.ONE_TO_MANY;
+        } else if (method.isAnnotationPresent(ManyToOne.class)) {
+            return RelationType.MANY_TO_ONE;
+        } else if (method.isAnnotationPresent(ManyToMany.class)) {
+            return RelationType.MANY_TO_MANY;
+        }
+        return RelationType.ONE_TO_ONE;
     }
 
     private StoredProcedureMetadata getStoredProcedureMetadata(StoredProcedure annotation) {
