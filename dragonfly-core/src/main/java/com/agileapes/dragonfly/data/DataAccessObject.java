@@ -1,10 +1,8 @@
 package com.agileapes.dragonfly.data;
 
-import com.agileapes.dragonfly.metadata.ReferenceMetadata;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.List;
 
 /**

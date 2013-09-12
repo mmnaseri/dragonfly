@@ -1,7 +1,6 @@
 package com.agileapes.dragonfly.data;
 
 import java.sql.Timestamp;
-import java.util.Date;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
