@@ -19,7 +19,7 @@ import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 public class DefaultMetadataContext extends DefaultMetadataRegistry implements MetadataContext {
 
     private final Cache<Class<?>, TableMetadata<?>> metadataCache = new ConcurrentCache<Class<?>, TableMetadata<?>>();
-    private final Set<MetadataRegistry> registries = new CopyOnWriteArraySet<MetadataRegistry>();
+    private Set<MetadataRegistry> registries = new CopyOnWriteArraySet<MetadataRegistry>();
     private final Set<Class<?>> entityTypes = new HashSet<Class<?>>();
     private boolean ready = true;
 
@@ -32,9 +32,16 @@ public class DefaultMetadataContext extends DefaultMetadataRegistry implements M
         return entityTypes;
     }
 
+    public void setRegistries(Set<MetadataRegistry> registries) {
+        this.registries = new CopyOnWriteArraySet<MetadataRegistry>(registries);
+        this.registries.add(this);
+        ready = false;
+    }
+
     @Override
     public synchronized void addMetadataRegistry(MetadataRegistry registry) {
         registries.add(registry);
+        ready = false;
         registry.setChangeCallback(new Processor<MetadataRegistry>() {
             @Override
             public void process(MetadataRegistry registry) {
