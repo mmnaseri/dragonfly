@@ -16,4 +16,8 @@ public interface InitializedEntity<E> {
 
     boolean isDirtied();
 
+    void freeze();
+
+    void unfreeze();
+
 }

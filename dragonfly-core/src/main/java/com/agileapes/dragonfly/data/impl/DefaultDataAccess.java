@@ -9,7 +9,6 @@ import com.agileapes.couteau.reflection.error.BeanInstantiationException;
 import com.agileapes.couteau.reflection.util.ReflectionUtils;
 import com.agileapes.dragonfly.annotations.ParameterMode;
 import com.agileapes.dragonfly.annotations.Partial;
-import com.agileapes.dragonfly.cg.SecuredInterfaceInterceptor;
 import com.agileapes.dragonfly.data.DataAccessObject;
 import com.agileapes.dragonfly.data.DataAccessSession;
 import com.agileapes.dragonfly.data.PartialDataAccess;
@@ -282,9 +281,15 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
             while (resultSet.next()) {
                 final E entity = getInstance(entityType);
                 //noinspection unchecked
+                ((InitializedEntity<E>) entity).freeze();
+                //noinspection unchecked
                 entityCreator.fromMap(entity, ((DataAccessObject) entity).getTableMetadata().getColumns(), rowHandler.handleRow(resultSet));
                 //noinspection unchecked
                 ((InitializedEntity<E>) entity).setOriginalCopy(entity);
+                //noinspection unchecked
+                ((DataAccessObject) entity).loadRelations();
+                //noinspection unchecked
+                ((InitializedEntity<E>) entity).unfreeze();
                 result.add(entity);
             }
         } catch (RegistryException e) {
@@ -480,7 +485,9 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
 
     @Override
     public <E> E getInstance(Class<E> entityType) {
-        return entityContext.getInstance(session.getMetadataRegistry().getTableMetadata(entityType));
+        final E instance = entityContext.getInstance(session.getMetadataRegistry().getTableMetadata(entityType));
+        ((InitializedEntity) instance).unfreeze();
+        return instance;
     }
 
     @Override

@@ -49,6 +49,7 @@ public class EntityProxy<E> extends SecuredInterfaceInterceptor implements Initi
     private boolean deleted = false;
     private final Set<String> dirtiedProperties = new HashSet<String>();
     private final boolean isKeyGenerated;
+    private boolean frozen = false;
 
     public EntityProxy(DataAccess dataAccess, TableMetadata<E> tableMetadata, DataSecurityManager securityManager) {
         super(securityManager);
@@ -81,6 +82,7 @@ public class EntityProxy<E> extends SecuredInterfaceInterceptor implements Initi
 
     @Override
     public void refresh() {
+        freeze();
         final List<E> list = new ArrayList<E>();
         if (!hasKey() || accessKey() == null) {
             list.addAll(dataAccess.find(original));
@@ -91,6 +93,7 @@ public class EntityProxy<E> extends SecuredInterfaceInterceptor implements Initi
         if (found == null) {
             throw new NoPrimaryKeyDefinedError(tableMetadata);
         }
+        ((InitializedEntity) found).freeze();
         final MethodBeanAccessor<?> accessor = new MethodBeanAccessor<Object>(found);
         final BeanWrapper<E> wrapper = new MethodBeanWrapper<E>(entity);
         //noinspection unchecked
@@ -116,11 +119,13 @@ public class EntityProxy<E> extends SecuredInterfaceInterceptor implements Initi
                 }
             }
         });
+        ((InitializedEntity) found).unfreeze();
         original = found;
         dirtiedProperties.clear();
         if (keyProperty != null) {
             dirtiedProperties.add(keyProperty);
         }
+        unfreeze();
     }
 
     @Override
@@ -203,6 +208,16 @@ public class EntityProxy<E> extends SecuredInterfaceInterceptor implements Initi
     }
 
     @Override
+    public synchronized void freeze() {
+        frozen = true;
+    }
+
+    @Override
+    public synchronized void unfreeze() {
+        frozen = false;
+    }
+
+    @Override
     public boolean hasKey() {
         return keyProperty != null;
     }
@@ -223,6 +238,32 @@ public class EntityProxy<E> extends SecuredInterfaceInterceptor implements Initi
     }
 
     @Override
+    public void loadRelations() {
+        final BeanWrapper<E> wrapper = new MethodBeanWrapper<E>(entity);
+        //noinspection unchecked
+        with(tableMetadata.getForeignReferences())
+        .keep(new Filter<ReferenceMetadata<E, ?>>() {
+            @Override
+            public boolean accepts(ReferenceMetadata<E, ?> item) {
+                return !item.isLazy();
+            }
+        }).each(new Processor<ReferenceMetadata<E, ?>>() {
+            @Override
+            public void process(ReferenceMetadata<E, ?> referenceMetadata) {
+                if (referenceMetadata.getRelationType().equals(RelationType.ONE_TO_MANY)) {
+                    try {
+                        wrapper.setPropertyValue(referenceMetadata.getPropertyName(), loadOneToMany(referenceMetadata));
+                    } catch (NoSuchPropertyException ignored) {
+                    } catch (PropertyAccessException ignored) {
+                    } catch (PropertyTypeMismatchException e) {
+                        throw new Error("Invalid property type", e);
+                    }
+                }
+            }
+        });
+    }
+
+    @Override
     protected Object call(MethodDescriptor methodDescriptor, Object target, Object[] arguments, MethodProxy methodProxy) throws Throwable {
         if (methodDescriptor.getName().matches("set[A-Z].*")) {
             final String propertyName = ReflectionUtils.getPropertyName(methodDescriptor.getName());
@@ -240,16 +281,18 @@ public class EntityProxy<E> extends SecuredInterfaceInterceptor implements Initi
                     return propertyName.equals(item.getPropertyName());
                 }
             }).first();
-            if (!dirtiedProperties.contains(propertyName) && referenceMetadata != null && referenceMetadata.getRelationType().equals(RelationType.ONE_TO_MANY) && referenceMetadata.isLazy()) {
-                final BeanWrapper<E> wrapper = new MethodBeanWrapper<E>(entity);
-                wrapper.setPropertyValue(propertyName, loadOneToMany(referenceMetadata));
+            if (!frozen) {
+                if (!dirtiedProperties.contains(propertyName) && referenceMetadata != null && referenceMetadata.getRelationType().equals(RelationType.ONE_TO_MANY) && referenceMetadata.isLazy()) {
+                    final BeanWrapper<E> wrapper = new MethodBeanWrapper<E>(entity);
+                    wrapper.setPropertyValue(propertyName, loadOneToMany(referenceMetadata));
+                    dirtiedProperties.add(propertyName);
+                }
             }
         }
         return methodProxy.callSuper(target, arguments);
     }
 
-    @Override
-    public Collection<?> loadOneToMany(ReferenceMetadata<E, ?> referenceMetadata) {
+    private Collection<?> loadOneToMany(ReferenceMetadata<E, ?> referenceMetadata) {
         final Object foreignEntity = dataAccess.getInstance(referenceMetadata.getForeignTable().getEntityType());
         final BeanWrapper<?> wrapper = new MethodBeanWrapper<Object>(foreignEntity);
         try {
