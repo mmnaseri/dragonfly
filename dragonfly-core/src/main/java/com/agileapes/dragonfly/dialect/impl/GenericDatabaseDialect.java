@@ -98,7 +98,7 @@ public abstract class GenericDatabaseDialect implements DatabaseDialect {
         } else if (columnType == Types.TIME) {
             return "TIME";
         } else if (columnType == Types.TIMESTAMP) {
-            return "TIMESTAMP";
+            return "DATETIME";
         } else if (columnType == Types.BINARY) {
             return "BINARY (" + (columnMetadata.getLength() <= 0 ? 1 : (columnMetadata.getLength() > 255 ? 255 : columnMetadata.getLength())) + ")";
         } else if (columnType == Types.VARBINARY) {
