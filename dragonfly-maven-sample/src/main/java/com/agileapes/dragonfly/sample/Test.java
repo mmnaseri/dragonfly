@@ -16,10 +16,10 @@ public class Test {
     public static void main(String[] args) throws Exception {
         final ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("/data/sample.xml");
         final DataAccess dataAccess = context.getBean(DataAccess.class);
-        dataAccess.deleteAll(Person.class);
         Person person = dataAccess.getInstance(Person.class);
-        person.setName("Milad");
-        ((DataAccessObject) person).save();
+        person.setId(1L);
+        ((DataAccessObject) person).refresh();
+        person.setName("Mohammad Milad");
         ((DataAccessObject) person).save();
         final List<Person> people = dataAccess.findAll(Person.class);
         for (Person someone : people) {

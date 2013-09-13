@@ -31,10 +31,18 @@ public class AuditInterceptor implements DataAccessPostProcessor, TableMetadataI
     public void postProcessAfterInitialization(DataAccess dataAccess) {
         ((ModifiableEntityContext) dataAccess).addInterface(Auditable.class, DefaultAuditable.class);
         ((EventHandlerContext) dataAccess).addHandler(new AbstractDataAccessEventHandler() {
+
+            @Override
+            public <E> void beforeInsert(E entity) {
+                ((Auditable) entity).setInsertUser(userContext.getCurrentUser());
+                ((Auditable) entity).setInsertTime(new Date());
+            }
+
             @Override
             public <E> void beforeUpdate(E entity) {
                 ((Auditable) entity).setUpdateUser(userContext.getCurrentUser());
-                ((Auditable) entity).setUpdateTime(new Timestamp(new Date().getTime()));
+                ((Auditable) entity).setUpdateTime(new Date());
+                ((Auditable) entity).setUpdateCount(((Auditable) entity).getUpdateCount() + 1);
             }
         });
     }
@@ -42,8 +50,11 @@ public class AuditInterceptor implements DataAccessPostProcessor, TableMetadataI
     @Override
     public <E> TableMetadata<E> intercept(TableMetadata<E> tableMetadata) {
         final Collection<ColumnMetadata> columns = new HashSet<ColumnMetadata>(tableMetadata.getColumns());
+        columns.add(new ResolvedColumnMetadata(tableMetadata, "insert_user", Types.VARCHAR, "insertUser", String.class, false, 256, 0, 0));
+        columns.add(new ResolvedColumnMetadata(tableMetadata, "insert_time", Types.TIMESTAMP, "insertTime", Timestamp.class, false, 0, 0, 0));
         columns.add(new ResolvedColumnMetadata(tableMetadata, "update_user", Types.VARCHAR, "updateUser", String.class, true, 256, 0, 0));
-        columns.add(new ResolvedColumnMetadata(tableMetadata, "update_time", Types.TIMESTAMP, "updateTime", Timestamp.class, true, 256, 0, 0));
+        columns.add(new ResolvedColumnMetadata(tableMetadata, "update_time", Types.TIMESTAMP, "updateTime", Timestamp.class, true, 0, 0, 0));
+        columns.add(new ResolvedColumnMetadata(tableMetadata, "update_count", Types.INTEGER, "updateCount", Integer.class, false, 0, 0, 0));
         return new ResolvedTableMetadata<E>(tableMetadata.getEntityType(), tableMetadata.getSchema(), tableMetadata.getName(), tableMetadata.getConstraints(), columns, tableMetadata.getNamedQueries(), tableMetadata.getSequences(), tableMetadata.getProcedures(), tableMetadata.getForeignReferences());
     }
 

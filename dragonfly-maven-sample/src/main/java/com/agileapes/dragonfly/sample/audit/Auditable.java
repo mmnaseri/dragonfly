@@ -8,12 +8,24 @@ import java.util.Date;
  */
 public interface Auditable {
 
+    String getInsertUser();
+
+    Date getInsertTime();
+
     String getUpdateUser();
 
     Date getUpdateTime();
 
+    int getUpdateCount();
+
+    void setInsertUser(String insertUser);
+
+    void setInsertTime(Date insertTime);
+
     void setUpdateUser(String updateUser);
 
     void setUpdateTime(Date updateTime);
+
+    void setUpdateCount(int updateCount);
 
 }

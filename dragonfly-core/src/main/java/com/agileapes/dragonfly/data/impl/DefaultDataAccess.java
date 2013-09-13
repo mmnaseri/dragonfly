@@ -13,8 +13,8 @@ import com.agileapes.dragonfly.data.*;
 import com.agileapes.dragonfly.entity.*;
 import com.agileapes.dragonfly.entity.impl.DefaultEntityContext;
 import com.agileapes.dragonfly.entity.impl.DefaultEntityMapCreator;
-import com.agileapes.dragonfly.entity.impl.DefaultRowHandler;
 import com.agileapes.dragonfly.entity.impl.DefaultMapEntityCreator;
+import com.agileapes.dragonfly.entity.impl.DefaultRowHandler;
 import com.agileapes.dragonfly.error.*;
 import com.agileapes.dragonfly.events.DataAccessEventHandler;
 import com.agileapes.dragonfly.events.EventHandlerContext;
@@ -211,7 +211,13 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
         final DataAccessObject<E, Serializable> object = checkEntity(original);
         final Map<String, Object> map = MapTools.prefixKeys(mapCreator.toMap(object.getTableMetadata(), original), "value.");
         map.putAll(MapTools.prefixKeys(mapCreator.toMap(object.getTableMetadata(), original), "old."));
-        map.putAll(MapTools.prefixKeys(mapCreator.toMap(object.getTableMetadata(), replacement), "new."));
+        final Map<String, Object> newMap = mapCreator.toMap(object.getTableMetadata(), replacement);
+        for (Map.Entry<String, Object> entry : newMap.entrySet()) {
+            if (!map.containsKey("value." + entry.getKey())) {
+                map.put("value." + entry.getKey(), entry.getValue());
+            }
+        }
+        map.putAll(MapTools.prefixKeys(newMap, "new."));
         return executeUpdate(object.getTableMetadata().getEntityType(), queryName, map);
     }
 
