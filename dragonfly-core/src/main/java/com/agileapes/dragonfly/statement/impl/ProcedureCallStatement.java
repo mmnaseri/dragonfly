@@ -8,6 +8,8 @@ import com.agileapes.dragonfly.entity.impl.DefaultStatementPreparator;
 import com.agileapes.dragonfly.error.StatementError;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.statement.Statement;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import java.sql.CallableStatement;
 import java.sql.Connection;
@@ -21,6 +23,7 @@ import java.util.Map;
  */
 public class ProcedureCallStatement extends ImmutableStatement {
 
+    private static final Log log = LogFactory.getLog(Statement.class);
     private final StatementPreparator preparator;
 
     public ProcedureCallStatement(Statement statement, DatabaseDialect dialect) {
@@ -35,7 +38,7 @@ public class ProcedureCallStatement extends ImmutableStatement {
     @Override
     public PreparedStatement prepare(Connection connection) {
         try {
-//            System.out.println(getSql());
+            log.info("Preparing statement: " + getSql());
             return connection.prepareCall(getSql());
         } catch (SQLException e) {
             throw new StatementError("Failed to prepare statement through connection", e);
@@ -49,7 +52,7 @@ public class ProcedureCallStatement extends ImmutableStatement {
             final FreemarkerSecondPassStatementBuilder builder = new FreemarkerSecondPassStatementBuilder(this, getDialect(), value);
             finalSql = builder.getStatement(getTableMetadata()).getSql();
         }
-//        System.out.println(finalSql);
+        log.info("Preparing statement: " + finalSql);
         final PreparedStatement statement;
         if (hasParameters()) {
             final EntityMapCreator mapCreator = new DefaultEntityMapCreator();

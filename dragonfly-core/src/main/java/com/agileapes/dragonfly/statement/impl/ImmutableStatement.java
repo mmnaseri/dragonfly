@@ -10,6 +10,8 @@ import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.statement.Statement;
 import com.agileapes.dragonfly.statement.StatementType;
 import com.agileapes.dragonfly.tools.MapTools;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -24,6 +26,7 @@ import java.util.regex.Pattern;
  */
 public class ImmutableStatement implements Statement {
 
+    private static final Log log = LogFactory.getLog(Statement.class);
     public static final Pattern STATEMENT_PATTERN = Pattern.compile("(%\\{.*?\\}|<%.*?>|</%.*>)", Pattern.DOTALL);
     public static final Pattern VALUE_PATTERN = Pattern.compile("(?:[%\\$]\\{[^\\}]*?\\b(?:value|new|old)|<[\\$%].*?\\b(?:value|new|old))");
 
@@ -77,7 +80,7 @@ public class ImmutableStatement implements Statement {
     @Override
     public PreparedStatement prepare(Connection connection) {
         try {
-            System.out.println(sql);
+            log.info("Preparing statement: " + sql);
             return connection.prepareStatement(sql);
         } catch (SQLException e) {
             throw new StatementError("Failed to prepare statement through connection", e);
@@ -113,7 +116,7 @@ public class ImmutableStatement implements Statement {
                 //noinspection unchecked
                 map.putAll((Map) value);
             }
-            System.out.println(finalSql);
+            log.info("Preparing statement: " + finalSql);
             statement = preparator.prepare(connection, tableMetadata, map, finalSql);
         } else {
             statement = prepare(connection);

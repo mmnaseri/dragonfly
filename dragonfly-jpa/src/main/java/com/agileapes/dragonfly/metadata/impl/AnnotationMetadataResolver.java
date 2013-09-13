@@ -15,6 +15,8 @@ import com.agileapes.dragonfly.error.NoSuchColumnError;
 import com.agileapes.dragonfly.error.UnsupportedColumnTypeError;
 import com.agileapes.dragonfly.metadata.*;
 import com.agileapes.dragonfly.tools.ColumnNameFilter;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import javax.persistence.*;
 import java.lang.reflect.Method;
@@ -34,10 +36,12 @@ import static com.agileapes.couteau.reflection.util.ReflectionUtils.withMethods;
  */
 public class AnnotationMetadataResolver implements MetadataResolver {
 
+    private static final Log log = LogFactory.getLog(MetadataResolver.class);
     private static final String NO_SCHEMA = "";
 
     @Override
     public <E> TableMetadata<E> resolve(final Class<E> entityType) {
+        log.info("Resolving metadata for " + entityType.getCanonicalName());
         if (!entityType.isAnnotationPresent(Entity.class)) {
             throw new EntityDefinitionError("Entity is not annotated with @Entity: " + entityType.getCanonicalName());
         }

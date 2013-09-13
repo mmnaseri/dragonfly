@@ -2,6 +2,7 @@ package com.agileapes.dragonfly.data.impl;
 
 import com.agileapes.couteau.enhancer.api.MethodDescriptor;
 import com.agileapes.couteau.enhancer.impl.ImmutableMethodDescriptor;
+import com.agileapes.dragonfly.data.DataAccess;
 import com.agileapes.dragonfly.data.DataAccessSession;
 import com.agileapes.dragonfly.data.PartialDataAccess;
 import com.agileapes.dragonfly.entity.ModifiableEntityContext;
@@ -10,6 +11,8 @@ import com.agileapes.dragonfly.events.EventHandlerContext;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.security.DataSecurityManager;
 import com.agileapes.dragonfly.security.impl.MethodSubject;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
@@ -52,6 +55,7 @@ public class SecuredDataAccess extends DefaultDataAccess implements PartialDataA
     }
 
     private final DataSecurityManager securityManager;
+    private static final Log log = LogFactory.getLog(DataAccess.class);
 
     public SecuredDataAccess(DataAccessSession session, DataSecurityManager securityManager) {
         this(session, securityManager, true);
@@ -60,6 +64,7 @@ public class SecuredDataAccess extends DefaultDataAccess implements PartialDataA
     public SecuredDataAccess(DataAccessSession session, DataSecurityManager securityManager, boolean autoInitialize) {
         super(session, securityManager, autoInitialize);
         this.securityManager = securityManager;
+        log.info("Initializing secured data access interface");
     }
 
     @Override

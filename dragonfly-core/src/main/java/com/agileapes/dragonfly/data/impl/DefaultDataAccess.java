@@ -9,10 +9,7 @@ import com.agileapes.couteau.reflection.error.BeanInstantiationException;
 import com.agileapes.couteau.reflection.util.ReflectionUtils;
 import com.agileapes.dragonfly.annotations.ParameterMode;
 import com.agileapes.dragonfly.annotations.Partial;
-import com.agileapes.dragonfly.data.DataAccessObject;
-import com.agileapes.dragonfly.data.DataAccessSession;
-import com.agileapes.dragonfly.data.PartialDataAccess;
-import com.agileapes.dragonfly.data.Reference;
+import com.agileapes.dragonfly.data.*;
 import com.agileapes.dragonfly.entity.*;
 import com.agileapes.dragonfly.entity.impl.DefaultEntityContext;
 import com.agileapes.dragonfly.entity.impl.DefaultEntityMapCreator;
@@ -33,6 +30,8 @@ import com.agileapes.dragonfly.statement.StatementType;
 import com.agileapes.dragonfly.statement.impl.ProcedureCallStatement;
 import com.agileapes.dragonfly.tools.MapTools;
 import freemarker.template.utility.StringUtil;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import java.io.Serializable;
 import java.sql.CallableStatement;
@@ -56,6 +55,7 @@ import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
  */
 public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityContext, EventHandlerContext {
 
+    private static final Log log = LogFactory.getLog(DataAccess.class);
     private final DataAccessSession session;
     private final ModifiableEntityContext entityContext;
     private final EntityRowHandler rowHandler;
@@ -74,7 +74,9 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
         this.session = session;
         this.securityManager = securityManager;
         if (autoInitialize) {
+            log.info("Automatically initializing the session");
             synchronized (this.session) {
+
                 if (!this.session.isInitialized()) {
                     this.session.initialize();
                 }
@@ -91,6 +93,7 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
 
     @Override
     public <E> void save(E entity) {
+        log.info("Going to save entity " + entity);
         eventHandler.beforeSave(entity);
         final DataAccessObject<E, Serializable> object = checkEntity(entity);
         //noinspection unchecked
@@ -99,10 +102,12 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
         try {
             shouldUpdate = (object.hasKey() && object.accessKey() != null) || ((InitializedEntity) object).isDirtied() && find(entity).size() == 1;
             if (shouldUpdate) {
+                log.info("Updating existing entity on the database");
                 eventHandler.beforeUpdate(entity);
                 //noinspection unchecked
                 affectedRows = internalExecuteUpdate(((InitializedEntity<E>) object).getOriginalCopy(), entity, "updateBySample");
             } else {
+                log.info("Inserting entity into the database");
                 eventHandler.beforeInsert(entity);
                 affectedRows = internalExecuteUpdate(entity, "insert", true);
             }
@@ -122,6 +127,7 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
 
     @Override
     public <E> void delete(E entity) {
+        log.info("Going to delete entity " + entity);
         eventHandler.beforeDelete(entity);
         if (internalExecuteUpdate(entity, "deleteLike", true) <= 0) {
             throw new UnsupportedOperationException("Failed to delete entity");
@@ -142,6 +148,7 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
 
     @Override
     public <E> void deleteAll(Class<E> entityType) {
+        log.warn("Going to delete all entities of type " + entityType);
         eventHandler.beforeDeleteAll(entityType);
         internalExecuteUpdate(getInstance(entityType), "deleteAll", true);
         eventHandler.afterDeleteAll(entityType);
@@ -149,6 +156,8 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
 
     @Override
     public <E> void truncate(Class<E> entityType) {
+        log.warn("Going to truncate data and metadata for " + entityType);
+        log.warn("This action is not transactional and cannot be undone");
         eventHandler.beforeTruncate(entityType);
         executeUpdate(entityType, "truncate", Collections.<String, Object>emptyMap());
         eventHandler.afterTruncate(entityType);
@@ -156,6 +165,7 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
 
     @Override
     public <E> List<E> find(E sample) {
+        log.info("Looking entities matching " + sample);
         eventHandler.beforeFind(sample);
         final List<E> list = internalExecuteQuery(sample, "findLike");
         eventHandler.afterFind(sample, list);
@@ -165,6 +175,7 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
     @Override
     public <E, K extends Serializable> E find(Class<E> entityType, K key) {
         eventHandler.beforeFind(entityType, key);
+        log.info("Looking for entity of type " + entityType + " with key " + key);
         final E entity = getInstance(entityType);
         //noinspection unchecked
         final DataAccessObject<E, K> object = (DataAccessObject<E, K>) entity;
@@ -183,6 +194,7 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
 
     @Override
     public <E> List<E> findAll(Class<E> entityType) {
+        log.info("Looking up all entities of type " + entityType);
         eventHandler.beforeFindAll(entityType);
         final List<E> list = executeQuery(entityType, "findAll", Collections.<String, Object>emptyMap());
         eventHandler.afterFindAll(entityType, list);
@@ -210,6 +222,7 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
 
     @Override
     public <E> int executeUpdate(Class<E> entityType, String queryName, Map<String, Object> values) {
+        log.info("Executing update query " + entityType.getCanonicalName() + "." + queryName);
         eventHandler.beforeExecuteUpdate(entityType, queryName, values);
         final int affectedRows;
         try {
@@ -228,6 +241,7 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
 
     @Override
     public <E> int executeUpdate(E sample, String queryName) {
+        log.info("Executing update query " + sample.getClass().getCanonicalName() + "." + queryName);
         eventHandler.beforeExecuteUpdate(sample, queryName);
         final int affectedRows = internalExecuteUpdate(sample, queryName, false);
         eventHandler.afterExecuteUpdate(sample, queryName, affectedRows);
@@ -268,6 +282,7 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
 
     @Override
     public <E> List<E> executeQuery(Class<E> entityType, String queryName, Map<String, Object> values) {
+        log.info("Fetching result for query " + entityType.getCanonicalName() + "." + queryName);
         eventHandler.beforeExecuteQuery(entityType, queryName, values);
         final ArrayList<E> result;
         try {
@@ -303,6 +318,7 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
 
     @Override
     public <E> List<E> executeQuery(E sample, String queryName) {
+        log.info("Fetching result for query " + sample.getClass().getCanonicalName() + "." + queryName);
         eventHandler.beforeExecuteQuery(sample, queryName);
         final DataAccessObject<E, Serializable> object = checkEntity(sample);
         final Map<String, Object> map = mapCreator.toMap(object.getTableMetadata(), sample);
@@ -313,6 +329,7 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
 
     @Override
     public <E> List<?> call(Class<E> entityType, final String procedureName, Object... parameters) {
+        log.info("Calling to stored procedure " + entityType.getCanonicalName() + "." + procedureName);
         final TableMetadata<E> tableMetadata = session.getMetadataRegistry().getTableMetadata(entityType);
         //noinspection unchecked
         final StoredProcedureMetadata procedureMetadata = with(tableMetadata.getProcedures()).keep(new Filter<StoredProcedureMetadata>() {
@@ -485,6 +502,7 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
 
     @Override
     public <E> E getInstance(Class<E> entityType) {
+        log.info("Dispensing enhanced instance for " + entityType.getCanonicalName());
         final E instance = entityContext.getInstance(session.getMetadataRegistry().getTableMetadata(entityType));
         ((InitializedEntity) instance).unfreeze();
         return instance;
@@ -502,11 +520,13 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
 
     @Override
     public <I> void addInterface(Class<I> ifc, Class<? extends I> implementation) {
+        log.info("Registering enhancing interface " + ifc.getCanonicalName() + " with the context");
         entityContext.addInterface(ifc, implementation);
     }
 
     @Override
     public void addHandler(DataAccessEventHandler eventHandler) {
+        log.info("Registering event handler: " + eventHandler);
         this.eventHandler.addHandler(eventHandler);
     }
 

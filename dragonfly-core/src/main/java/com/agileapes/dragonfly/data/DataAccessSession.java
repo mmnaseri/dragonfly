@@ -4,6 +4,8 @@ import com.agileapes.dragonfly.data.impl.DefaultDataStructureHandler;
 import com.agileapes.dragonfly.dialect.DatabaseDialect;
 import com.agileapes.dragonfly.metadata.MetadataRegistry;
 import com.agileapes.dragonfly.statement.impl.StatementRegistry;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -16,6 +18,7 @@ import java.util.Collection;
  */
 public class DataAccessSession {
 
+    private static final Log log = LogFactory.getLog(DataAccessSession.class);
     private static final String JDBC_PREFIX = "jdbc:";
     private static final String PROTOCOL_SPECIFIER = "://";
     private static final String PORT_SEPARATOR = ":";
@@ -73,6 +76,7 @@ public class DataAccessSession {
     }
 
     public Connection getConnection() throws SQLException {
+        log.info("Connection requested");
         if (username != null && password != null) {
             return dataSource.getConnection(username, password);
         } else {
@@ -97,7 +101,9 @@ public class DataAccessSession {
     }
 
     public void initialize() {
+        log.info("Initializing data structures with database handlers");
         dataStructureHandler.initialize();
+        initialized = true;
     }
 
     public boolean isInitialized() {

@@ -5,6 +5,8 @@ import com.agileapes.couteau.enhancer.api.MethodProxy;
 import com.agileapes.couteau.enhancer.impl.InterfaceInterceptor;
 import com.agileapes.dragonfly.security.DataSecurityManager;
 import com.agileapes.dragonfly.security.impl.MethodSubject;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
@@ -13,6 +15,7 @@ import com.agileapes.dragonfly.security.impl.MethodSubject;
 public class SecuredInterfaceInterceptor extends InterfaceInterceptor {
 
     private final DataSecurityManager securityManager;
+    private static final Log log = LogFactory.getLog(SecuredInterfaceInterceptor.class);
 
     public SecuredInterfaceInterceptor(DataSecurityManager securityManager) {
         this.securityManager = securityManager;
@@ -20,7 +23,9 @@ public class SecuredInterfaceInterceptor extends InterfaceInterceptor {
 
     @Override
     public Object intercept(MethodDescriptor methodDescriptor, Object target, Object[] arguments, MethodProxy methodProxy) throws Throwable {
+        log.info("Intercepting access to " + methodDescriptor);
         securityManager.checkAccess(new MethodSubject(methodDescriptor));
+        log.info("Access granted");
         return super.intercept(methodDescriptor, target, arguments, methodProxy);
     }
 

@@ -10,6 +10,8 @@ import com.agileapes.dragonfly.statement.Statements;
 import com.agileapes.dragonfly.statement.impl.FreemarkerStatementBuilder;
 import com.agileapes.dragonfly.statement.impl.FreemarkerStatementBuilderContext;
 import freemarker.template.Configuration;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import java.io.Serializable;
 import java.sql.DatabaseMetaData;
@@ -22,6 +24,8 @@ import java.sql.SQLException;
  */
 public class Mysql5Dialect extends GenericDatabaseDialect {
 
+    private static final Log log = LogFactory.getLog(DatabaseDialect.class);
+
     public Mysql5Dialect() {
         StatementBuilderContext statementBuilderContext = getStatementBuilderContext();
         final Configuration configuration = FreemarkerUtils.getConfiguration(getClass(), "/sql/mysql5");
@@ -29,6 +33,7 @@ public class Mysql5Dialect extends GenericDatabaseDialect {
         ((FreemarkerStatementBuilderContext) statementBuilderContext).register(Statements.Definition.UNBIND_SEQUENCE, new FreemarkerStatementBuilder(configuration, "unbindSequence.sql.ftl", getDatabaseDialect()));
         ((FreemarkerStatementBuilderContext) statementBuilderContext).register(Statements.Definition.DROP_FOREIGN_KEY, new FreemarkerStatementBuilder(configuration, "dropForeignKey.sql.ftl", getDatabaseDialect()));
         ((FreemarkerStatementBuilderContext) statementBuilderContext).register(Statements.Definition.DROP_PRIMARY_KEY, new FreemarkerStatementBuilder(configuration, "dropPrimaryKey.sql.ftl", getDatabaseDialect()));
+        log.info("Initializing database dialect " + getClass().getSimpleName() + " for " + getName());
     }
 
     @Override
