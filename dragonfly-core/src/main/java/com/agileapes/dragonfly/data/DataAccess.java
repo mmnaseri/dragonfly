@@ -173,6 +173,18 @@ public interface DataAccess extends EntityContext {
      */
     <E> List<E> executeQuery(E sample, String queryName);
 
+    /**
+     * Executes the given procedure on the server side, returning any generated results
+     * @param entityType       the type of the entity for which the procedure is defined
+     * @param procedureName    the name of the procedure
+     * @param parameters       the parameters to the procedure. Note that parameters corresponding
+     *                         to {@link com.agileapes.dragonfly.annotations.ParameterMode#OUT} and
+     *                         {@link com.agileapes.dragonfly.annotations.ParameterMode#IN_OUT} must
+     *                         be of type {@link Reference} with the generics type specified to be
+     *                         matching that of the defined parameter
+     * @param <E>              the type of the entity over which the call is taking place
+     * @return the result of the call of an empty list if no result is returned
+     */
     <E> List<?> call(Class<E> entityType, String procedureName, Object... parameters);
 
 }

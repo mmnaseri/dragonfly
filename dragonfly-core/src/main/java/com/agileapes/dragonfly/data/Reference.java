@@ -1,6 +1,8 @@
 package com.agileapes.dragonfly.data;
 
 /**
+ * This class holds references to an underlying value that must be held until retrieved later
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/10, 1:04)
  */

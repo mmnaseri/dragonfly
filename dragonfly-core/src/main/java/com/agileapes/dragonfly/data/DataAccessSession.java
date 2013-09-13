@@ -2,7 +2,7 @@ package com.agileapes.dragonfly.data;
 
 import com.agileapes.dragonfly.data.impl.DefaultDataStructureHandler;
 import com.agileapes.dragonfly.dialect.DatabaseDialect;
-import com.agileapes.dragonfly.metadata.MetadataRegistry;
+import com.agileapes.dragonfly.error.DataAccessSessionInitializationError;import com.agileapes.dragonfly.metadata.MetadataRegistry;
 import com.agileapes.dragonfly.statement.impl.StatementRegistry;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -13,6 +13,10 @@ import java.sql.SQLException;
 import java.util.Collection;
 
 /**
+ * This class encapsulates a session of interaction with the database. It is usually sufficient
+ * to initialize a single session per application, unless it is necessary to have more than one
+ * secured, closed domain of data access object interaction.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/7, 14:26)
  */
@@ -75,6 +79,12 @@ public class DataAccessSession {
         this.dataStructureHandler = new DefaultDataStructureHandler(this);
     }
 
+    /**
+     * Returns a connection from the underlying data source, using authentication credentials
+     * if necessary
+     * @return the connection instance
+     * @throws SQLException
+     */
     public Connection getConnection() throws SQLException {
         log.info("Connection requested");
         if (username != null && password != null) {
@@ -84,28 +94,49 @@ public class DataAccessSession {
         }
     }
 
+    /**
+     * @return the dialect associated with the session
+     */
     public DatabaseDialect getDatabaseDialect() {
         return databaseDialect;
     }
 
+    /**
+     * @return the statement registry associated with session
+     */
     public StatementRegistry getStatementRegistry() {
         return statementRegistry;
     }
 
+    /**
+     * @return the metadata registry associated with the session
+     */
     public MetadataRegistry getMetadataRegistry() {
         return metadataRegistry;
     }
 
+    /**
+     * @return all entity types for which metadata is registered
+     */
     public Collection<Class<?>> getRegisteredEntities() {
         return metadataRegistry.getEntityTypes();
     }
 
+    /**
+     * Initializes the session by initializing all data structures
+     */
     public void initialize() {
+        if (initialized) {
+            throw new DataAccessSessionInitializationError("Session is already initialized");
+        }
         log.info("Initializing data structures with database handlers");
         dataStructureHandler.initialize();
         initialized = true;
     }
 
+    /**
+     * @return {@code true} if the session has already been initialized
+     */
     public boolean isInitialized() {
         return initialized;
     }

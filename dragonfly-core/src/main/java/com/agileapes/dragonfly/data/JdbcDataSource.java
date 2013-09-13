@@ -7,6 +7,9 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 /**
+ * This class encapsulates a simple data source established through a simple connection
+ * string
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (8/14/13, 3:23 PM)
  */

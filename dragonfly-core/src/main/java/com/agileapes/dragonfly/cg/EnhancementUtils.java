@@ -12,19 +12,34 @@ import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
+ * This class will hold utility methods for resolving metadata related to classes
+ * enhanced throughout the framework.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/9, 16:32)
  */
 public abstract class EnhancementUtils {
 
+    /**
+     * @return the last method call right before the first proxied method
+     * was called
+     */
     public static Method getCallerMethod() {
         return getMethod(getCaller());
     }
 
+    /**
+     * @return the calling stack trace element
+     */
     public static StackTraceElement getCaller() {
         return getCaller(Thread.currentThread().getStackTrace());
     }
 
+    /**
+     * Reads the caller from a stack trace element array
+     * @param stackTraceElements    the array of calls
+     * @return the calling element
+     */
     public static StackTraceElement getCaller(StackTraceElement[] stackTraceElements) {
         StackTraceElement last = null;
         for (int i = stackTraceElements.length - 1; i >= 0; i--) {
@@ -36,6 +51,12 @@ public abstract class EnhancementUtils {
         return last;
     }
 
+    /**
+     * This method uses ASM to determine a method metadata from a stack trace
+     * element
+     * @param stackTraceElement    the stack trace element
+     * @return the method for the element
+     */
     public static Method getMethod(final StackTraceElement stackTraceElement) {
         final String stackTraceClassName = stackTraceElement.getClassName();
         final String stackTraceMethodName = stackTraceElement.getMethodName();
