@@ -1,20 +1,22 @@
 package com.agileapes.dragonfly.data.impl;
 
 import com.agileapes.couteau.basics.api.Filter;
+import com.agileapes.couteau.basics.api.Processor;
 import com.agileapes.couteau.basics.assets.Assert;
 import com.agileapes.couteau.context.error.RegistryException;
+import com.agileapes.couteau.reflection.beans.BeanAccessor;
 import com.agileapes.couteau.reflection.beans.BeanInitializer;
+import com.agileapes.couteau.reflection.beans.BeanWrapper;
 import com.agileapes.couteau.reflection.beans.impl.ConstructorBeanInitializer;
+import com.agileapes.couteau.reflection.beans.impl.MethodBeanAccessor;
+import com.agileapes.couteau.reflection.beans.impl.MethodBeanWrapper;
 import com.agileapes.couteau.reflection.error.BeanInstantiationException;
 import com.agileapes.couteau.reflection.util.ReflectionUtils;
 import com.agileapes.dragonfly.annotations.ParameterMode;
 import com.agileapes.dragonfly.annotations.Partial;
 import com.agileapes.dragonfly.data.*;
 import com.agileapes.dragonfly.entity.*;
-import com.agileapes.dragonfly.entity.impl.DefaultEntityContext;
-import com.agileapes.dragonfly.entity.impl.DefaultEntityMapCreator;
-import com.agileapes.dragonfly.entity.impl.DefaultMapEntityCreator;
-import com.agileapes.dragonfly.entity.impl.DefaultRowHandler;
+import com.agileapes.dragonfly.entity.impl.*;
 import com.agileapes.dragonfly.error.*;
 import com.agileapes.dragonfly.events.DataAccessEventHandler;
 import com.agileapes.dragonfly.events.EventHandlerContext;
@@ -93,6 +95,8 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
 
     @Override
     public <E> void save(E entity) {
+        boolean needsReflection = !has(entity);
+        E original = entity;
         //noinspection unchecked
         entity = (E) checkEntity(entity);
         log.info("Going to save entity " + entity);
@@ -112,6 +116,13 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
                 log.info("Inserting entity into the database");
                 eventHandler.beforeInsert(entity);
                 affectedRows = internalExecuteUpdate(entity, "insert", true);
+                if (affectedRows > 0 && needsReflection) {
+                    final EntityProxy<E> proxy = new EntityProxy<E>(this, object.getTableMetadata(), securityManager);
+                    proxy.initialize(object.getTableMetadata().getEntityType(), original, ((InitializedEntity) object).getToken());
+                    proxy.setOriginalCopy(original);
+                    //noinspection unchecked
+                    ((DataAccessObject<E, Serializable>) proxy).changeKey(object.accessKey());
+                }
             }
         } catch (Exception e) {
             throw new StatementExecutionFailureError("Failed to execute save statement", e);
@@ -507,13 +518,30 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
         return executeUpdate(annotation.targetEntity(), annotation.query(), mapCreator.toMap(columnMappingMetadataCollector.collectMetadata(resultType), sample));
     }
 
-    private <E, K extends Serializable> DataAccessObject<E, K> checkEntity(E entity) {
+    private <E, K extends Serializable> DataAccessObject<E, K> checkEntity(final E entity) {
         Assert.assertNotNull(entity);
         if (!entityContext.has(entity)) {
             //noinspection unchecked
             final TableMetadata<E> tableMetadata = (TableMetadata<E>) session.getMetadataRegistry().getTableMetadata(entity.getClass());
-            final Map<String, Object> map = mapCreator.toMap(tableMetadata, entity);
-            final E instance = entityCreator.fromMap(getInstance(tableMetadata), tableMetadata.getColumns(), map);
+            final E instance = getInstance(tableMetadata);
+            final BeanAccessor<E> accessor = new MethodBeanAccessor<E>(entity);
+            final BeanWrapper<E> wrapper = new MethodBeanWrapper<E>(instance);
+            with(accessor.getPropertyNames()).each(new Processor<String>() {
+                @Override
+                public void process(String propertyName) {
+                    try {
+                        if (!wrapper.isWritable(propertyName)) {
+                            return;
+                        }
+                        final Object propertyValue = accessor.getPropertyValue(propertyName);
+                        if (propertyValue != null) {
+                            wrapper.setPropertyValue(propertyName, propertyValue);
+                        }
+                    } catch (Exception e) {
+                        throw new EntityInitializationError(entity.getClass(), e);
+                    }
+                }
+            });
             //noinspection unchecked
             return (DataAccessObject<E, K>) instance;
         }
