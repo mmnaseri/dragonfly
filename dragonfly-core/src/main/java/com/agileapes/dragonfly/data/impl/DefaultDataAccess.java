@@ -93,6 +93,8 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
 
     @Override
     public <E> void save(E entity) {
+        //noinspection unchecked
+        entity = (E) checkEntity(entity);
         log.info("Going to save entity " + entity);
         eventHandler.beforeSave(entity);
         final DataAccessObject<E, Serializable> object = checkEntity(entity);
@@ -127,6 +129,8 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
 
     @Override
     public <E> void delete(E entity) {
+        //noinspection unchecked
+        entity = (E) checkEntity(entity);
         log.info("Going to delete entity " + entity);
         eventHandler.beforeDelete(entity);
         if (internalExecuteUpdate(entity, "deleteLike", true) <= 0) {
@@ -165,6 +169,8 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
 
     @Override
     public <E> List<E> find(E sample) {
+        //noinspection unchecked
+        sample = (E) checkEntity(sample);
         log.info("Looking entities matching " + sample);
         eventHandler.beforeFind(sample);
         final List<E> list = internalExecuteQuery(sample, "findLike");
@@ -247,6 +253,8 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
 
     @Override
     public <E> int executeUpdate(E sample, String queryName) {
+        //noinspection unchecked
+        sample = (E) checkEntity(sample);
         log.info("Executing update query " + sample.getClass().getCanonicalName() + "." + queryName);
         eventHandler.beforeExecuteUpdate(sample, queryName);
         final int affectedRows = internalExecuteUpdate(sample, queryName, false);
@@ -325,6 +333,8 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
     @Override
     public <E> List<E> executeQuery(E sample, String queryName) {
         log.info("Fetching result for query " + sample.getClass().getCanonicalName() + "." + queryName);
+        //noinspection unchecked
+        sample = (E) checkEntity(sample);
         eventHandler.beforeExecuteQuery(sample, queryName);
         final DataAccessObject<E, Serializable> object = checkEntity(sample);
         final Map<String, Object> map = mapCreator.toMap(object.getTableMetadata(), sample);
@@ -500,7 +510,12 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
     private <E, K extends Serializable> DataAccessObject<E, K> checkEntity(E entity) {
         Assert.assertNotNull(entity);
         if (!entityContext.has(entity)) {
-            throw new EntityOutOfContextError(entity.getClass());
+            //noinspection unchecked
+            final TableMetadata<E> tableMetadata = (TableMetadata<E>) session.getMetadataRegistry().getTableMetadata(entity.getClass());
+            final Map<String, Object> map = mapCreator.toMap(tableMetadata, entity);
+            final E instance = entityCreator.fromMap(getInstance(tableMetadata), tableMetadata.getColumns(), map);
+            //noinspection unchecked
+            return (DataAccessObject<E, K>) instance;
         }
         //noinspection unchecked
         return (DataAccessObject<E, K>) entity;
