@@ -20,18 +20,23 @@
         <constructor-arg ref="_accessDeniedHandler"/>
     </bean>
 
-    <bean id="_generatedStatementRegistry" class="com.agileapes.dragonfly.mojo.GeneratedStatementRegistry">
+    <bean id="_generatedStatementRegistry" class="com.agileapes.dragonfly.statement.GeneratedStatementRegistry">
         <constructor-arg index="0" type="com.agileapes.dragonfly.dialect.DatabaseDialect" ref="_databaseDialect"/>
         <constructor-arg index="1" type="com.agileapes.dragonfly.metadata.MetadataRegistry" ref="metadataContext"/>
     </bean>
 
-    <bean class="com.agileapes.dragonfly.data.DataAccessSession">
+    <bean id="_dataAccessSession" class="com.agileapes.dragonfly.data.DataAccessSession">
         <constructor-arg index="0" type="com.agileapes.dragonfly.dialect.DatabaseDialect" ref="_databaseDialect"/>
         <constructor-arg index="1" type="com.agileapes.dragonfly.statement.impl.StatementRegistry" ref="_generatedStatementRegistry"/>
         <constructor-arg index="2" type="com.agileapes.dragonfly.metadata.MetadataRegistry" ref="metadataContext"/>
         <constructor-arg index="3" type="javax.sql.DataSource" ref="${r"${db.dataSource}"}"/>
         <constructor-arg index="4" type="java.lang.String" value="${r"${db.username}"}"/>
         <constructor-arg index="5" type="java.lang.String" value="${r"${db.password}"}"/>
+    </bean>
+
+    <bean class="com.agileapes.dragonfly.data.impl.SecuredDataAccess">
+        <constructor-arg index="0" ref="_dataAccessSession"/>
+        <constructor-arg index="1" ref="_securityManager"/>
     </bean>
 
 </beans>

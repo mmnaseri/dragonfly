@@ -12,9 +12,6 @@ import com.agileapes.dragonfly.mojo.PluginExecutor;
 import com.agileapes.dragonfly.statement.impl.StatementRegistry;
 import freemarker.template.Template;
 import org.apache.maven.plugin.MojoFailureException;
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 
 import java.io.File;
 import java.io.StringReader;
@@ -25,15 +22,9 @@ import java.util.Collection;
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/13, 2:07)
  */
-public class GenerateStatementRegistryTask extends AbstractCodeGenerationTask implements ApplicationContextAware {
+public class GenerateStatementRegistryTask extends AbstractCodeGenerationTask{
 
-    public static final String CLASS_NAME = "com.agileapes.dragonfly.mojo.GeneratedStatementRegistry";
-    private ApplicationContext applicationContext;
-
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
-    }
+    public static final String CLASS_NAME = "com.agileapes.dragonfly.statement.GeneratedStatementRegistry";
 
     @Override
     public void execute(PluginExecutor executor) throws MojoFailureException {
@@ -51,6 +42,7 @@ public class GenerateStatementRegistryTask extends AbstractCodeGenerationTask im
             final Template template = FreemarkerUtils.getConfiguration(getClass(), "/ftl/").getTemplate("statementRegistry.ftl");
             final StringWriter out = new StringWriter();
             template.process(model, out);
+            System.out.println(out);
             final DynamicClassCompiler compiler = new DefaultDynamicClassCompiler(getClass().getClassLoader());
             compiler.setOption(SimpleJavaSourceCompiler.Option.CLASSPATH, getClassPath(executor));
             compiler.compile(CLASS_NAME, new StringReader(out.toString()));

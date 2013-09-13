@@ -11,7 +11,7 @@ public class EscapeStringMethod extends TypedMethodModel {
 
     @Invokable
     public String escape(String string) {
-        return string.replaceAll("([^\\\\]|^)\"", "$1\\\"");
+        return string.replace("\n", "\\n").replaceAll("(^|[^\\\\])\"", "$1\\\\\"");
     }
 
 }

@@ -29,6 +29,9 @@ public class DefaultMetadataContext extends DefaultMetadataRegistry implements M
 
     @Override
     public Collection<Class<?>> getEntityTypes() {
+        if (!ready) {
+            rebuildCache();
+        }
         return entityTypes;
     }
 
@@ -95,6 +98,8 @@ public class DefaultMetadataContext extends DefaultMetadataRegistry implements M
                 ((ImmutableReferenceMetadata) referenceMetadata).setForeignColumn(resolveColumn(map, metadata, referenceMetadata.getForeignColumn()));
             }
         }
+        entityTypes.clear();
+        entityTypes.addAll(map.keySet());
         for (Map.Entry<Class<?>, TableMetadata<?>> entry : map.entrySet()) {
             metadataCache.write(entry.getKey(), entry.getValue());
         }

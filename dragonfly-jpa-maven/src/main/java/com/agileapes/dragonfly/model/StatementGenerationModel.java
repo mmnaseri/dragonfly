@@ -12,6 +12,7 @@ import java.util.Map;
 public class StatementGenerationModel {
 
     private final Map<String, Statement> statements = new HashMap<String, Statement>();
+    private final EscapeStringMethod escape = new EscapeStringMethod();
 
     public Map<String, Statement> getStatements() {
         return statements;
@@ -21,4 +22,7 @@ public class StatementGenerationModel {
         this.statements.put(name, statement);
     }
 
+    public EscapeStringMethod getEscape() {
+        return escape;
+    }
 }
