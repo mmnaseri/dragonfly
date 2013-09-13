@@ -1,6 +1,6 @@
 package com.agileapes.dragonfly.entity.impl;
 
-import com.agileapes.dragonfly.entity.EntityRowHandler;
+import com.agileapes.dragonfly.entity.RowHandler;
 import com.agileapes.dragonfly.error.MetadataAccessException;
 
 import java.sql.ResultSet;
@@ -13,10 +13,10 @@ import java.util.Map;
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/8/31, 17:31)
  */
-public class DefaultEntityRowHandler implements EntityRowHandler {
+public class DefaultRowHandler implements RowHandler {
 
     @Override
-    public <E> Map<String, Object> handleRow(ResultSet resultSet) {
+    public Map<String, Object> handleRow(ResultSet resultSet) {
         final HashMap<String, Object> map = new HashMap<String, Object>();
         final ResultSetMetaData metaData;
         try {

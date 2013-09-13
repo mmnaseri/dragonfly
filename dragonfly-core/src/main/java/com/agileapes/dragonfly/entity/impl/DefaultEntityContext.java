@@ -18,6 +18,9 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
+ * This is a caching entity context that will use a generating class enhancer for enhancement
+ * purposes.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/5, 15:24)
  */

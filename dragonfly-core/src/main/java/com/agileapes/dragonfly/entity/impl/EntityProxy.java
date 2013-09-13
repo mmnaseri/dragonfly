@@ -34,6 +34,9 @@ import java.util.*;
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 
 /**
+ * This class is the default interceptor used throughout the application to intercept any given
+ * entity's dynamic method introduction calls.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/5, 15:36)
  */
@@ -74,10 +77,10 @@ public class EntityProxy<E> extends SecuredInterfaceInterceptor implements Initi
     }
 
     @Override
-    public void initialize(Class<E> entityType, E entity, String key) {
+    public void initialize(Class<E> entityType, E entity, String token) {
         this.entityType = entityType;
         this.entity = entity;
-        this.token = key;
+        this.token = token;
     }
 
     @Override

@@ -13,7 +13,7 @@ import com.agileapes.dragonfly.data.*;
 import com.agileapes.dragonfly.entity.*;
 import com.agileapes.dragonfly.entity.impl.DefaultEntityContext;
 import com.agileapes.dragonfly.entity.impl.DefaultEntityMapCreator;
-import com.agileapes.dragonfly.entity.impl.DefaultEntityRowHandler;
+import com.agileapes.dragonfly.entity.impl.DefaultRowHandler;
 import com.agileapes.dragonfly.entity.impl.DefaultMapEntityCreator;
 import com.agileapes.dragonfly.error.*;
 import com.agileapes.dragonfly.events.DataAccessEventHandler;
@@ -58,7 +58,7 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
     private static final Log log = LogFactory.getLog(DataAccess.class);
     private final DataAccessSession session;
     private final ModifiableEntityContext entityContext;
-    private final EntityRowHandler rowHandler;
+    private final RowHandler rowHandler;
     private final MapEntityCreator entityCreator;
     private final EntityMapCreator mapCreator;
     private final BeanInitializer beanInitializer;
@@ -83,7 +83,7 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
             }
         }
         this.entityContext = new DefaultEntityContext(this, securityManager);
-        this.rowHandler = new DefaultEntityRowHandler();
+        this.rowHandler = new DefaultRowHandler();
         this.entityCreator = new DefaultMapEntityCreator(entityContext);
         this.mapCreator = new DefaultEntityMapCreator();
         beanInitializer = new ConstructorBeanInitializer();
