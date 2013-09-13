@@ -32,7 +32,7 @@ public class DefaultMetadataContext extends DefaultMetadataRegistry implements M
         if (!ready) {
             rebuildCache();
         }
-        return entityTypes;
+        return new HashSet<Class<?>>(entityTypes);
     }
 
     public void setRegistries(Set<MetadataRegistry> registries) {

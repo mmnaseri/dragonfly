@@ -21,7 +21,6 @@ import org.springframework.context.ApplicationContextAware;
 import javax.persistence.Entity;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Map;
 
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 
@@ -42,9 +41,40 @@ public class MetadataCollectorTask extends PluginTask<PluginExecutor> implements
 
     @Override
     public void execute(PluginExecutor pluginExecutor) throws MojoFailureException {
-        final Map<String, TableMetadataInterceptor> interceptors = applicationContext.getBeansOfType(TableMetadataInterceptor.class, false, true);
+        final ArrayList<TableMetadataInterceptor> interceptors = new ArrayList<TableMetadataInterceptor>(applicationContext.getBeansOfType(TableMetadataInterceptor.class, false, true).values());
+        //noinspection unchecked
+        interceptors.addAll(with(pluginExecutor.getProjectResources()).keep(new Filter<ProjectResource>() {
+            @Override
+            public boolean accepts(ProjectResource item) {
+                return ProjectResourceType.CLASS.equals(item.getType());
+            }
+        }).transform(new Transformer<ProjectResource, Class<?>>() {
+            @Override
+            public Class<?> map(ProjectResource input) {
+                return input.getClassArtifact();
+            }
+        }).keep(new Filter<Class<?>>() {
+            @Override
+            public boolean accepts(Class<?> item) {
+                return TableMetadataInterceptor.class.isAssignableFrom(item);
+            }
+        }).transform(new Transformer<Class<?>, Class<? extends TableMetadataInterceptor>>() {
+            @Override
+            public Class<? extends TableMetadataInterceptor> map(Class<?> input) {
+                return input.asSubclass(TableMetadataInterceptor.class);
+            }
+        }).transform(new Transformer<Class<? extends TableMetadataInterceptor>, TableMetadataInterceptor>() {
+            @Override
+            public TableMetadataInterceptor map(Class<? extends TableMetadataInterceptor> input) {
+                try {
+                    return input.newInstance();
+                } catch (Exception e) {
+                    throw new Error(e);
+                }
+            }
+        }).list());
         final MetadataResolver resolver = new AnnotationMetadataResolver();
-        final MetadataResolverContext resolverContext = new DefaultMetadataResolverContext(MetadataResolveStrategy.UNAMBIGUOUS, new ArrayList<TableMetadataInterceptor>(interceptors.values()));
+        final MetadataResolverContext resolverContext = new DefaultMetadataResolverContext(MetadataResolveStrategy.UNAMBIGUOUS, interceptors);
         resolverContext.addMetadataResolver(resolver);
         final Collection<ProjectResource> resources = pluginExecutor.getProjectResources();
         final StatementRegistryPreparator preparator = new StatementRegistryPreparator(pluginExecutor.getDialect(), resolverContext, registry);
@@ -80,4 +110,5 @@ public class MetadataCollectorTask extends PluginTask<PluginExecutor> implements
     public StatementRegistry getStatementRegistry() {
         return statementRegistry;
     }
+
 }

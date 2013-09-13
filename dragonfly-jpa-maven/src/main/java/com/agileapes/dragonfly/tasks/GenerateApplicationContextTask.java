@@ -1,13 +1,18 @@
 package com.agileapes.dragonfly.tasks;
 
+import com.agileapes.couteau.basics.api.Filter;
+import com.agileapes.couteau.basics.api.Processor;
+import com.agileapes.couteau.basics.api.Transformer;
 import com.agileapes.couteau.freemarker.utils.FreemarkerUtils;
+import com.agileapes.couteau.maven.resource.ProjectResource;
+import com.agileapes.couteau.maven.resource.ProjectResourceType;
 import com.agileapes.couteau.maven.task.PluginTask;
+import com.agileapes.dragonfly.events.DataAccessPostProcessor;
 import com.agileapes.dragonfly.io.OutputManager;
 import com.agileapes.dragonfly.metadata.impl.DefaultMetadataContext;
 import com.agileapes.dragonfly.model.ApplicationContextModel;
 import com.agileapes.dragonfly.model.BeanDefinitionModel;
 import com.agileapes.dragonfly.mojo.PluginExecutor;
-import com.agileapes.dragonfly.security.impl.DefaultDataSecurityManager;
 import com.agileapes.dragonfly.security.impl.FatalAccessDeniedHandler;
 import freemarker.template.Template;
 import org.apache.maven.plugin.MojoFailureException;
@@ -16,6 +21,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
 import java.io.StringWriter;
+
+import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
@@ -42,6 +49,28 @@ public class GenerateApplicationContextTask extends PluginTask<PluginExecutor> i
         metadataContext.setReference("registries", "_generatedMetadataRegistry");
         model.addBean(metadataContext);
         model.addBean(new BeanDefinitionModel("_accessDeniedHandler", FatalAccessDeniedHandler.class.getCanonicalName()));
+        //noinspection unchecked
+        with(executor.getProjectResources()).keep(new Filter<ProjectResource>() {
+            @Override
+            public boolean accepts(ProjectResource item) {
+                return ProjectResourceType.CLASS.equals(item.getType());
+            }
+        }).transform(new Transformer<ProjectResource, Class<?>>() {
+            @Override
+            public Class<?> map(ProjectResource input) {
+                return input.getClassArtifact();
+            }
+        }).keep(new Filter<Class<?>>() {
+            @Override
+            public boolean accepts(Class<?> item) {
+                return DataAccessPostProcessor.class.isAssignableFrom(item);
+            }
+        }).each(new Processor<Class<?>>() {
+            @Override
+            public void process(Class<?> input) {
+                model.addBean(new BeanDefinitionModel("_postProcessor_" + input.getSimpleName(), input.getCanonicalName()));
+            }
+        });
         final OutputManager outputManager = applicationContext.getBean(OutputManager.class);
         try {
             final Template template = FreemarkerUtils.getConfiguration(getClass(), "/ftl/").getTemplate("applicationContext.ftl");

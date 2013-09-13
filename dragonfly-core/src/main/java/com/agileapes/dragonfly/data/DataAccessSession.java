@@ -9,7 +9,6 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Collection;
-import java.util.HashSet;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
@@ -94,7 +93,7 @@ public class DataAccessSession {
     }
 
     public Collection<Class<?>> getRegisteredEntities() {
-        return new HashSet<Class<?>>(metadataRegistry.getEntityTypes());
+        return metadataRegistry.getEntityTypes();
     }
 
     public void initialize() {
