@@ -1,6 +1,8 @@
 package com.agileapes.dragonfly.sample.service;
 
 import com.agileapes.dragonfly.data.DataAccess;
+import com.agileapes.dragonfly.data.DataAccessObject;
+import com.agileapes.dragonfly.entity.EntityContext;
 import com.agileapes.dragonfly.sample.entities.Person;
 import com.agileapes.dragonfly.sample.entities.Thing;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +19,9 @@ import java.util.Random;
 public class CreatePersonService {
 
     @Autowired
+    private EntityContext entityContext;
+
+    @Autowired
     private DataAccess dataAccess;
 
     public void execute() {
@@ -25,10 +30,10 @@ public class CreatePersonService {
         person.setBirthday(new Date());
         dataAccess.save(person);
         for (int i = 0; i < 3; i ++) {
-            final Thing thing = new Thing();
+            final Thing thing = entityContext.getInstance(Thing.class);
             thing.setOwner(person);
             thing.setName("Thing - " + Math.abs((new Random().nextInt())));
-            dataAccess.save(thing);
+            ((DataAccessObject) thing).save();
         }
     }
 

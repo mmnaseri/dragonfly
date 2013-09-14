@@ -1,6 +1,7 @@
 package com.agileapes.dragonfly.sample.service;
 
-import com.agileapes.dragonfly.data.DataAccess;
+import com.agileapes.dragonfly.data.DataAccessObject;
+import com.agileapes.dragonfly.entity.EntityContext;
 import com.agileapes.dragonfly.sample.entities.Person;
 import com.agileapes.dragonfly.sample.entities.Thing;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,10 +17,12 @@ import java.util.List;
 public class ListPeopleService {
 
     @Autowired
-    private DataAccess dataAccess;
+    private EntityContext entityContext;
 
     public void execute() {
-        final List<Person> people = dataAccess.findAll(Person.class);
+        final Person instance = entityContext.getInstance(Person.class);
+        //noinspection unchecked
+        final List<Person> people = ((DataAccessObject<Person, ?>) instance).findLike();
         for (Person person : people) {
             System.out.println("Person: " + person.getName());
             for (Thing thing : person.getThings()) {
