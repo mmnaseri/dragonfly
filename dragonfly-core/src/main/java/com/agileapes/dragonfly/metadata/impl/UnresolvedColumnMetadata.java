@@ -66,4 +66,9 @@ public class UnresolvedColumnMetadata extends AbstractColumnMetadata {
         throw new MetadataCollectionError("Metadata is not available", new UnresolvedColumnMetadataError());
     }
 
+    @Override
+    public Class<?> getDeclaringClass() {
+        throw new MetadataCollectionError("Metadata is not available", new UnresolvedColumnMetadataError());
+    }
+
 }

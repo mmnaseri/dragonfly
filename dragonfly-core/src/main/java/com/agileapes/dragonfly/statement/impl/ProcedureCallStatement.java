@@ -3,7 +3,6 @@ package com.agileapes.dragonfly.statement.impl;
 import com.agileapes.dragonfly.dialect.DatabaseDialect;
 import com.agileapes.dragonfly.entity.EntityMapCreator;
 import com.agileapes.dragonfly.entity.StatementPreparator;
-import com.agileapes.dragonfly.entity.impl.DefaultEntityMapCreator;
 import com.agileapes.dragonfly.entity.impl.DefaultStatementPreparator;
 import com.agileapes.dragonfly.error.StatementError;
 import com.agileapes.dragonfly.metadata.TableMetadata;
@@ -46,7 +45,7 @@ public class ProcedureCallStatement extends ImmutableStatement {
     }
 
     @Override
-    public CallableStatement prepare(Connection connection, Object value) {
+    public CallableStatement prepare(Connection connection, EntityMapCreator mapCreator, Object value) {
         String finalSql = getSql();
         if (isDynamic()) {
             final FreemarkerSecondPassStatementBuilder builder = new FreemarkerSecondPassStatementBuilder(this, getDialect(), value);
@@ -55,7 +54,6 @@ public class ProcedureCallStatement extends ImmutableStatement {
         log.info("Preparing statement: " + finalSql);
         final PreparedStatement statement;
         if (hasParameters()) {
-            final EntityMapCreator mapCreator = new DefaultEntityMapCreator();
             //noinspection unchecked
             statement = getPreparator().prepare(connection, getTableMetadata(), (Map<String, Object>) value, finalSql);
         } else {

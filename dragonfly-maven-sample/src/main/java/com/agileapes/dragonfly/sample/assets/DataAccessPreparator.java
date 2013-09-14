@@ -1,7 +1,7 @@
 package com.agileapes.dragonfly.sample.assets;
 
 import com.agileapes.dragonfly.data.DataAccess;
-import com.agileapes.dragonfly.events.DataAccessPostProcessor;
+import com.agileapes.dragonfly.data.DataAccessPostProcessor;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -20,7 +20,7 @@ public class DataAccessPreparator implements BeanFactoryPostProcessor {
         final Collection<DataAccessPostProcessor> postProcessors = beanFactory.getBeansOfType(DataAccessPostProcessor.class).values();
         for (DataAccess dataAccess : dataAccessCollection) {
             for (DataAccessPostProcessor postProcessor : postProcessors) {
-                postProcessor.postProcessAfterInitialization(dataAccess);
+                postProcessor.postProcessDataAccess(dataAccess);
             }
         }
     }

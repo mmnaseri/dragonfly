@@ -99,7 +99,7 @@ public class AnnotationMetadataResolver implements MetadataResolver {
                 final String valueGenerator = determineValueGenerator(method);
                 final ColumnMetadata foreignColumn = joinColumn == null ? null : determineForeignReference(method);
                 final int type = getColumnType(method, foreignColumn);
-                final ResolvedColumnMetadata columnMetadata = new ResolvedColumnMetadata(new UnresolvedTableMetadata<E>(entityType), name, type, propertyName, propertyType, nullable, length, precision, scale, generationType, valueGenerator, foreignColumn);
+                final ResolvedColumnMetadata columnMetadata = new ResolvedColumnMetadata(new UnresolvedTableMetadata<E>(entityType), entityType, name, type, propertyName, propertyType, nullable, length, precision, scale, generationType, valueGenerator, foreignColumn);
                 if (foreignColumn != null) {
                     foreignKeys.add(name);
                 }

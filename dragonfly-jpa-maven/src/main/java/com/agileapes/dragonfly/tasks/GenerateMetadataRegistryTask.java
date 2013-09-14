@@ -54,7 +54,6 @@ public class GenerateMetadataRegistryTask extends AbstractCodeGenerationTask {
         try {
             template.process(model, out);
         } catch (TemplateException e) {
-            e.printStackTrace();
             throw new MojoFailureException("There was an error processing the template", e);
         } catch (IOException e) {
             throw new MojoFailureException("There was an I/O error in template processing", e);

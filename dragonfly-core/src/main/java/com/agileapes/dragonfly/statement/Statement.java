@@ -1,5 +1,6 @@
 package com.agileapes.dragonfly.statement;
 
+import com.agileapes.dragonfly.entity.EntityMapCreator;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 
 import java.sql.Connection;
@@ -23,8 +24,8 @@ public interface Statement {
 
     PreparedStatement prepare(Connection connection);
 
-    PreparedStatement prepare(Connection connection, Object value);
+    PreparedStatement prepare(Connection connection, EntityMapCreator mapCreator, Object value);
 
-    PreparedStatement prepare(Connection connection, Object value, Object replacement);
+    PreparedStatement prepare(Connection connection, EntityMapCreator mapCreator, Object value, Object replacement);
 
 }

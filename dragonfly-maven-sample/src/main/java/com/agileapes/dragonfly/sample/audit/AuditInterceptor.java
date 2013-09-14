@@ -2,7 +2,7 @@ package com.agileapes.dragonfly.sample.audit;
 
 import com.agileapes.dragonfly.data.DataAccess;
 import com.agileapes.dragonfly.entity.ModifiableEntityContext;
-import com.agileapes.dragonfly.events.DataAccessPostProcessor;
+import com.agileapes.dragonfly.data.DataAccessPostProcessor;
 import com.agileapes.dragonfly.events.EventHandlerContext;
 import com.agileapes.dragonfly.events.impl.AbstractDataAccessEventHandler;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
@@ -28,7 +28,7 @@ public class AuditInterceptor implements DataAccessPostProcessor, TableMetadataI
     private UserContext userContext;
 
     @Override
-    public void postProcessAfterInitialization(DataAccess dataAccess) {
+    public void postProcessDataAccess(DataAccess dataAccess) {
         ((ModifiableEntityContext) dataAccess).addInterface(Auditable.class, DefaultAuditable.class);
         ((EventHandlerContext) dataAccess).addHandler(new AbstractDataAccessEventHandler() {
 
@@ -50,11 +50,11 @@ public class AuditInterceptor implements DataAccessPostProcessor, TableMetadataI
     @Override
     public <E> TableMetadata<E> intercept(TableMetadata<E> tableMetadata) {
         final Collection<ColumnMetadata> columns = new HashSet<ColumnMetadata>(tableMetadata.getColumns());
-        columns.add(new ResolvedColumnMetadata(tableMetadata, "insert_user", Types.VARCHAR, "insertUser", String.class, false, 256, 0, 0));
-        columns.add(new ResolvedColumnMetadata(tableMetadata, "insert_time", Types.TIMESTAMP, "insertTime", Timestamp.class, false, 0, 0, 0));
-        columns.add(new ResolvedColumnMetadata(tableMetadata, "update_user", Types.VARCHAR, "updateUser", String.class, true, 256, 0, 0));
-        columns.add(new ResolvedColumnMetadata(tableMetadata, "update_time", Types.TIMESTAMP, "updateTime", Timestamp.class, true, 0, 0, 0));
-        columns.add(new ResolvedColumnMetadata(tableMetadata, "update_count", Types.INTEGER, "updateCount", Integer.class, false, 0, 0, 0));
+        columns.add(new ResolvedColumnMetadata(tableMetadata, Auditable.class, "insert_user", Types.VARCHAR, "insertUser", String.class, false, 256, 0, 0));
+        columns.add(new ResolvedColumnMetadata(tableMetadata, Auditable.class, "insert_time", Types.TIMESTAMP, "insertTime", Timestamp.class, false, 0, 0, 0));
+        columns.add(new ResolvedColumnMetadata(tableMetadata, Auditable.class, "update_user", Types.VARCHAR, "updateUser", String.class, true, 256, 0, 0));
+        columns.add(new ResolvedColumnMetadata(tableMetadata, Auditable.class, "update_time", Types.TIMESTAMP, "updateTime", Timestamp.class, true, 0, 0, 0));
+        columns.add(new ResolvedColumnMetadata(tableMetadata, Auditable.class, "update_count", Types.INTEGER, "updateCount", Integer.class, false, 0, 0, 0));
         return new ResolvedTableMetadata<E>(tableMetadata.getEntityType(), tableMetadata.getSchema(), tableMetadata.getName(), tableMetadata.getConstraints(), columns, tableMetadata.getNamedQueries(), tableMetadata.getSequences(), tableMetadata.getProcedures(), tableMetadata.getForeignReferences());
     }
 

@@ -25,7 +25,7 @@ public class ColumnMappingMetadataCollector {
 
     private final Cache<Class<?>, Collection<ColumnMetadata>> cache = new ConcurrentCache<Class<?>, Collection<ColumnMetadata>>();
 
-    public Collection<ColumnMetadata> collectMetadata(Class<?> partialEntity) {
+    public Collection<ColumnMetadata> collectMetadata(final Class<?> partialEntity) {
         if (cache.contains(partialEntity)) {
             return cache.read(partialEntity);
         }
@@ -38,7 +38,7 @@ public class ColumnMappingMetadataCollector {
             public ColumnMetadata map(Method method) {
                 final String propertyName = ReflectionUtils.getPropertyName(method.getName());
                 final MappedColumn annotation = method.getAnnotation(MappedColumn.class);
-                return new ResolvedColumnMetadata(null, annotation.column().isEmpty() ? propertyName : annotation.column(), 0, propertyName, method.getReturnType(), annotation.optional(), 0, 0, 0);
+                return new ResolvedColumnMetadata(null, partialEntity, annotation.column().isEmpty() ? propertyName : annotation.column(), 0, propertyName, method.getReturnType(), annotation.optional(), 0, 0, 0);
             }
         }).list();
         cache.write(partialEntity, result);

@@ -7,7 +7,7 @@ import com.agileapes.couteau.freemarker.utils.FreemarkerUtils;
 import com.agileapes.couteau.maven.resource.ProjectResource;
 import com.agileapes.couteau.maven.resource.ProjectResourceType;
 import com.agileapes.couteau.maven.task.PluginTask;
-import com.agileapes.dragonfly.events.DataAccessPostProcessor;
+import com.agileapes.dragonfly.data.DataAccessPostProcessor;
 import com.agileapes.dragonfly.io.OutputManager;
 import com.agileapes.dragonfly.metadata.impl.DefaultMetadataContext;
 import com.agileapes.dragonfly.model.ApplicationContextModel;

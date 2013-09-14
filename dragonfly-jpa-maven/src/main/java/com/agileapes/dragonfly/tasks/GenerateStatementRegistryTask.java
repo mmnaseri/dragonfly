@@ -42,7 +42,6 @@ public class GenerateStatementRegistryTask extends AbstractCodeGenerationTask{
             final Template template = FreemarkerUtils.getConfiguration(getClass(), "/ftl/").getTemplate("statementRegistry.ftl");
             final StringWriter out = new StringWriter();
             template.process(model, out);
-            System.out.println(out);
             final DynamicClassCompiler compiler = new DefaultDynamicClassCompiler(getClass().getClassLoader());
             compiler.setOption(SimpleJavaSourceCompiler.Option.CLASSPATH, getClassPath(executor));
             compiler.compile(CLASS_NAME, new StringReader(out.toString()));

@@ -15,8 +15,14 @@ import com.agileapes.couteau.reflection.util.ReflectionUtils;
 import com.agileapes.dragonfly.annotations.ParameterMode;
 import com.agileapes.dragonfly.annotations.Partial;
 import com.agileapes.dragonfly.data.*;
-import com.agileapes.dragonfly.entity.*;
-import com.agileapes.dragonfly.entity.impl.*;
+import com.agileapes.dragonfly.entity.EntityMapHandlerContext;
+import com.agileapes.dragonfly.entity.InitializedEntity;
+import com.agileapes.dragonfly.entity.ModifiableEntityContext;
+import com.agileapes.dragonfly.entity.RowHandler;
+import com.agileapes.dragonfly.entity.impl.DefaultEntityContext;
+import com.agileapes.dragonfly.entity.impl.DefaultEntityMapHandlerContext;
+import com.agileapes.dragonfly.entity.impl.DefaultRowHandler;
+import com.agileapes.dragonfly.entity.impl.EntityProxy;
 import com.agileapes.dragonfly.error.*;
 import com.agileapes.dragonfly.events.DataAccessEventHandler;
 import com.agileapes.dragonfly.events.EventHandlerContext;
@@ -61,8 +67,7 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
     private final DataAccessSession session;
     private final ModifiableEntityContext entityContext;
     private final RowHandler rowHandler;
-    private final MapEntityCreator entityCreator;
-    private final EntityMapCreator mapCreator;
+    private final EntityMapHandlerContext handlerContext;
     private final BeanInitializer beanInitializer;
     private final ColumnMappingMetadataCollector columnMappingMetadataCollector;
     private final CompositeDataAccessEventHandler eventHandler;
@@ -86,11 +91,10 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
         }
         this.entityContext = new DefaultEntityContext(this, securityManager);
         this.rowHandler = new DefaultRowHandler();
-        this.entityCreator = new DefaultMapEntityCreator(entityContext);
-        this.mapCreator = new DefaultEntityMapCreator();
         beanInitializer = new ConstructorBeanInitializer();
         columnMappingMetadataCollector = new ColumnMappingMetadataCollector();
         eventHandler = new CompositeDataAccessEventHandler();
+        handlerContext = new DefaultEntityMapHandlerContext(entityContext);
     }
 
     @Override
@@ -226,9 +230,9 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
 
     private <E> int internalExecuteUpdate(E original, E replacement, String queryName) {
         final DataAccessObject<E, Serializable> object = checkEntity(original);
-        final Map<String, Object> map = MapTools.prefixKeys(mapCreator.toMap(object.getTableMetadata(), original), "value.");
-        map.putAll(MapTools.prefixKeys(mapCreator.toMap(object.getTableMetadata(), original), "old."));
-        final Map<String, Object> newMap = mapCreator.toMap(object.getTableMetadata(), replacement);
+        final Map<String, Object> map = MapTools.prefixKeys(handlerContext.toMap(object.getTableMetadata(), original), "value.");
+        map.putAll(MapTools.prefixKeys(handlerContext.toMap(object.getTableMetadata(), original), "old."));
+        final Map<String, Object> newMap = handlerContext.toMap(object.getTableMetadata(), replacement);
         for (Map.Entry<String, Object> entry : newMap.entrySet()) {
             if (!map.containsKey("value." + entry.getKey())) {
                 map.put("value." + entry.getKey(), entry.getValue());
@@ -240,7 +244,7 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
 
     private <E> List<E> internalExecuteQuery(E sample, String queryName) {
         final DataAccessObject<E, Serializable> object = checkEntity(sample);
-        return executeQuery(object.getTableMetadata().getEntityType(), queryName, MapTools.prefixKeys(mapCreator.toMap(object.getTableMetadata(), sample), "value."));
+        return executeQuery(object.getTableMetadata().getEntityType(), queryName, MapTools.prefixKeys(handlerContext.toMap(object.getTableMetadata(), sample), "value."));
     }
 
     @Override
@@ -253,7 +257,7 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
             if (StatementType.DEFINITION.equals(statement.getType()) || StatementType.QUERY.equals(statement.getType())) {
                 throw new InvalidStatementTypeError(statement.getType());
             }
-            affectedRows = statement.prepare(session.getConnection(), values).executeUpdate();
+            affectedRows = statement.prepare(session.getConnection(), handlerContext, values).executeUpdate();
         } catch (RegistryException e) {
             throw new UnrecognizedQueryError(entityType, queryName);
         } catch (SQLException e) {
@@ -277,14 +281,14 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
         final DataAccessObject<E, Serializable> object = checkEntity(sample);
         final Map<String, Object> map = new HashMap<String, Object>();
         if (prefix) {
-            map.putAll(MapTools.prefixKeys(mapCreator.toMap(object.getTableMetadata(), sample), "value."));
+            map.putAll(MapTools.prefixKeys(handlerContext.toMap(object.getTableMetadata(), sample), "value."));
         } else {
-            map.putAll(mapCreator.toMap(object.getTableMetadata(), sample));
+            map.putAll(handlerContext.toMap(object.getTableMetadata(), sample));
         }
         final int affectedRows;
         try {
             final Statement statement = session.getStatementRegistry().get(object.getQualifiedName() + "." + queryName);
-            final PreparedStatement preparedStatement = statement.prepare(session.getConnection(), map);
+            final PreparedStatement preparedStatement = statement.prepare(session.getConnection(), handlerContext, map);
             affectedRows = preparedStatement.executeUpdate();
             if (StatementType.INSERT.equals(statement.getType()) && object.hasKey() && object.isKeyAutoGenerated()) {
                 if (affectedRows <= 0) {
@@ -315,7 +319,7 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
             if (!StatementType.QUERY.equals(statement.getType())) {
                 throw new InvalidStatementTypeError(statement.getType());
             }
-            final PreparedStatement preparedStatement = statement.prepare(session.getConnection(), values);
+            final PreparedStatement preparedStatement = statement.prepare(session.getConnection(), handlerContext, values);
             final ResultSet resultSet = preparedStatement.executeQuery();
             result = new ArrayList<E>();
             while (resultSet.next()) {
@@ -323,7 +327,7 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
                 //noinspection unchecked
                 ((InitializedEntity<E>) entity).freeze();
                 //noinspection unchecked
-                entityCreator.fromMap(entity, ((DataAccessObject) entity).getTableMetadata().getColumns(), rowHandler.handleRow(resultSet));
+                handlerContext.fromMap(entity, ((DataAccessObject) entity).getTableMetadata().getColumns(), rowHandler.handleRow(resultSet));
                 //noinspection unchecked
                 ((InitializedEntity<E>) entity).setOriginalCopy(entity);
                 //noinspection unchecked
@@ -348,7 +352,7 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
         sample = (E) checkEntity(sample);
         eventHandler.beforeExecuteQuery(sample, queryName);
         final DataAccessObject<E, Serializable> object = checkEntity(sample);
-        final Map<String, Object> map = mapCreator.toMap(object.getTableMetadata(), sample);
+        final Map<String, Object> map = handlerContext.toMap(object.getTableMetadata(), sample);
         final List<E> result = executeQuery(object.getTableMetadata().getEntityType(), queryName, map);
         eventHandler.afterExecuteQuery(sample, queryName, result);
         return result;
@@ -400,7 +404,7 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
         final CallableStatement callableStatement;
         final ArrayList<Object> result = new ArrayList<Object>();
         try {
-            callableStatement = statement.prepare(session.getConnection(), values);
+            callableStatement = statement.prepare(session.getConnection(), handlerContext, values);
             for (int i = 0; i < procedureMetadata.getParameters().size(); i++) {
                 final ParameterMetadata metadata = procedureMetadata.getParameters().get(i);
                 if (!metadata.getParameterMode().equals(ParameterMode.IN)) {
@@ -421,12 +425,12 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
                     final Map<String, Object> map = rowHandler.handleRow(resultSet);
                     if (resultTableMetadata == null) {
                         try {
-                            result.add(entityCreator.fromMap(beanInitializer.initialize(procedureMetadata.getResultType(), new Class[0]), columnMappingMetadataCollector.collectMetadata(procedureMetadata.getResultType()), map));
+                            result.add(handlerContext.fromMap(beanInitializer.initialize(procedureMetadata.getResultType(), new Class[0]), columnMappingMetadataCollector.collectMetadata(procedureMetadata.getResultType()), map));
                         } catch (BeanInstantiationException e) {
                             throw new EntityInitializationError(procedureMetadata.getResultType(), e);
                         }
                     } else {
-                        result.add(entityCreator.fromMap(resultTableMetadata, map));
+                        result.add(handlerContext.fromMap(resultTableMetadata, map));
                     }
                 }
             }
@@ -447,7 +451,7 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
     public <O> List<O> executeQuery(O sample) {
         //noinspection unchecked
         final Class<O> resultType = (Class<O>) sample.getClass();
-        final Map<String, Object> values = mapCreator.toMap(columnMappingMetadataCollector.collectMetadata(resultType), sample);
+        final Map<String, Object> values = handlerContext.toMap(columnMappingMetadataCollector.collectMetadata(resultType), sample);
         return executeQuery(resultType, values);
     }
 
@@ -478,7 +482,7 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
             } catch (BeanInstantiationException e) {
                 throw new EntityInitializationError(resultType, e);
             }
-            entityCreator.fromMap(entity, columnMappingMetadataCollector.collectMetadata(resultType), map);
+            handlerContext.fromMap(entity, columnMappingMetadataCollector.collectMetadata(resultType), map);
             list.add(entity);
         }
         return list;
@@ -492,7 +496,7 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
             if (!StatementType.QUERY.equals(statement.getType())) {
                 throw new InvalidStatementTypeError(statement.getType());
             }
-            final PreparedStatement preparedStatement = statement.prepare(session.getConnection(), values);
+            final PreparedStatement preparedStatement = statement.prepare(session.getConnection(), handlerContext, values);
             final ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
                 list.add(rowHandler.handleRow(resultSet));
@@ -515,7 +519,7 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
         if (void.class.equals(annotation.targetEntity()) || annotation.query().isEmpty()) {
             throw new PartialEntityDefinitionError("Could not resolve query for partial entity " + resultType.getCanonicalName());
         }
-        return executeUpdate(annotation.targetEntity(), annotation.query(), mapCreator.toMap(columnMappingMetadataCollector.collectMetadata(resultType), sample));
+        return executeUpdate(annotation.targetEntity(), annotation.query(), handlerContext.toMap(columnMappingMetadataCollector.collectMetadata(resultType), sample));
     }
 
     private <E, K extends Serializable> DataAccessObject<E, K> checkEntity(final E entity) {
@@ -565,6 +569,11 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
     @Override
     public <E> boolean has(E entity) {
         return entityContext.has(entity);
+    }
+
+    @Override
+    public EntityMapHandlerContext getHandlerContext() {
+        return handlerContext;
     }
 
     @Override

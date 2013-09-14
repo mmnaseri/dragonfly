@@ -12,7 +12,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 public class Main {
 
     public static void main(String[] args) throws Exception {
-        final ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("/data/sample.xml");
+        final ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("/sample.xml");
         context.getBean(DeletePeopleService.class).execute();
         context.getBean(CreatePersonService.class).execute();
         context.getBean(ListPeopleService.class).execute();

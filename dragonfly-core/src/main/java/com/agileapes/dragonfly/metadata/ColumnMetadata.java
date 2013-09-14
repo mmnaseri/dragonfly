@@ -30,4 +30,6 @@ public interface ColumnMetadata extends Metadata {
 
     int getScale();
 
+    Class<?> getDeclaringClass();
+
 }

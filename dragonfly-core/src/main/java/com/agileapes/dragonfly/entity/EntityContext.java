@@ -36,4 +36,8 @@ public interface EntityContext {
      */
     <E> boolean has(E entity);
 
+    /**
+     * @return the map handler context associated with the current entity context
+     */
+    EntityMapHandlerContext getHandlerContext();
 }

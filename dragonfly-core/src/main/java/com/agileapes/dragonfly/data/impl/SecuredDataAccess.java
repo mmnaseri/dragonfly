@@ -5,6 +5,7 @@ import com.agileapes.couteau.enhancer.impl.ImmutableMethodDescriptor;
 import com.agileapes.dragonfly.data.DataAccess;
 import com.agileapes.dragonfly.data.DataAccessSession;
 import com.agileapes.dragonfly.data.PartialDataAccess;
+import com.agileapes.dragonfly.entity.EntityMapHandlerContext;
 import com.agileapes.dragonfly.entity.ModifiableEntityContext;
 import com.agileapes.dragonfly.events.DataAccessEventHandler;
 import com.agileapes.dragonfly.events.EventHandlerContext;
@@ -49,9 +50,7 @@ public class SecuredDataAccess extends DefaultDataAccess implements PartialDataA
         methodDescriptors.put(21, new ImmutableMethodDescriptor(DefaultDataAccess.class, void.class, "addInterface", new Class[]{Class.class, Class.class}, new Annotation[0]));
         methodDescriptors.put(22, new ImmutableMethodDescriptor(DefaultDataAccess.class, void.class, "addHandler", new Class[]{DataAccessEventHandler.class}, new Annotation[0]));
         methodDescriptors.put(23, new ImmutableMethodDescriptor(DefaultDataAccess.class, List.class, "executeUntypedQuery", new Class[]{Class.class, String.class, Map.class}, new Annotation[0]));
-        methodDescriptors.put(24, new ImmutableMethodDescriptor(DefaultDataAccess.class, boolean.class, "equals", new Class[]{Object.class}, new Annotation[0]));
-        methodDescriptors.put(25, new ImmutableMethodDescriptor(DefaultDataAccess.class, String.class, "toString", new Class[]{}, new Annotation[0]));
-        methodDescriptors.put(26, new ImmutableMethodDescriptor(DefaultDataAccess.class, int.class, "hashCode", new Class[]{}, new Annotation[0]));
+        methodDescriptors.put(24, new ImmutableMethodDescriptor(DefaultDataAccess.class, EntityMapHandlerContext.class, "getHandlerContext", new Class[]{}, new Annotation[0]));
     }
 
     private final DataSecurityManager securityManager;
@@ -209,6 +208,12 @@ public class SecuredDataAccess extends DefaultDataAccess implements PartialDataA
     public List executeUntypedQuery(final Class entityType, final String queryName, final Map values) {
         securityManager.checkAccess(new MethodSubject(methodDescriptors.get(23)));
         return super.executeUntypedQuery(entityType, queryName, values);
+    }
+
+    @Override
+    public EntityMapHandlerContext getHandlerContext() {
+        securityManager.checkAccess(new MethodSubject(methodDescriptors.get(24)));
+        return super.getHandlerContext();
     }
 
     @Override

@@ -13,6 +13,7 @@ public class ResolvedColumnMetadata extends AbstractColumnMetadata {
     private final int type;
     private final String propertyName;
     private final Class<?> propertyType;
+    private final Class<?> declaringClass;
     private ColumnMetadata foreignReference;
     private final ValueGenerationType generationType;
     private final String valueGenerator;
@@ -21,19 +22,19 @@ public class ResolvedColumnMetadata extends AbstractColumnMetadata {
     private final int precision;
     private final int scale;
 
-    public ResolvedColumnMetadata(TableMetadata<?> table, String name, int type, String propertyName, Class<?> propertyType, boolean nullable, int length, int precision, int scale) {
-        this(table, name, type, propertyName, propertyType, nullable, length, precision, scale, null, null);
+    public ResolvedColumnMetadata(TableMetadata<?> table, Class<?> declaringClass, String name, int type, String propertyName, Class<?> propertyType, boolean nullable, int length, int precision, int scale) {
+        this(table, declaringClass, name, type, propertyName, propertyType, nullable, length, precision, scale, null, null);
     }
 
-    public ResolvedColumnMetadata(TableMetadata<?> table, String name, int type, String propertyName, Class<?> propertyType, boolean nullable, int length, int precision, int scale, ValueGenerationType generationType, String valueGenerator) {
-        this(table, name, type, propertyName, propertyType, nullable, length, precision, scale, generationType, valueGenerator, null);
+    public ResolvedColumnMetadata(TableMetadata<?> table, Class<?> declaringClass, String name, int type, String propertyName, Class<?> propertyType, boolean nullable, int length, int precision, int scale, ValueGenerationType generationType, String valueGenerator) {
+        this(table, declaringClass, name, type, propertyName, propertyType, nullable, length, precision, scale, generationType, valueGenerator, null);
     }
 
-    public ResolvedColumnMetadata(TableMetadata<?> table, String name, int type, String propertyName, Class<?> propertyType, boolean nullable, int length, int precision, int scale, ColumnMetadata foreignReference) {
-        this(table, name, type, propertyName, propertyType, nullable, length, precision, scale, null, null, foreignReference);
+    public ResolvedColumnMetadata(TableMetadata<?> table, Class<?> declaringClass, String name, int type, String propertyName, Class<?> propertyType, boolean nullable, int length, int precision, int scale, ColumnMetadata foreignReference) {
+        this(table, declaringClass, name, type, propertyName, propertyType, nullable, length, precision, scale, null, null, foreignReference);
     }
 
-    public ResolvedColumnMetadata(TableMetadata<?> table, String name, int type, String propertyName, Class<?> propertyType, boolean nullable, int length, int precision, int scale, ValueGenerationType generationType, String valueGenerator, ColumnMetadata foreignReference) {
+    public ResolvedColumnMetadata(TableMetadata<?> table, Class<?> declaringClass, String name, int type, String propertyName, Class<?> propertyType, boolean nullable, int length, int precision, int scale, ValueGenerationType generationType, String valueGenerator, ColumnMetadata foreignReference) {
         super(name, table);
         this.type = type;
         this.propertyName = propertyName;
@@ -45,6 +46,7 @@ public class ResolvedColumnMetadata extends AbstractColumnMetadata {
         this.foreignReference = foreignReference;
         this.generationType = generationType;
         this.valueGenerator = valueGenerator;
+        this.declaringClass = declaringClass;
     }
 
     @Override
@@ -95,6 +97,11 @@ public class ResolvedColumnMetadata extends AbstractColumnMetadata {
     @Override
     public int getScale() {
         return scale;
+    }
+
+    @Override
+    public Class<?> getDeclaringClass() {
+        return declaringClass;
     }
 
     public void setTable(ResolvedTableMetadata<?> table) {

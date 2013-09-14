@@ -20,6 +20,9 @@
             </set>
         </property>
     </bean>
+    <bean id="generateMapHandlers" class="com.agileapes.dragonfly.tasks.GenerateMapHandlersTask">
+        <property name="dependencies" ref="collectMetadata"/>
+    </bean>
     <bean class="com.agileapes.dragonfly.mojo.DependencyResolver"/>
     <bean id="outputManager" class="com.agileapes.dragonfly.io.OutputManager"/>
 

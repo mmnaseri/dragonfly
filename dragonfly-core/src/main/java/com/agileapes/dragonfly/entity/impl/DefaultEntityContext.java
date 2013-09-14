@@ -7,6 +7,7 @@ import com.agileapes.couteau.enhancer.api.Interceptible;
 import com.agileapes.couteau.enhancer.impl.GeneratingClassEnhancer;
 import com.agileapes.dragonfly.cg.StaticNamingPolicy;
 import com.agileapes.dragonfly.data.DataAccess;
+import com.agileapes.dragonfly.entity.EntityMapHandlerContext;
 import com.agileapes.dragonfly.entity.InitializedEntity;
 import com.agileapes.dragonfly.entity.ModifiableEntityContext;
 import com.agileapes.dragonfly.error.EntityInitializationError;
@@ -93,6 +94,11 @@ public class DefaultEntityContext implements ModifiableEntityContext {
     @Override
     public <E> boolean has(E entity) {
         return entity instanceof InitializedEntity && ((InitializedEntity) entity).getToken().equals(key);
+    }
+
+    @Override
+    public EntityMapHandlerContext getHandlerContext() {
+        return null;
     }
 
 }

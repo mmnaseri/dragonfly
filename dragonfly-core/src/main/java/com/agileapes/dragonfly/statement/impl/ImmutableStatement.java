@@ -3,7 +3,6 @@ package com.agileapes.dragonfly.statement.impl;
 import com.agileapes.dragonfly.dialect.DatabaseDialect;
 import com.agileapes.dragonfly.entity.EntityMapCreator;
 import com.agileapes.dragonfly.entity.StatementPreparator;
-import com.agileapes.dragonfly.entity.impl.DefaultEntityMapCreator;
 import com.agileapes.dragonfly.entity.impl.DefaultStatementPreparator;
 import com.agileapes.dragonfly.error.StatementError;
 import com.agileapes.dragonfly.metadata.TableMetadata;
@@ -88,12 +87,12 @@ public class ImmutableStatement implements Statement {
     }
 
     @Override
-    public PreparedStatement prepare(Connection connection, Object value) {
-        return prepare(connection, value, null);
+    public PreparedStatement prepare(Connection connection, EntityMapCreator mapCreator, Object value) {
+        return prepare(connection, mapCreator, value, null);
     }
 
     @Override
-    public PreparedStatement prepare(Connection connection, Object value, Object replacement) {
+    public PreparedStatement prepare(Connection connection, EntityMapCreator mapCreator, Object value, Object replacement) {
         String finalSql = sql;
         if (isDynamic()) {
             final FreemarkerSecondPassStatementBuilder builder = new FreemarkerSecondPassStatementBuilder(this, dialect, value);
@@ -101,7 +100,6 @@ public class ImmutableStatement implements Statement {
         }
         final PreparedStatement statement;
         if (hasParameters()) {
-            final EntityMapCreator mapCreator = new DefaultEntityMapCreator();
             final Map<String,Object> map = new HashMap<String, Object>();
             if (!(value instanceof Map)) {
                 //noinspection unchecked
