@@ -1,5 +1,6 @@
 package com.agileapes.dragonfly.sample;
 
+import com.agileapes.dragonfly.sample.audit.Auditable;
 import com.agileapes.dragonfly.sample.service.CreatePersonService;
 import com.agileapes.dragonfly.sample.service.DeletePeopleService;
 import com.agileapes.dragonfly.sample.service.ListPeopleService;

@@ -7,7 +7,7 @@ import com.agileapes.couteau.enhancer.api.Interceptible;
 import com.agileapes.couteau.enhancer.impl.GeneratingClassEnhancer;
 import com.agileapes.dragonfly.cg.StaticNamingPolicy;
 import com.agileapes.dragonfly.data.DataAccess;
-import com.agileapes.dragonfly.entity.EntityMapHandlerContext;
+import com.agileapes.dragonfly.entity.EntityHandlerContext;
 import com.agileapes.dragonfly.entity.InitializedEntity;
 import com.agileapes.dragonfly.entity.ModifiableEntityContext;
 import com.agileapes.dragonfly.error.EntityInitializationError;
@@ -53,7 +53,7 @@ public class DefaultEntityContext implements ModifiableEntityContext {
 
     @Override
     public <E> E getInstance(TableMetadata<E> tableMetadata) {
-        final EntityProxy<E> entityProxy = new EntityProxy<E>(dataAccess, tableMetadata, securityManager);
+        final EntityProxy<E> entityProxy = new EntityProxy<E>(dataAccess, tableMetadata, securityManager, dataAccess.getHandlerContext().getHandler(tableMetadata.getEntityType()));
         for (Map.Entry<Class<?>, Class<?>> entry : interfaces.entrySet()) {
             entityProxy.addInterface(entry.getKey(), entry.getValue());
         }
@@ -97,7 +97,7 @@ public class DefaultEntityContext implements ModifiableEntityContext {
     }
 
     @Override
-    public EntityMapHandlerContext getHandlerContext() {
+    public EntityHandlerContext getHandlerContext() {
         return null;
     }
 

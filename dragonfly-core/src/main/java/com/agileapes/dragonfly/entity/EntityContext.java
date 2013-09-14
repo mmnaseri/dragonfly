@@ -39,5 +39,5 @@ public interface EntityContext {
     /**
      * @return the map handler context associated with the current entity context
      */
-    EntityMapHandlerContext getHandlerContext();
+    EntityHandlerContext getHandlerContext();
 }

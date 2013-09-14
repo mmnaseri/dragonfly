@@ -2,8 +2,8 @@ package com.agileapes.dragonfly.entity.impl;
 
 import com.agileapes.dragonfly.data.DataAccess;
 import com.agileapes.dragonfly.data.DataAccessPostProcessor;
-import com.agileapes.dragonfly.entity.EntityMapHandler;
-import com.agileapes.dragonfly.entity.EntityMapHandlerContext;
+import com.agileapes.dragonfly.entity.EntityHandler;
+import com.agileapes.dragonfly.entity.EntityHandlerContext;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -14,16 +14,16 @@ import java.util.Set;
  */
 public class HandlerContextPreparatorPostProcessor implements DataAccessPostProcessor {
 
-    private Set<EntityMapHandler<?>> mapHandlers = new HashSet<EntityMapHandler<?>>();
+    private Set<EntityHandler<?>> mapHandlers = new HashSet<EntityHandler<?>>();
 
-    public void setMapHandlers(Set<EntityMapHandler<?>> mapHandlers) {
+    public void setMapHandlers(Set<EntityHandler<?>> mapHandlers) {
         this.mapHandlers = mapHandlers;
     }
 
     @Override
     public void postProcessDataAccess(DataAccess dataAccess) {
-        final EntityMapHandlerContext context = dataAccess.getHandlerContext();
-        for (EntityMapHandler<?> mapHandler : mapHandlers) {
+        final EntityHandlerContext context = dataAccess.getHandlerContext();
+        for (EntityHandler<?> mapHandler : mapHandlers) {
             context.addMapHandler(mapHandler);
         }
     }

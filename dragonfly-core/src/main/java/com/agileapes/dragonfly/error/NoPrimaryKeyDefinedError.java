@@ -8,15 +8,8 @@ import com.agileapes.dragonfly.metadata.TableMetadata;
  */
 public class NoPrimaryKeyDefinedError extends DatabaseError {
 
-    private final TableMetadata<?> table;
-
-    public NoPrimaryKeyDefinedError(TableMetadata<?> table) {
-        super("No primary key has been defined for: " + table.getName());
-        this.table = table;
-    }
-
-    public TableMetadata<?> getTable() {
-        return table;
+    public NoPrimaryKeyDefinedError(Class<?> entityType) {
+        super("No primary key has been defined for: " + entityType.getCanonicalName());
     }
 
 }

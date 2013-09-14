@@ -1,7 +1,7 @@
 package com.agileapes.dragonfly.entity.impl;
 
 import com.agileapes.dragonfly.entity.EntityContext;
-import com.agileapes.dragonfly.entity.EntityMapHandler;
+import com.agileapes.dragonfly.entity.EntityHandler;
 import com.agileapes.dragonfly.entity.MapEntityCreator;
 import com.agileapes.dragonfly.error.EntityInitializationError;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
@@ -16,10 +16,10 @@ import java.util.Map;
  */
 public class DelegatingEntityCreator implements MapEntityCreator {
     
-    private final EntityMapHandler<Object> handler;
+    private final EntityHandler<Object> handler;
     private final EntityContext entityContext;
 
-    public DelegatingEntityCreator(EntityContext entityContext, EntityMapHandler<Object> handler) {
+    public DelegatingEntityCreator(EntityContext entityContext, EntityHandler<Object> handler) {
         this.handler = handler;
         this.entityContext = entityContext;
     }

@@ -1,6 +1,7 @@
 package com.agileapes.dragonfly.entity.impl;
 
 import com.agileapes.dragonfly.entity.*;
+import com.agileapes.dragonfly.error.NoSuchEntityError;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 
@@ -12,28 +13,31 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/14, 5:38)
  */
-public class DefaultEntityMapHandlerContext implements EntityMapHandlerContext {
+public class DefaultEntityHandlerContext implements EntityHandlerContext {
     
     private final Map<Class<?>, EntityMapCreator> mapCreators;
     private final Map<Class<?>, MapEntityCreator> entityCreators;
     private final EntityMapCreator defaultMapCreator;
     private final MapEntityCreator defaultEntityCreator;
     private final EntityContext entityContext;
+    private final Map<Class<?>, EntityHandler<?>> entityHandlers;
 
-    public DefaultEntityMapHandlerContext(EntityContext entityContext) {
+    public DefaultEntityHandlerContext(EntityContext entityContext) {
         this.entityContext = entityContext;
         defaultEntityCreator = new DefaultMapEntityCreator(this.entityContext);
         defaultMapCreator = new DefaultEntityMapCreator();
         entityCreators = new ConcurrentHashMap<Class<?>, MapEntityCreator>();
         mapCreators = new ConcurrentHashMap<Class<?>, EntityMapCreator>();
+        entityHandlers = new ConcurrentHashMap<Class<?>, EntityHandler<?>>();
     }
 
     @Override
-    public void addMapHandler(EntityMapHandler<?> mapHandler) {
+    public void addMapHandler(EntityHandler<?> entityHandler) {
         //noinspection unchecked
-        entityCreators.put(mapHandler.getEntityType(), new DelegatingEntityCreator(entityContext, (EntityMapHandler<Object>) mapHandler));
+        entityCreators.put(entityHandler.getEntityType(), new DelegatingEntityCreator(entityContext, (EntityHandler<Object>) entityHandler));
         //noinspection unchecked
-        mapCreators.put(mapHandler.getEntityType(), new DelegatingMapCreator((EntityMapHandler<Object>) mapHandler));
+        mapCreators.put(entityHandler.getEntityType(), new DelegatingMapCreator((EntityHandler<Object>) entityHandler));
+        entityHandlers.put(entityHandler.getEntityType(), entityHandler);
     }
 
     public EntityMapCreator getMapCreator(Class<?> entityType) {
@@ -68,6 +72,15 @@ public class DefaultEntityMapHandlerContext implements EntityMapHandlerContext {
     @Override
     public <E> E fromMap(E entity, Collection<ColumnMetadata> columns, Map<String, Object> values) {
         return getEntityCreator(entity.getClass()).fromMap(entity, columns, values);
+    }
+    
+    @Override
+    public <E> EntityHandler<E> getHandler(Class<E> entityType) {
+        if (entityHandlers.containsKey(entityType)) {
+            //noinspection unchecked
+            return (EntityHandler<E>) entityHandlers.get(entityType);
+        }
+        throw new NoSuchEntityError(entityType);
     }
     
 }

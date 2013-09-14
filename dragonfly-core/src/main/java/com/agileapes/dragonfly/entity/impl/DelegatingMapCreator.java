@@ -1,7 +1,7 @@
 package com.agileapes.dragonfly.entity.impl;
 
 import com.agileapes.dragonfly.entity.EntityMapCreator;
-import com.agileapes.dragonfly.entity.EntityMapHandler;
+import com.agileapes.dragonfly.entity.EntityHandler;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 
@@ -14,9 +14,9 @@ import java.util.Map;
  */
 public class DelegatingMapCreator implements EntityMapCreator {
 
-    private final EntityMapHandler<Object> handler;
+    private final EntityHandler<Object> handler;
 
-    public DelegatingMapCreator(EntityMapHandler<Object> handler) {
+    public DelegatingMapCreator(EntityHandler<Object> handler) {
         this.handler = handler;
     }
 

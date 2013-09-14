@@ -15,14 +15,10 @@ import com.agileapes.couteau.reflection.util.ReflectionUtils;
 import com.agileapes.dragonfly.annotations.ParameterMode;
 import com.agileapes.dragonfly.annotations.Partial;
 import com.agileapes.dragonfly.data.*;
-import com.agileapes.dragonfly.entity.EntityMapHandlerContext;
-import com.agileapes.dragonfly.entity.InitializedEntity;
-import com.agileapes.dragonfly.entity.ModifiableEntityContext;
-import com.agileapes.dragonfly.entity.RowHandler;
+import com.agileapes.dragonfly.entity.*;
 import com.agileapes.dragonfly.entity.impl.DefaultEntityContext;
-import com.agileapes.dragonfly.entity.impl.DefaultEntityMapHandlerContext;
+import com.agileapes.dragonfly.entity.impl.DefaultEntityHandlerContext;
 import com.agileapes.dragonfly.entity.impl.DefaultRowHandler;
-import com.agileapes.dragonfly.entity.impl.EntityProxy;
 import com.agileapes.dragonfly.error.*;
 import com.agileapes.dragonfly.events.DataAccessEventHandler;
 import com.agileapes.dragonfly.events.EventHandlerContext;
@@ -67,7 +63,7 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
     private final DataAccessSession session;
     private final ModifiableEntityContext entityContext;
     private final RowHandler rowHandler;
-    private final EntityMapHandlerContext handlerContext;
+    private final EntityHandlerContext handlerContext;
     private final BeanInitializer beanInitializer;
     private final ColumnMappingMetadataCollector columnMappingMetadataCollector;
     private final CompositeDataAccessEventHandler eventHandler;
@@ -94,7 +90,7 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
         beanInitializer = new ConstructorBeanInitializer();
         columnMappingMetadataCollector = new ColumnMappingMetadataCollector();
         eventHandler = new CompositeDataAccessEventHandler();
-        handlerContext = new DefaultEntityMapHandlerContext(entityContext);
+        handlerContext = new DefaultEntityHandlerContext(entityContext);
     }
 
     @Override
@@ -121,11 +117,8 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
                 eventHandler.beforeInsert(entity);
                 affectedRows = internalExecuteUpdate(entity, "insert", true);
                 if (affectedRows > 0 && needsReflection) {
-                    final EntityProxy<E> proxy = new EntityProxy<E>(this, object.getTableMetadata(), securityManager);
-                    proxy.initialize(object.getTableMetadata().getEntityType(), original, ((InitializedEntity) object).getToken());
-                    proxy.setOriginalCopy(original);
-                    //noinspection unchecked
-                    ((DataAccessObject<E, Serializable>) proxy).changeKey(object.accessKey());
+                    final EntityHandler<E> handler = handlerContext.getHandler(object.getTableMetadata().getEntityType());
+                    handler.setKey(original, handler.getKey(entity));
                 }
             }
         } catch (Exception e) {
@@ -572,7 +565,7 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
     }
 
     @Override
-    public EntityMapHandlerContext getHandlerContext() {
+    public EntityHandlerContext getHandlerContext() {
         return handlerContext;
     }
 

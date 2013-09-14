@@ -98,7 +98,7 @@ public class ResolvedTableMetadata<E> extends AbstractTableMetadata<E> {
     @Override
     public PrimaryKeyConstraintMetadata getPrimaryKey() {
         if (!hasPrimaryKey()) {
-            throw new MetadataCollectionError("Cannot return table primary key", new NoPrimaryKeyDefinedError(this));
+            throw new MetadataCollectionError("Cannot return table primary key", new NoPrimaryKeyDefinedError(getEntityType()));
         }
         return primaryKey;
     }
