@@ -1,8 +1,8 @@
 package com.agileapes.dragonfly.tasks;
 
 import com.agileapes.couteau.basics.api.Transformer;
-import com.agileapes.couteau.maven.resource.ConfigurableClassLoader;
 import com.agileapes.couteau.maven.task.PluginTask;
+import com.agileapes.couteau.reflection.cp.ConfigurableClassLoader;
 import com.agileapes.dragonfly.mojo.DependencyResolver;
 import com.agileapes.dragonfly.mojo.PluginExecutor;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;

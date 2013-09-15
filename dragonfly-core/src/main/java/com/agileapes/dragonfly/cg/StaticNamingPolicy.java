@@ -2,8 +2,7 @@ package com.agileapes.dragonfly.cg;
 
 import com.agileapes.couteau.enhancer.api.ClassEnhancer;
 import com.agileapes.couteau.enhancer.api.NamingPolicy;
-
-import java.util.concurrent.atomic.AtomicInteger;
+import com.agileapes.dragonfly.tools.SynchronizedIdentifierDispenser;
 
 /**
  * This naming policy uses a static naming scheme of enhanced classes to enable the framework to recognize enhanced
@@ -15,7 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class StaticNamingPolicy implements NamingPolicy {
 
     private final String name;
-    private final AtomicInteger index = new AtomicInteger(1);
+    private final static SynchronizedIdentifierDispenser<Class<?>> IDENTIFIER_DISPENSER = new SynchronizedIdentifierDispenser<Class<?>>();
 
     public StaticNamingPolicy(String name) {
         this.name = name;
@@ -23,7 +22,7 @@ public class StaticNamingPolicy implements NamingPolicy {
 
     @Override
     public String getClassName(Class<?> originalClass, ClassEnhancer<?> classEnhancer) {
-        return originalClass.getCanonicalName() + "$ENHANCED$" + name + "$" + index.getAndIncrement();
+        return originalClass.getCanonicalName() + "$ENHANCED$" + name + "$" + IDENTIFIER_DISPENSER.getIdentifier(originalClass);
     }
 
 }

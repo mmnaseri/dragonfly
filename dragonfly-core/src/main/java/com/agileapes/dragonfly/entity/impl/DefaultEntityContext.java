@@ -7,10 +7,10 @@ import com.agileapes.couteau.enhancer.api.Interceptible;
 import com.agileapes.couteau.enhancer.impl.GeneratingClassEnhancer;
 import com.agileapes.dragonfly.cg.StaticNamingPolicy;
 import com.agileapes.dragonfly.data.DataAccess;
+import com.agileapes.dragonfly.entity.EntityFactory;
 import com.agileapes.dragonfly.entity.EntityHandlerContext;
 import com.agileapes.dragonfly.entity.InitializedEntity;
 import com.agileapes.dragonfly.entity.ModifiableEntityContext;
-import com.agileapes.dragonfly.error.EntityInitializationError;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.security.DataSecurityManager;
 
@@ -31,7 +31,7 @@ public class DefaultEntityContext implements ModifiableEntityContext {
     private final DataAccess dataAccess;
     private final Map<Class<?>, Class<?>> interfaces = new HashMap<Class<?>, Class<?>>();
     private final DataSecurityManager securityManager;
-    private final Cache<Class<?>, Class<?>> cache = new ConcurrentCache<Class<?>, Class<?>>();
+    private final Cache<Class<?>, EntityFactory<?>> cache = new ConcurrentCache<Class<?>, EntityFactory<?>>();
 
     public DefaultEntityContext(DataAccess dataAccess, DataSecurityManager securityManager) {
         this.dataAccess = dataAccess;
@@ -66,29 +66,31 @@ public class DefaultEntityContext implements ModifiableEntityContext {
     }
 
     private <E> E enhanceObject(Class<E> type, EntityProxy<E> entityProxy) {
-        final Class<? extends E> enhancedClass = enhanceClass(type, entityProxy);
-        final E entity;
-        try {
-            entity = enhancedClass.newInstance();
-        } catch (Exception e) {
-            throw new EntityInitializationError(type, e);
-        }
+        final EntityFactory<E> factory = getFactory(type, entityProxy);
+        final E entity = factory.getInstance();
         ((Interceptible) entity).setInterceptor(entityProxy);
         return entity;
     }
 
-    private <E> Class<? extends E> enhanceClass(Class<E> original, EntityProxy<E> entityProxy) {
-        if (cache.contains(original)) {
+    private <E> EntityFactory<E> getFactory(Class<E> entityType, EntityProxy<E> entityProxy) {
+        if (cache.contains(entityType)) {
             //noinspection unchecked
-            return (Class<? extends E>) cache.read(original);
+            return (EntityFactory<E>) cache.read(entityType);
         }
+        final Class<? extends E> enhancedType = enhanceClass(entityType, entityProxy);
+//        noinspection unchecked
+        final EntityFactoryBuilder<E> builder = new EntityFactoryBuilder<E>(entityType, enhancedType);
+        final EntityFactory<E> entityFactory = builder.getEntityFactory();
+        cache.write(entityType, entityFactory);
+        return entityFactory;
+    }
+
+    private <E> Class<? extends E> enhanceClass(Class<E> original, EntityProxy<E> entityProxy) {
         final ClassEnhancer<E> classEnhancer = new GeneratingClassEnhancer<E>();
         classEnhancer.setInterfaces(entityProxy.getInterfaces());
         classEnhancer.setSuperClass(original);
         classEnhancer.setNamingPolicy(new StaticNamingPolicy("entity"));
-        final Class<? extends E> enhanced = classEnhancer.enhance();
-        cache.write(original, enhanced);
-        return enhanced;
+        return classEnhancer.enhance();
     }
 
     @Override

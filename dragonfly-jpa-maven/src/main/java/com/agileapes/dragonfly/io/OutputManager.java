@@ -56,4 +56,10 @@ public class OutputManager implements PluginExecutorAware<PluginExecutor> {
         writeFile(project.getBuild().getOutputDirectory() + File.separator + path, content);
     }
 
+    public void deleteOutput(String path) {
+        if (!new File(project.getBuild().getOutputDirectory() + File.separator + path).delete()) {
+            throw new Error("Failed to delete file " + path);
+        }
+    }
+
 }
