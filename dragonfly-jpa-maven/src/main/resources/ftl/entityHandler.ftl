@@ -4,6 +4,8 @@ package ${entityType.canonicalName?substring(0, entityType.canonicalName?last_in
 import com.agileapes.dragonfly.entity.EntityHandler;
 
 import java.util.Map;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import javax.annotation.Generated;
 import java.io.Serializable;
@@ -87,6 +89,15 @@ public class ${entityType.simpleName}EntityHandler implements EntityHandler<${en
         <#else>
         throw new com.agileapes.dragonfly.error.NoPrimaryKeyDefinedError(${entityType.canonicalName}.class);
         </#if>
+    }
+
+    @Override
+    public void prepareRelations(${entityType.canonicalName} entity) {
+    }
+
+    @Override
+    public Collection<?> getRelatedItems(${entityType.canonicalName} entity) {
+        return new ArrayList<Object>();
     }
 
 }

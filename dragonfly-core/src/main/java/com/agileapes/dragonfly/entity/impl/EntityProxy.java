@@ -209,6 +209,24 @@ public class EntityProxy<E> extends SecuredInterfaceInterceptor implements Initi
     }
 
     @Override
+    public void saveRelations() {
+        handler.prepareRelations(entity);
+        Collection<?> relatedItems = handler.getRelatedItems(entity);
+        for (Object item : relatedItems) {
+            dataAccess.save(item);
+        }
+    }
+
+    @Override
+    public void deleteRelations() {
+        handler.prepareRelations(entity);
+        Collection<?> relatedItems = handler.getRelatedItems(entity);
+        for (Object item : relatedItems) {
+            dataAccess.delete(item);
+        }
+    }
+
+    @Override
     protected Object call(MethodDescriptor methodDescriptor, Object target, Object[] arguments, MethodProxy methodProxy) throws Throwable {
         if (methodDescriptor.getName().matches("set[A-Z].*")) {
             final String propertyName = ReflectionUtils.getPropertyName(methodDescriptor.getName());

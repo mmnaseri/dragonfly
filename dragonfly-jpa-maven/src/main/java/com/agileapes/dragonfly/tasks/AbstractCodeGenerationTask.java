@@ -3,13 +3,12 @@ package com.agileapes.dragonfly.tasks;
 import com.agileapes.couteau.basics.api.Transformer;
 import com.agileapes.couteau.maven.task.PluginTask;
 import com.agileapes.couteau.reflection.cp.ConfigurableClassLoader;
+import com.agileapes.dragonfly.io.OutputManager;
 import com.agileapes.dragonfly.mojo.DependencyResolver;
 import com.agileapes.dragonfly.mojo.PluginExecutor;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.shared.dependency.tree.DependencyTreeBuilderException;
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 
 import java.io.File;
@@ -23,14 +22,13 @@ import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/13, 2:35)
  */
-public abstract class AbstractCodeGenerationTask extends PluginTask<PluginExecutor> implements ApplicationContextAware {
+public abstract class AbstractCodeGenerationTask extends PluginTask<PluginExecutor> {
 
-    protected ApplicationContext applicationContext;
+    @Autowired
+    private DependencyResolver dependencyResolver;
 
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
-    }
+    @Autowired
+    private OutputManager outputManager;
 
     /**
      * This method will determine the classpath argument passed to the JavaC compiler used by this
@@ -72,7 +70,6 @@ public abstract class AbstractCodeGenerationTask extends PluginTask<PluginExecut
             } catch (Throwable ignored) {
             }
         }
-        final DependencyResolver dependencyResolver = applicationContext.getBean(DependencyResolver.class);
         try {
             classPathElements.addAll(dependencyResolver.resolve(executor));
         } catch (DependencyTreeBuilderException ignored) {
@@ -88,6 +85,10 @@ public abstract class AbstractCodeGenerationTask extends PluginTask<PluginExecut
 
     protected Collection<? extends File> getClassPathElements() {
         return Collections.emptyList();
+    }
+
+    public OutputManager getOutputManager() {
+        return outputManager;
     }
 
 }

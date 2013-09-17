@@ -3,6 +3,7 @@ package com.agileapes.dragonfly.io;
 import com.agileapes.couteau.maven.mojo.PluginExecutorAware;
 import com.agileapes.dragonfly.mojo.PluginExecutor;
 import org.apache.maven.project.MavenProject;
+import org.springframework.stereotype.Component;
 
 import java.io.*;
 
@@ -10,6 +11,7 @@ import java.io.*;
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/13, 1:14)
  */
+@Component
 public class OutputManager implements PluginExecutorAware<PluginExecutor> {
 
     private MavenProject project;

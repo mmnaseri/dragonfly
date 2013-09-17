@@ -4,7 +4,7 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
     <bean class="com.agileapes.dragonfly.entity.impl.HandlerContextPreparatorPostProcessor">
-        <property name="mapHandlers">
+        <property name="handlers">
             <set>
             <#list beans as bean>
                 <bean class="${bean}"/>

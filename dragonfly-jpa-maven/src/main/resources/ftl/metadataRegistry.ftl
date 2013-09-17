@@ -14,7 +14,7 @@ import javax.annotation.Generated;
                "entities annotated with JPA annotations in the classpath"
 )
 @SuppressWarnings("unchecked")
-public class  GeneratedJpaMetadataRegistry implements MetadataRegistry {
+public class GeneratedJpaMetadataRegistry implements MetadataRegistry {
 
     private final Map<Class<?>, TableMetadata<?>> map = new HashMap<Class<?>, TableMetadata<?>>();
 

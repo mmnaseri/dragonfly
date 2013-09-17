@@ -6,28 +6,29 @@ import com.agileapes.couteau.lang.compiler.DynamicClassCompiler;
 import com.agileapes.couteau.lang.compiler.impl.DefaultDynamicClassCompiler;
 import com.agileapes.couteau.lang.compiler.impl.SimpleJavaSourceCompiler;
 import com.agileapes.couteau.lang.error.CompileException;
+import com.agileapes.couteau.maven.task.PluginTask;
 import com.agileapes.couteau.reflection.beans.impl.AbstractClassBeanDescriptor;
 import com.agileapes.couteau.reflection.beans.impl.MethodClassBeanDescriptor;
-import com.agileapes.couteau.reflection.cp.MappedClassLoader;
 import com.agileapes.couteau.reflection.error.NoSuchPropertyException;
 import com.agileapes.couteau.reflection.property.ReadPropertyAccessor;
 import com.agileapes.couteau.reflection.property.WritePropertyAccessor;
 import com.agileapes.couteau.reflection.property.impl.MethodReadPropertyAccessor;
 import com.agileapes.couteau.reflection.property.impl.MethodWritePropertyAccessor;
 import com.agileapes.couteau.reflection.util.ReflectionUtils;
-import com.agileapes.dragonfly.io.OutputManager;
+import com.agileapes.dragonfly.entity.impl.HandlerContextPreparatorPostProcessor;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
 import com.agileapes.dragonfly.metadata.MetadataRegistry;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.metadata.ValueGenerationType;
-import com.agileapes.dragonfly.model.EntityHandlerModel;
-import com.agileapes.dragonfly.model.PropertyAccessModel;
+import com.agileapes.dragonfly.model.*;
 import com.agileapes.dragonfly.mojo.PluginExecutor;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import javax.persistence.TemporalType;
 import java.io.File;
@@ -35,10 +36,10 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.sql.Types;
-import java.util.HashMap;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
 
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 
@@ -46,13 +47,26 @@ import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/14, 4:12)
  */
+@Component
 public class GenerateEntityHandlersTask extends AbstractCodeGenerationTask {
 
     @Override
+    protected String getIntro() {
+        return "Generating entity handler context";
+    }
+
+    @Value("#{metadataCollector}")
+    @Override
+    public void setDependencies(Collection<PluginTask<PluginExecutor>> dependencies) {
+        super.setDependencies(dependencies);
+    }
+
+    @Value("#{metadataCollector.metadataRegistry}")
+    private MetadataRegistry metadataRegistry;
+
+    @Override
     public void execute(PluginExecutor executor) throws MojoFailureException {
-        final Set<String> generatedClasses = new CopyOnWriteArraySet<String>();
-        final MetadataRegistry metadataRegistry = applicationContext.getBean(MetadataCollectorTask.class).getRegistry();
-        final OutputManager outputManager = applicationContext.getBean(OutputManager.class);
+        final Set<String> generatedClasses = new HashSet<String>();
         final Configuration configuration = FreemarkerUtils.getConfiguration(getClass(), "/ftl/");
         final Template template;
         try {
@@ -102,35 +116,42 @@ public class GenerateEntityHandlersTask extends AbstractCodeGenerationTask {
             }
             final byte[] bytes;
             try {
-                bytes = ((MappedClassLoader) compiler.getClassLoader()).getBytes(className);
+                bytes = compiler.getClassLoader().getBytes(className);
             } catch (ClassNotFoundException e) {
                 throw new MojoFailureException("Class not found", e);
             }
             final String path = className.replace('.', File.separatorChar).concat(".class");
             try {
-                outputManager.writeOutputFile(path, bytes);
+                getOutputManager().writeOutputFile(path, bytes);
             } catch (IOException e) {
                 throw new MojoFailureException("Failed to write output", e);
             }
         }
         final Template handlersTemplate;
         try {
-            handlersTemplate = configuration.getTemplate("entityHandlers.ftl");
+            handlersTemplate = configuration.getTemplate("applicationContext.ftl");
         } catch (IOException e) {
             throw new MojoFailureException("Failed to locate template", e);
         }
         final StringWriter out = new StringWriter();
         try {
-            final HashMap<String, Object> map = new HashMap<String, Object>();
-            map.put("beans", generatedClasses);
-            handlersTemplate.process(map, out);
+            final ApplicationContextModel model = new ApplicationContextModel();
+            final BeanDefinitionModel context = new BeanDefinitionModel(HandlerContextPreparatorPostProcessor.class.getCanonicalName());
+            model.addBean(context);
+            final HashSet<BeanDefinitionModel> handlers = new HashSet<BeanDefinitionModel>();
+            context.setProperty(new BeanPropertyModel("handlers", handlers));
+            for (String generatedClass : generatedClasses) {
+                handlers.add(new BeanDefinitionModel(generatedClass));
+            }
+            handlersTemplate.process(model, out);
         } catch (TemplateException e) {
+            e.printStackTrace();
             throw new MojoFailureException("Failed to process template", e);
         } catch (IOException e) {
             throw new MojoFailureException("Failed to produce output", e);
         }
         try {
-            outputManager.writeSourceFile("/src/main/resources/data/handlers.xml", out.toString());
+            getOutputManager().writeSourceFile("/src/main/resources/data/handlers.xml", out.toString());
         } catch (IOException e) {
             throw new MojoFailureException("Failed to write output file");
         }

@@ -119,7 +119,7 @@ public class Person {
     }
 
     @JoinColumn
-    @OneToMany(fetch = FetchType.LAZY)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "owner")
     public Collection<Thing> getThings() {
         return things;
     }

@@ -100,4 +100,9 @@ public interface DataAccessObject<E, K extends Serializable> {
      * This method will load all eagerly connected related properties of the entity
      */
     void loadRelations();
+
+    void saveRelations();
+
+    void deleteRelations();
+
 }

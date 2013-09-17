@@ -1,7 +1,6 @@
 package com.agileapes.dragonfly.model;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
@@ -11,10 +10,11 @@ public class BeanDefinitionModel {
 
     private String id;
     private String type;
-    private final Map<String, String> properties = new HashMap<String, String>();
-    private final Map<String, String> references = new HashMap<String, String>();
+    private final Set<BeanPropertyModel> properties = new HashSet<BeanPropertyModel>();
+    private final List<BeanPropertyModel> arguments = new ArrayList<BeanPropertyModel>();
 
-    public BeanDefinitionModel() {
+    public BeanDefinitionModel(String type) {
+        this(null, type);
     }
 
     public BeanDefinitionModel(String id, String type) {
@@ -38,19 +38,20 @@ public class BeanDefinitionModel {
         this.type = type;
     }
 
-    public Map<String, String> getProperties() {
+    public Set<BeanPropertyModel> getProperties() {
         return properties;
     }
 
-    public Map<String, String> getReferences() {
-        return references;
+    public List<BeanPropertyModel> getArguments() {
+        return arguments;
     }
 
-    public void setProperty(String property, String value) {
-        properties.put(property, value);
+    public void setProperty(BeanPropertyModel property) {
+        properties.add(property);
     }
 
-    public void setReference(String property, String reference) {
-        references.put(property, reference);
+    public void addConstructorArgument(BeanPropertyModel argument) {
+        arguments.add(argument);
     }
+
 }

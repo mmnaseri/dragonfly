@@ -5,13 +5,14 @@ import com.agileapes.couteau.freemarker.utils.FreemarkerUtils;
 import com.agileapes.couteau.lang.compiler.DynamicClassCompiler;
 import com.agileapes.couteau.lang.compiler.impl.DefaultDynamicClassCompiler;
 import com.agileapes.couteau.lang.compiler.impl.SimpleJavaSourceCompiler;
-import com.agileapes.couteau.reflection.cp.MappedClassLoader;
-import com.agileapes.dragonfly.io.OutputManager;
+import com.agileapes.couteau.maven.task.PluginTask;
 import com.agileapes.dragonfly.model.StatementGenerationModel;
 import com.agileapes.dragonfly.mojo.PluginExecutor;
 import com.agileapes.dragonfly.statement.impl.StatementRegistry;
 import freemarker.template.Template;
 import org.apache.maven.plugin.MojoFailureException;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.StringReader;
@@ -22,14 +23,27 @@ import java.util.Collection;
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/13, 2:07)
  */
+@Component
 public class GenerateStatementRegistryTask extends AbstractCodeGenerationTask{
 
     public static final String CLASS_NAME = "com.agileapes.dragonfly.statement.GeneratedStatementRegistry";
 
+    @Value("#{metadataCollector.statementRegistry}")
+    private StatementRegistry statementRegistry;
+
+    @Value("#{metadataCollector}")
+    @Override
+    public void setDependencies(Collection<PluginTask<PluginExecutor>> dependencies) {
+        super.setDependencies(dependencies);
+    }
+
+    @Override
+    protected String getIntro() {
+        return "Generating the statement registry";
+    }
+
     @Override
     public void execute(PluginExecutor executor) throws MojoFailureException {
-        final MetadataCollectorTask collectorTask = applicationContext.getBean(MetadataCollectorTask.class);
-        final StatementRegistry statementRegistry = collectorTask.getStatementRegistry();
         final Collection<String> names = statementRegistry.getBeanNames();
         final StatementGenerationModel model = new StatementGenerationModel();
         for (String name : names) {
@@ -45,9 +59,9 @@ public class GenerateStatementRegistryTask extends AbstractCodeGenerationTask{
             final DynamicClassCompiler compiler = new DefaultDynamicClassCompiler(getClass().getClassLoader());
             compiler.setOption(SimpleJavaSourceCompiler.Option.CLASSPATH, getClassPath(executor));
             compiler.compile(CLASS_NAME, new StringReader(out.toString()));
-            final byte[] bytes = ((MappedClassLoader) compiler.getClassLoader()).getBytes(CLASS_NAME);
+            final byte[] bytes = compiler.getClassLoader().getBytes(CLASS_NAME);
             final String path = CLASS_NAME.replace('.', File.separatorChar).concat(".class");
-            applicationContext.getBean(OutputManager.class).writeOutputFile(path, bytes);
+            getOutputManager().writeOutputFile(path, bytes);
         } catch (Exception e) {
             throw new MojoFailureException("Failed to build statement registry", e);
         }

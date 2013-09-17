@@ -2,6 +2,9 @@
 package ${entityType.canonicalName?substring(0, entityType.canonicalName?last_index_of('.'))};
 
 import com.agileapes.dragonfly.entity.EntityFactory;
+import com.agileapes.couteau.enhancer.api.Interceptible;
+import com.agileapes.dragonfly.entity.impl.EntityProxy;
+
 import javax.annotation.Generated;
 
 @Generated(
@@ -11,8 +14,10 @@ import javax.annotation.Generated;
 public class ${entityType.simpleName}EntityFactory implements EntityFactory<${entityType.simpleName}> {
 
     @Override
-    public ${entityType.simpleName} getInstance() {
-        return new ${name}();
+    public ${entityType.simpleName} getInstance(EntityProxy<${entityType.canonicalName}> proxy) {
+        final ${entityType.simpleName} entity = new ${name}();
+        ((Interceptible) entity).setInterceptor(proxy);
+        return entity;
     }
 
 }

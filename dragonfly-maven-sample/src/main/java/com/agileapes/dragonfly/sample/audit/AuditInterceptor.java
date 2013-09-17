@@ -1,13 +1,12 @@
 package com.agileapes.dragonfly.sample.audit;
 
 import com.agileapes.dragonfly.data.DataAccess;
-import com.agileapes.dragonfly.entity.ModifiableEntityContext;
 import com.agileapes.dragonfly.data.DataAccessPostProcessor;
+import com.agileapes.dragonfly.entity.ModifiableEntityContext;
 import com.agileapes.dragonfly.events.EventHandlerContext;
 import com.agileapes.dragonfly.events.impl.AbstractDataAccessEventHandler;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
 import com.agileapes.dragonfly.metadata.TableMetadata;
-import com.agileapes.dragonfly.metadata.TableMetadataInterceptor;
 import com.agileapes.dragonfly.metadata.impl.ResolvedColumnMetadata;
 import com.agileapes.dragonfly.metadata.impl.ResolvedTableMetadata;
 import com.agileapes.dragonfly.sample.user.UserContext;
@@ -23,7 +22,7 @@ import java.util.HashSet;
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/13, 12:59)
  */
-public class AuditInterceptor implements DataAccessPostProcessor, TableMetadataInterceptor, UserContextAware {
+public class AuditInterceptor implements DataAccessPostProcessor, UserContextAware {
 
     private UserContext userContext;
 
@@ -47,7 +46,6 @@ public class AuditInterceptor implements DataAccessPostProcessor, TableMetadataI
         });
     }
 
-    @Override
     public <E> TableMetadata<E> intercept(TableMetadata<E> tableMetadata) {
         final Collection<ColumnMetadata> columns = new HashSet<ColumnMetadata>(tableMetadata.getColumns());
         columns.add(new ResolvedColumnMetadata(tableMetadata, Auditable.class, "insert_user", Types.VARCHAR, "insertUser", String.class, false, 256, 0, 0));

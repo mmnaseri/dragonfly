@@ -3,14 +3,15 @@ package com.agileapes.dragonfly.entity.impl;
 import com.agileapes.couteau.basics.api.Cache;
 import com.agileapes.couteau.basics.api.impl.ConcurrentCache;
 import com.agileapes.couteau.enhancer.api.ClassEnhancer;
-import com.agileapes.couteau.enhancer.api.Interceptible;
 import com.agileapes.couteau.enhancer.impl.GeneratingClassEnhancer;
+import com.agileapes.couteau.reflection.util.ClassUtils;
 import com.agileapes.dragonfly.cg.StaticNamingPolicy;
 import com.agileapes.dragonfly.data.DataAccess;
 import com.agileapes.dragonfly.entity.EntityFactory;
 import com.agileapes.dragonfly.entity.EntityHandlerContext;
 import com.agileapes.dragonfly.entity.InitializedEntity;
 import com.agileapes.dragonfly.entity.ModifiableEntityContext;
+import com.agileapes.dragonfly.error.EntityInitializationError;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.security.DataSecurityManager;
 
@@ -41,6 +42,9 @@ public class DefaultEntityContext implements ModifiableEntityContext {
     
     @Override
     public <I> void addInterface(Class<I> ifc, Class<? extends I> implementation) {
+        if (interfaces.containsKey(ifc)) {
+            return;
+        }
         cache.invalidate();
         this.interfaces.put(ifc, implementation);
     }
@@ -67,9 +71,7 @@ public class DefaultEntityContext implements ModifiableEntityContext {
 
     private <E> E enhanceObject(Class<E> type, EntityProxy<E> entityProxy) {
         final EntityFactory<E> factory = getFactory(type, entityProxy);
-        final E entity = factory.getInstance();
-        ((Interceptible) entity).setInterceptor(entityProxy);
-        return entity;
+        return factory.getInstance(entityProxy);
     }
 
     private <E> EntityFactory<E> getFactory(Class<E> entityType, EntityProxy<E> entityProxy) {
@@ -86,10 +88,21 @@ public class DefaultEntityContext implements ModifiableEntityContext {
     }
 
     private <E> Class<? extends E> enhanceClass(Class<E> original, EntityProxy<E> entityProxy) {
+        final StaticNamingPolicy namingPolicy = new StaticNamingPolicy("Entity");
+        final String className = namingPolicy.getClassName(original, null);
+        final Class<? extends E> enhancedClass;
+        try {
+            enhancedClass = ((Class<?>) ClassUtils.forName(className, original.getClassLoader())).asSubclass(original);
+        } catch (ClassNotFoundException e) {
+            throw new EntityInitializationError(original, e);
+        }
+        if (enhancedClass != null) {
+            return enhancedClass;
+        }
         final ClassEnhancer<E> classEnhancer = new GeneratingClassEnhancer<E>();
         classEnhancer.setInterfaces(entityProxy.getInterfaces());
         classEnhancer.setSuperClass(original);
-        classEnhancer.setNamingPolicy(new StaticNamingPolicy("entity"));
+        classEnhancer.setNamingPolicy(namingPolicy);
         return classEnhancer.enhance();
     }
 

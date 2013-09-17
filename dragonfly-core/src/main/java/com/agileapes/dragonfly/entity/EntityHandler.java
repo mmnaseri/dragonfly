@@ -1,6 +1,7 @@
 package com.agileapes.dragonfly.entity;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -81,4 +82,7 @@ public interface EntityHandler<E> {
      */
     String getKeyProperty();
 
+    void prepareRelations(E entity);
+
+    Collection<?> getRelatedItems(E entity);
 }

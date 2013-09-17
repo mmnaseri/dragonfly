@@ -38,11 +38,20 @@ public class AnnotationMetadataResolver implements MetadataResolver {
 
     private static final Log log = LogFactory.getLog(MetadataResolver.class);
     private static final String NO_SCHEMA = "";
+    private final boolean standard;
+
+    public AnnotationMetadataResolver() {
+        this(true);
+    }
+
+    public AnnotationMetadataResolver(boolean standard) {
+        this.standard = standard;
+    }
 
     @Override
     public <E> TableMetadata<E> resolve(final Class<E> entityType) {
         log.info("Resolving metadata for " + entityType.getCanonicalName());
-        if (!entityType.isAnnotationPresent(Entity.class)) {
+        if (standard && !entityType.isAnnotationPresent(Entity.class)) {
             throw new EntityDefinitionError("Entity is not annotated with @Entity: " + entityType.getCanonicalName());
         }
         final String tableName;
@@ -99,7 +108,8 @@ public class AnnotationMetadataResolver implements MetadataResolver {
                 final String valueGenerator = determineValueGenerator(method);
                 final ColumnMetadata foreignColumn = joinColumn == null ? null : determineForeignReference(method);
                 final int type = getColumnType(method, foreignColumn);
-                final ResolvedColumnMetadata columnMetadata = new ResolvedColumnMetadata(new UnresolvedTableMetadata<E>(entityType), entityType, name, type, propertyName, propertyType, nullable, length, precision, scale, generationType, valueGenerator, foreignColumn);
+                final Class<?> declaringClass = ReflectionUtils.getDeclaringClass(method);
+                final ResolvedColumnMetadata columnMetadata = new ResolvedColumnMetadata(new UnresolvedTableMetadata<E>(entityType), declaringClass, name, type, propertyName, propertyType, nullable, length, precision, scale, generationType, valueGenerator, foreignColumn);
                 if (foreignColumn != null) {
                     foreignKeys.add(name);
                 }

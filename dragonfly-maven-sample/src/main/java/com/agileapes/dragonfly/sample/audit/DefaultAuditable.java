@@ -1,11 +1,17 @@
 package com.agileapes.dragonfly.sample.audit;
 
+import com.agileapes.dragonfly.annotations.Extension;
+
+import javax.persistence.Column;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import java.util.Date;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/13, 16:22)
  */
+@Extension
 public class DefaultAuditable implements Auditable {
 
     private String updateUser;
@@ -15,26 +21,33 @@ public class DefaultAuditable implements Auditable {
     private int updateCount;
 
     @Override
+    @Column
     public String getInsertUser() {
         return insertUser;
     }
 
     @Override
+    @Column
+    @Temporal(TemporalType.TIMESTAMP)
     public Date getInsertTime() {
         return insertTime;
     }
 
     @Override
+    @Column
     public String getUpdateUser() {
         return updateUser;
     }
 
     @Override
+    @Column
+    @Temporal(TemporalType.TIMESTAMP)
     public Date getUpdateTime() {
         return updateTime;
     }
 
     @Override
+    @Column
     public int getUpdateCount() {
         return updateCount;
     }

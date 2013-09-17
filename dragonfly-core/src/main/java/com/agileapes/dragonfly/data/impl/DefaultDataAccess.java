@@ -127,6 +127,7 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
         if (affectedRows <= 0) {
             throw new UnsuccessfulOperationError("Failed to save entity " + object.getQualifiedName());
         }
+        object.saveRelations();
         if (shouldUpdate) {
             eventHandler.afterUpdate(entity);
         } else {
@@ -141,6 +142,7 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
         entity = (E) checkEntity(entity);
         log.info("Going to delete entity " + entity);
         eventHandler.beforeDelete(entity);
+        ((DataAccessObject) entity).deleteRelations();
         if (internalExecuteUpdate(entity, "deleteLike", true) <= 0) {
             throw new UnsupportedOperationException("Failed to delete entity");
         }

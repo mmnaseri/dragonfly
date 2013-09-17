@@ -43,7 +43,7 @@ public abstract class EnhancementUtils {
     public static StackTraceElement getCaller(StackTraceElement[] stackTraceElements) {
         StackTraceElement last = null;
         for (int i = stackTraceElements.length - 1; i >= 0; i--) {
-            if (stackTraceElements[i].getClassName().matches(".*?\\$ENHANCED\\$[^\\$]+?\\$\\d+")) {
+            if (stackTraceElements[i].getClassName().matches(".*?\\$\\$\\$ENHANCED\\$\\$\\$[^\\$]+")) {
                 return last;
             }
             last = stackTraceElements[i];

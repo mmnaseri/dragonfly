@@ -5,8 +5,8 @@ import com.agileapes.couteau.lang.compiler.DynamicClassCompiler;
 import com.agileapes.couteau.lang.compiler.impl.DefaultDynamicClassCompiler;
 import com.agileapes.couteau.lang.compiler.impl.SimpleJavaSourceCompiler;
 import com.agileapes.couteau.lang.error.CompileException;
+import com.agileapes.couteau.maven.task.PluginTask;
 import com.agileapes.couteau.reflection.cp.MappedClassLoader;
-import com.agileapes.dragonfly.io.OutputManager;
 import com.agileapes.dragonfly.metadata.MetadataRegistry;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.model.MetadataGenerationModel;
@@ -16,6 +16,8 @@ import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,14 +30,22 @@ import java.util.HashSet;
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/12, 12:50)
  */
+@Component
 public class GenerateMetadataRegistryTask extends AbstractCodeGenerationTask {
 
     public static final String CLASS_NAME = "com.agileapes.dragonfly.metadata.GeneratedJpaMetadataRegistry";
 
+    @Value("#{metadataCollector}")
+    @Override
+    public void setDependencies(Collection<PluginTask<PluginExecutor>> dependencies) {
+        super.setDependencies(dependencies);
+    }
+
+    @Value("#{metadataCollector.metadataRegistry}")
+    private MetadataRegistry metadataRegistry;
+
     @Override
     public void execute(PluginExecutor pluginExecutor) throws MojoFailureException {
-        final MetadataCollectorTask task = applicationContext.getBean(MetadataCollectorTask.class);
-        final MetadataRegistry metadataRegistry = task.getRegistry();
         final Collection<Class<?>> entityTypes = metadataRegistry.getEntityTypes();
         final Configuration configuration = FreemarkerUtils.getConfiguration(GenerateMetadataRegistryTask.class, "/ftl");
         final HashSet<TableMetadata<?>> tables = new HashSet<TableMetadata<?>>();
@@ -75,10 +85,9 @@ public class GenerateMetadataRegistryTask extends AbstractCodeGenerationTask {
         } catch (ClassNotFoundException e) {
             throw new MojoFailureException("No such class: " + CLASS_NAME, e);
         }
-        final OutputManager outputManager = applicationContext.getBean(OutputManager.class);
         final String path = CLASS_NAME.replace('.', File.separatorChar).concat(".class");
         try {
-            outputManager.writeOutputFile(path, bytes);
+            getOutputManager().writeOutputFile(path, bytes);
         } catch (IOException e) {
             throw new MojoFailureException("Failed to write to the output", e);
         }

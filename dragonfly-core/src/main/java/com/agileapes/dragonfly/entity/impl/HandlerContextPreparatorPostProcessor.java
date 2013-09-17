@@ -14,16 +14,16 @@ import java.util.Set;
  */
 public class HandlerContextPreparatorPostProcessor implements DataAccessPostProcessor {
 
-    private Set<EntityHandler<?>> mapHandlers = new HashSet<EntityHandler<?>>();
+    private Set<EntityHandler<?>> handlers = new HashSet<EntityHandler<?>>();
 
-    public void setMapHandlers(Set<EntityHandler<?>> mapHandlers) {
-        this.mapHandlers = mapHandlers;
+    public void setHandlers(Set<EntityHandler<?>> handlers) {
+        this.handlers = handlers;
     }
 
     @Override
     public void postProcessDataAccess(DataAccess dataAccess) {
         final EntityHandlerContext context = dataAccess.getHandlerContext();
-        for (EntityHandler<?> mapHandler : mapHandlers) {
+        for (EntityHandler<?> mapHandler : handlers) {
             context.addMapHandler(mapHandler);
         }
     }

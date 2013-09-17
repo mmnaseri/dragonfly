@@ -1,5 +1,6 @@
 package com.agileapes.dragonfly.entity.impl;
 
+import com.agileapes.couteau.enhancer.api.Interceptible;
 import com.agileapes.dragonfly.entity.EntityFactory;
 import com.agileapes.dragonfly.error.EntityInitializationError;
 
@@ -16,9 +17,11 @@ public class GenericEntityFactory<E> implements EntityFactory<E> {
     }
 
     @Override
-    public E getInstance() {
+    public E getInstance(EntityProxy<E> proxy) {
         try {
-            return entityType.newInstance();
+            final E entity = entityType.newInstance();
+            ((Interceptible) entity).setInterceptor(proxy);
+            return entity;
         } catch (Exception e) {
             throw new EntityInitializationError(entityType, e);
         }
