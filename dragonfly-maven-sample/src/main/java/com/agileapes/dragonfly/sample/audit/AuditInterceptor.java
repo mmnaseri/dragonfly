@@ -29,6 +29,7 @@ public class AuditInterceptor implements DataAccessPostProcessor, UserContextAwa
     @Override
     public void postProcessDataAccess(DataAccess dataAccess) {
         ((ModifiableEntityContext) dataAccess).addInterface(Auditable.class, DefaultAuditable.class);
+        ((ModifiableEntityContext) dataAccess).addInterface(Identifiable.class, DefaultAuditable.class);
         ((EventHandlerContext) dataAccess).addHandler(new AbstractDataAccessEventHandler() {
 
             @Override

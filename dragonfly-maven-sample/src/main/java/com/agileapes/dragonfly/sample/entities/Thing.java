@@ -13,21 +13,9 @@ import javax.persistence.*;
 )
 public class Thing {
 
-    private Long id;
     private String name;
     private String description;
     private Person owner;
-
-    @Column
-    @Id
-    @GeneratedValue
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
 
     @Column
     public String getName() {

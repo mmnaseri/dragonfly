@@ -50,24 +50,12 @@ import java.util.Date;
 })
 public class Person {
 
-    private Long id;
     private String name;
     private Person father;
     private Person mother;
     private Date birthday;
     private Person friend;
     private Collection<Thing> things;
-
-    @Id
-    @Column
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
 
     @Column
     public String getName() {
@@ -79,7 +67,7 @@ public class Person {
     }
 
     @JoinColumn
-    @OneToOne(mappedBy = "id")
+    @OneToOne
     public Person getFather() {
         return father;
     }
@@ -89,7 +77,7 @@ public class Person {
     }
 
     @JoinColumn
-    @OneToOne(mappedBy = "id")
+    @OneToOne
     public Person getMother() {
         return mother;
     }
@@ -109,7 +97,7 @@ public class Person {
     }
 
     @JoinColumn
-    @OneToOne(mappedBy = "id")
+    @OneToOne
     public Person getFriend() {
         return friend;
     }

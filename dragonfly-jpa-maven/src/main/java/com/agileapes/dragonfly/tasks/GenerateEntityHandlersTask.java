@@ -100,6 +100,7 @@ public class GenerateEntityHandlersTask extends AbstractCodeGenerationTask {
             } catch (IOException e) {
                 throw new MojoFailureException("An I/O error prevented code generation", e);
             }
+            System.out.println(out);
             final DynamicClassCompiler compiler = new DefaultDynamicClassCompiler(getClass().getClassLoader());
             try {
                 compiler.setOption(SimpleJavaSourceCompiler.Option.CLASSPATH, getClassPath(executor));

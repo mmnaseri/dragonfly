@@ -1,5 +1,6 @@
 package com.agileapes.dragonfly.sample.audit;
 
+import javax.persistence.Column;
 import java.util.Date;
 
 /**

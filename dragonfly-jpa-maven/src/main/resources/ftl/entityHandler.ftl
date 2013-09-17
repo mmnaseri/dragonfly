@@ -25,16 +25,20 @@ public class ${entityType.simpleName}EntityHandler implements EntityHandler<${en
     public Map<String, Object> toMap(${entityType.canonicalName} entity) {
         final Map<String, Object> map = new HashMap<String, Object>();
         <#list properties as property>
-        Object value${property_index} = <#if property.declaringClass.canonicalName == entityType.canonicalName>entity<#else>((${property.declaringClass.canonicalName}) entity)</#if>.${property.getterName}();
-        if (value${property_index} != null) {<#if property.foreignProperty??>
-            value${property_index} = ((${property.foreignProperty.declaringClass.canonicalName}) value${property_index}).${property.foreignProperty.getterName}();
-        <#else>
+        if (entity instanceof ${property.declaringClass.canonicalName}) {
+            Object value${property_index} = <#if property.declaringClass.canonicalName == entityType.canonicalName>entity<#else>((${property.declaringClass.canonicalName}) entity)</#if>.${property.getterName}();
+            if (value${property_index} != null) {<#if property.foreignProperty??>
+                if (value${property_index} instanceof ${property.foreignProperty.declaringClass.canonicalName}) {
+                    value${property_index} = ((${property.foreignProperty.declaringClass.canonicalName}) value${property_index}).${property.foreignProperty.getterName}();
+                }
+            <#else>
 
-        </#if>
-        <#if property.temporalType??>
-            value${property_index} = new java.sql.${property.temporalType?string?lower_case?cap_first}(((java.util.Date) value${property_index}).getTime());
-        </#if>
-            map.put("${property.propertyName}", value${property_index});
+            </#if>
+            <#if property.temporalType??>
+                value${property_index} = new java.sql.${property.temporalType?string?lower_case?cap_first}(((java.util.Date) value${property_index}).getTime());
+            </#if>
+                map.put("${property.propertyName}", value${property_index});
+            }
         }
         </#list>
         return map;
@@ -43,7 +47,7 @@ public class ${entityType.simpleName}EntityHandler implements EntityHandler<${en
     @Override
     public ${entityType.canonicalName} fromMap(${entityType.canonicalName} entity, Map<String, Object> map) {
         <#list properties as property><#if property.foreignProperty??><#else>
-        if (map.containsKey("${property.columnName}")) {
+        if (entity instanceof ${property.declaringClass.canonicalName} && map.containsKey("${property.columnName}")) {
             <#if property.declaringClass.canonicalName == entityType.canonicalName>entity<#else>((${property.declaringClass.canonicalName}) entity)</#if>.${property.setterName}((${property.propertyType.canonicalName}) map.get("${property.columnName}"));
         }
         </#if></#list>
@@ -52,7 +56,10 @@ public class ${entityType.simpleName}EntityHandler implements EntityHandler<${en
 
     @Override
     public Serializable getKey(${entityType.canonicalName} entity) {
-        <#if key??>return (Serializable) entity.${key.getterName}();
+        <#if key??>if (!(entity instanceof ${key.declaringClass.canonicalName})) {
+            return null;
+        }
+        return (Serializable) ((${key.declaringClass.canonicalName}) entity).${key.getterName}();
         <#else>
         throw new com.agileapes.dragonfly.error.NoPrimaryKeyDefinedError(${entityType.canonicalName}.class);
         </#if>
@@ -60,7 +67,10 @@ public class ${entityType.simpleName}EntityHandler implements EntityHandler<${en
 
     @Override
     public void setKey(${entityType.canonicalName} entity, Serializable key) {
-        <#if key??>entity.${key.setterName}((${key.propertyType.canonicalName}) key);
+        <#if key??>if (!(entity instanceof ${key.declaringClass.canonicalName})) {
+            return;
+        }
+        ((${key.declaringClass.canonicalName}) entity).${key.setterName}((${key.propertyType.canonicalName}) key);
         <#else>
         throw new com.agileapes.dragonfly.error.NoPrimaryKeyDefinedError(${entityType.canonicalName}.class);
         </#if>
@@ -79,7 +89,12 @@ public class ${entityType.simpleName}EntityHandler implements EntityHandler<${en
     @Override
     public void copy(${entityType.canonicalName} original, ${entityType.canonicalName} copy) {
     <#list properties as property>
-        ((${property.declaringClass.canonicalName}) copy).${property.setterName}(((${property.declaringClass.canonicalName}) original).${property.getterName}());
+        if (original instanceof ${property.declaringClass.canonicalName} && copy instanceof ${property.declaringClass.canonicalName}) {
+            ${property.propertyType.canonicalName} value${property_index} = ((${property.declaringClass.canonicalName}) original).${property.getterName}();
+            if (value${property_index} != null) {
+                ((${property.declaringClass.canonicalName}) copy).${property.setterName}(value${property_index});
+            }
+        }
     </#list>
     }
 

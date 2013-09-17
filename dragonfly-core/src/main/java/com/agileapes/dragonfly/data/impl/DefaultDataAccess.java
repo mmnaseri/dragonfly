@@ -101,8 +101,8 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
         entity = (E) checkEntity(entity);
         log.info("Going to save entity " + entity);
         eventHandler.beforeSave(entity);
-        final DataAccessObject<E, Serializable> object = checkEntity(entity);
         //noinspection unchecked
+        final DataAccessObject<E, Serializable> object = (DataAccessObject<E, Serializable>) entity;
         int affectedRows;
         final boolean shouldUpdate;
         try {
@@ -239,7 +239,8 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
 
     private <E> List<E> internalExecuteQuery(E sample, String queryName) {
         final DataAccessObject<E, Serializable> object = checkEntity(sample);
-        return executeQuery(object.getTableMetadata().getEntityType(), queryName, MapTools.prefixKeys(handlerContext.toMap(object.getTableMetadata(), sample), "value."));
+        //noinspection unchecked
+        return executeQuery(object.getTableMetadata().getEntityType(), queryName, MapTools.prefixKeys(handlerContext.toMap(object.getTableMetadata(), (E) object), "value."));
     }
 
     @Override

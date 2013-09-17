@@ -25,7 +25,7 @@ public class CreatePersonService {
     private DataAccess dataAccess;
 
     public void execute() {
-        final Person person = new Person();
+        final Person person = entityContext.getInstance(Person.class);
         person.setName("Person - " + Math.abs((new Random().nextInt())));
         person.setBirthday(new Date());
         dataAccess.save(person);
