@@ -21,33 +21,33 @@ public class DefaultAuditable implements Auditable {
     private int updateCount;
 
     @Override
-    @Column
+    @Column(name = "insert_user", length = 256)
     public String getInsertUser() {
         return insertUser;
     }
 
     @Override
-    @Column
+    @Column(name = "insert_time")
     @Temporal(TemporalType.TIMESTAMP)
     public Date getInsertTime() {
         return insertTime;
     }
 
     @Override
-    @Column
+    @Column(name = "update_user", length = 256)
     public String getUpdateUser() {
         return updateUser;
     }
 
     @Override
-    @Column
+    @Column(name = "update_time")
     @Temporal(TemporalType.TIMESTAMP)
     public Date getUpdateTime() {
         return updateTime;
     }
 
     @Override
-    @Column
+    @Column(name = "update_count")
     public int getUpdateCount() {
         return updateCount;
     }
