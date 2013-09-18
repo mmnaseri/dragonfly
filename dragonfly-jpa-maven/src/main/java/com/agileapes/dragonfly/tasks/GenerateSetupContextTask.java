@@ -117,6 +117,7 @@ public class GenerateSetupContextTask extends PluginTask<PluginExecutor> {
 
         final BeanDefinitionModel entityHandlerContext = new BeanDefinitionModel(DefaultEntityHandlerContext.class.getCanonicalName());
         entityHandlerContext.addConstructorArgument(new BeanPropertyModel("", EntityContext.class.getCanonicalName(), entityContext));
+        entityHandlerContext.addConstructorArgument(new BeanPropertyModel("", MetadataRegistry.class.getCanonicalName(), metadataContext));
 
         final BeanDefinitionModel dataAccess = new BeanDefinitionModel(SecuredDataAccess.class.getCanonicalName());
         dataAccess.addConstructorArgument(new BeanPropertyModel(dataAccessSession));

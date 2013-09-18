@@ -5,7 +5,6 @@ import com.agileapes.dragonfly.entity.EntityDefinition;
 import com.agileapes.dragonfly.entity.EntityDefinitionContext;
 import com.agileapes.dragonfly.entity.EntityDefinitionInterceptor;
 import com.agileapes.dragonfly.error.NoSuchEntityError;
-import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.List;
@@ -19,7 +18,6 @@ import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/17, 14:22)
  */
-@Service("definitionContext")
 public class DefaultEntityDefinitionContext implements EntityDefinitionContext {
 
     private final boolean updateOnChange;

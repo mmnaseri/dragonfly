@@ -4,6 +4,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 
@@ -11,6 +12,7 @@ import java.util.Collection;
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/13, 13:00)
  */
+@Component
 public class UserContext implements BeanPostProcessor, BeanFactoryPostProcessor {
 
     public String getCurrentUser() {

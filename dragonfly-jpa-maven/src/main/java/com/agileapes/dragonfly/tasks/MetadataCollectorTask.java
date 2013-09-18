@@ -28,7 +28,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 
@@ -42,8 +41,7 @@ public class MetadataCollectorTask extends PluginTask<PluginExecutor> implements
     private final MetadataRegistry registry = new DefaultMetadataContext();
     private final StatementRegistry statementRegistry = new StatementRegistry();
     private ApplicationContext applicationContext;
-    @Value("#{findExtensions.tableInterceptors}")
-    private Set<TableMetadataInterceptor> extensionInterceptors;
+
     @Autowired
     private EntityDefinitionContext definitionContext;
 
@@ -72,7 +70,7 @@ public class MetadataCollectorTask extends PluginTask<PluginExecutor> implements
                 .add(classes.keep(new AssignableTypeFilter(TableMetadataInterceptor.class))
                         .transform(new ClassCastingTransformer<TableMetadataInterceptor>(TableMetadataInterceptor.class))
                         .transform(new InstantiatingTransformer<TableMetadataInterceptor>()).list())
-                .add(extensionInterceptors).sort(new OrderedBeanComparator()).list();
+                .sort(new OrderedBeanComparator()).list();
         final MetadataResolver resolver = new AnnotationMetadataResolver();
         final MetadataResolverContext resolverContext = new DefaultMetadataResolverContext(MetadataResolveStrategy.UNAMBIGUOUS, interceptors);
         resolverContext.addMetadataResolver(resolver);

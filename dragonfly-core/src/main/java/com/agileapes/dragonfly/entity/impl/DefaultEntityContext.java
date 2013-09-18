@@ -7,10 +7,7 @@ import com.agileapes.couteau.enhancer.impl.GeneratingClassEnhancer;
 import com.agileapes.couteau.reflection.util.ClassUtils;
 import com.agileapes.dragonfly.cg.StaticNamingPolicy;
 import com.agileapes.dragonfly.data.DataAccess;
-import com.agileapes.dragonfly.entity.EntityContext;
-import com.agileapes.dragonfly.entity.EntityFactory;
-import com.agileapes.dragonfly.entity.EntityHandlerContext;
-import com.agileapes.dragonfly.entity.InitializedEntity;
+import com.agileapes.dragonfly.entity.*;
 import com.agileapes.dragonfly.error.EntityInitializationError;
 import com.agileapes.dragonfly.metadata.MetadataRegistry;
 import com.agileapes.dragonfly.metadata.TableMetadata;
@@ -27,7 +24,7 @@ import java.util.UUID;
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/5, 15:24)
  */
-public class DefaultEntityContext implements EntityContext {
+public class DefaultEntityContext implements ModifiableEntityContext {
 
     private final String key;
     private DataAccess dataAccess;
@@ -116,11 +113,13 @@ public class DefaultEntityContext implements EntityContext {
         this.dataAccess = dataAccess;
     }
 
+    @Override
     public void setInterfaces(Map<Class<?>, Map<Class<?>, Class<?>>> interfaces) {
         this.interfaces.clear();
         this.interfaces.putAll(interfaces);
     }
 
+    @Override
     public void setEntityFactories(Map<Class<?>, EntityFactory<?>> factories) {
         for (Map.Entry<Class<?>, EntityFactory<?>> entry : factories.entrySet()) {
             cache.write(entry.getKey(), entry.getValue());

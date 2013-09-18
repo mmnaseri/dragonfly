@@ -15,6 +15,7 @@
         <module>../dragonfly-jpa</module>
         <module>../dragonfly-jpa-maven</module>
         <module>../dragonfly-maven-sample</module>
+        <module>../dragonfly-jpa-runtime</module>
     </modules>
     
 </project>

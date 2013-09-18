@@ -9,13 +9,16 @@ import com.agileapes.couteau.maven.task.PluginTask;
 import com.agileapes.couteau.reflection.util.assets.AnnotatedElementFilter;
 import com.agileapes.dragonfly.entity.EntityDefinition;
 import com.agileapes.dragonfly.entity.EntityDefinitionContext;
+import com.agileapes.dragonfly.entity.EntityDefinitionInterceptor;
 import com.agileapes.dragonfly.entity.impl.ImmutableEntityDefinition;
 import com.agileapes.dragonfly.mojo.PluginExecutor;
 import org.apache.maven.plugin.MojoFailureException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.persistence.Entity;
+import java.util.Collection;
 import java.util.HashMap;
 
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
@@ -30,13 +33,23 @@ public class EntityDefinitionCollectorTask extends PluginTask<PluginExecutor> {
     @Autowired
     private EntityDefinitionContext definitionContext;
 
+    @Autowired
+    private EntityDefinitionInterceptor extensionDefinitionInterceptor;
+
     @Override
     protected String getIntro() {
         return "Collecting metadata about entity definitions ...";
     }
 
+    @Value("#{findExtensions}")
+    @Override
+    public void setDependencies(Collection<PluginTask<PluginExecutor>> dependencies) {
+        super.setDependencies(dependencies);
+    }
+
     @Override
     public void execute(PluginExecutor executor) throws MojoFailureException {
+        definitionContext.addInterceptor(extensionDefinitionInterceptor);
         //noinspection unchecked
         with(executor.getProjectResources())
         .keep(new ProjectResourceTypeFilter(ProjectResourceType.CLASS))

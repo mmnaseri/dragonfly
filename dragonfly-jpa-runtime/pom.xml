@@ -9,23 +9,17 @@
         <relativePath>../dragonfly-parent/pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>dragonfly-core</artifactId>
+    <artifactId>dragonfly-jpa-runtime</artifactId>
 
     <dependencies>
         <dependency>
-            <groupId>com.agileapes.couteau</groupId>
-            <artifactId>couteau-context</artifactId>
-            <version>1.0</version>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.agileapes.couteau</groupId>
-            <artifactId>couteau-enhancer</artifactId>
+            <groupId>com.agileapes.dragonfly</groupId>
+            <artifactId>dragonfly-jpa</artifactId>
             <version>1.0</version>
-        </dependency>
-        <dependency>
-            <groupId>asm</groupId>
-            <artifactId>asm-commons</artifactId>
-            <version>3.3.1</version>
         </dependency>
         <dependency>
             <groupId>commons-logging</groupId>

@@ -1,8 +1,8 @@
 package com.agileapes.dragonfly.entity.impl;
 
 import com.agileapes.dragonfly.entity.*;
-import com.agileapes.dragonfly.error.NoSuchEntityError;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
+import com.agileapes.dragonfly.metadata.MetadataRegistry;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 
 import java.util.Collection;
@@ -21,9 +21,11 @@ public class DefaultEntityHandlerContext implements EntityHandlerContext {
     private final MapEntityCreator defaultEntityCreator;
     private final EntityContext entityContext;
     private final Map<Class<?>, EntityHandler<?>> entityHandlers;
+    private final MetadataRegistry metadataRegistry;
 
-    public DefaultEntityHandlerContext(EntityContext entityContext) {
+    public DefaultEntityHandlerContext(EntityContext entityContext, MetadataRegistry metadataRegistry) {
         this.entityContext = entityContext;
+        this.metadataRegistry = metadataRegistry;
         if (entityContext instanceof DefaultEntityContext) {
             final DefaultEntityContext context = (DefaultEntityContext) entityContext;
             context.setHandlerContext(this);
@@ -84,7 +86,9 @@ public class DefaultEntityHandlerContext implements EntityHandlerContext {
             //noinspection unchecked
             return (EntityHandler<E>) entityHandlers.get(entityType);
         }
-        throw new NoSuchEntityError(entityType);
+        final GenericEntityHandler<E> entityHandler = new GenericEntityHandler<E>(entityType, entityContext, metadataRegistry.getTableMetadata(entityType));
+        entityHandlers.put(entityType, entityHandler);
+        return entityHandler;
     }
     
 }
