@@ -2,6 +2,8 @@ package com.agileapes.dragonfly.entity.impl;
 
 import com.agileapes.dragonfly.entity.EntityDefinition;
 
+import java.util.Map;
+
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/17, 14:17)
@@ -9,9 +11,9 @@ import com.agileapes.dragonfly.entity.EntityDefinition;
 public class ImmutableEntityDefinition<E> implements EntityDefinition<E> {
 
     private final Class<E> entityType;
-    private final Class[] interfaces;
+    private Map<Class<?>, Class<?>> interfaces;
 
-    public ImmutableEntityDefinition(Class<E> entityType, Class[] interfaces) {
+    public ImmutableEntityDefinition(Class<E> entityType, Map<Class<?>, Class<?>> interfaces) {
         this.entityType = entityType;
         this.interfaces = interfaces;
     }
@@ -22,7 +24,7 @@ public class ImmutableEntityDefinition<E> implements EntityDefinition<E> {
     }
 
     @Override
-    public Class[] getInterfaces() {
+    public Map<Class<?>, Class<?>> getInterfaces() {
         return interfaces;
     }
 }

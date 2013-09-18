@@ -1,16 +1,21 @@
 package com.agileapes.dragonfly.tasks;
 
-import com.agileapes.couteau.basics.api.Filter;
 import com.agileapes.couteau.basics.api.Processor;
-import com.agileapes.couteau.basics.api.Transformer;
 import com.agileapes.couteau.freemarker.utils.FreemarkerUtils;
-import com.agileapes.couteau.maven.resource.ProjectResource;
+import com.agileapes.couteau.maven.resource.ProjectClassResourceTransformer;
 import com.agileapes.couteau.maven.resource.ProjectResourceType;
+import com.agileapes.couteau.maven.resource.ProjectResourceTypeFilter;
 import com.agileapes.couteau.maven.task.PluginTask;
+import com.agileapes.couteau.reflection.util.assets.AssignableTypeFilter;
 import com.agileapes.dragonfly.data.DataAccessPostProcessor;
 import com.agileapes.dragonfly.data.DataAccessSession;
 import com.agileapes.dragonfly.data.impl.SecuredDataAccess;
 import com.agileapes.dragonfly.dialect.DatabaseDialect;
+import com.agileapes.dragonfly.dialect.impl.Mysql5Dialect;
+import com.agileapes.dragonfly.entity.EntityContext;
+import com.agileapes.dragonfly.entity.EntityDefinition;
+import com.agileapes.dragonfly.entity.EntityDefinitionContext;
+import com.agileapes.dragonfly.entity.impl.DefaultEntityContext;
 import com.agileapes.dragonfly.io.OutputManager;
 import com.agileapes.dragonfly.metadata.MetadataRegistry;
 import com.agileapes.dragonfly.metadata.impl.DefaultMetadataContext;
@@ -26,10 +31,14 @@ import com.agileapes.dragonfly.statement.impl.StatementRegistry;
 import freemarker.template.Template;
 import org.apache.maven.plugin.MojoFailureException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.stereotype.Component;
 
 import java.io.StringWriter;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 
@@ -43,9 +52,18 @@ public class GenerateSetupContextTask extends PluginTask<PluginExecutor> {
     @Autowired
     private OutputManager outputManager;
 
+    @Autowired
+    private EntityDefinitionContext definitionContext;
+
     @Override
     protected String getIntro() {
         return "Generating setup application context";
+    }
+
+    @Value("#{defineEntities}")
+    @Override
+    public void setDependencies(Collection<PluginTask<PluginExecutor>> dependencies) {
+        super.setDependencies(dependencies);
     }
 
     @Override
@@ -79,9 +97,25 @@ public class GenerateSetupContextTask extends PluginTask<PluginExecutor> {
         dataAccessSession.addConstructorArgument(new BeanPropertyModel("java.lang.String", "${db.username}"));
         dataAccessSession.addConstructorArgument(new BeanPropertyModel("java.lang.String", "${db.password}"));
 
+        final HashMap<String, BeanPropertyModel> interfaces = new HashMap<String, BeanPropertyModel>();
+        final HashMap<String, BeanDefinitionModel> entityFactories = new HashMap<String, BeanDefinitionModel>();
+        final BeanDefinitionModel entityContext = new BeanDefinitionModel(DefaultEntityContext.class.getCanonicalName());
+        entityContext.addConstructorArgument(new BeanPropertyModel("", DataSecurityManager.class.getCanonicalName(), dataSecurityManager));
+        entityContext.setProperty(new BeanPropertyModel("interfaces", interfaces));
+        entityContext.setProperty(new BeanPropertyModel("entityFactories", entityFactories));
+        for (EntityDefinition<?> definition : definitionContext.getDefinitions()) {
+            entityFactories.put(definition.getEntityType().getCanonicalName(), new BeanDefinitionModel(definition.getEntityType().getCanonicalName().concat(GenerateEntityFactoryTask.ENTITY_FACTORY_SUFFIX)));
+            final HashMap<String, String> value = new HashMap<String, String>();
+            interfaces.put(definition.getEntityType().getCanonicalName(), new BeanPropertyModel(value));
+            final Map<Class<?>,Class<?>> map = definition.getInterfaces();
+            for (Map.Entry<Class<?>, Class<?>> entry : map.entrySet()) {
+                value.put(entry.getKey().getCanonicalName(), entry.getValue().getCanonicalName());
+            }
+        }
         final BeanDefinitionModel dataAccess = new BeanDefinitionModel(SecuredDataAccess.class.getCanonicalName());
         dataAccess.addConstructorArgument(new BeanPropertyModel(dataAccessSession));
         dataAccess.addConstructorArgument(new BeanPropertyModel("", DataSecurityManager.class.getCanonicalName(), dataSecurityManager));
+        dataAccess.addConstructorArgument(new BeanPropertyModel(EntityContext.class.getCanonicalName(), (Object) entityContext));
 
         model.addBean(propertyPlaceholder);
         model.addBean(metadataRegistry);
@@ -94,33 +128,85 @@ public class GenerateSetupContextTask extends PluginTask<PluginExecutor> {
         model.addBean(dataAccess);
 
         //noinspection unchecked
-        with(executor.getProjectResources()).keep(new Filter<ProjectResource>() {
-            @Override
-            public boolean accepts(ProjectResource item) {
-                return ProjectResourceType.CLASS.equals(item.getType());
-            }
-        }).transform(new Transformer<ProjectResource, Class<?>>() {
-            @Override
-            public Class<?> map(ProjectResource input) {
-                return input.getClassArtifact();
-            }
-        }).keep(new Filter<Class<?>>() {
-            @Override
-            public boolean accepts(Class<?> item) {
-                return DataAccessPostProcessor.class.isAssignableFrom(item);
-            }
-        }).each(new Processor<Class<?>>() {
-            @Override
-            public void process(Class<?> input) {
-                model.addBean(new BeanDefinitionModel("_postProcessor_" + input.getSimpleName(), input.getCanonicalName()));
-            }
-        });
+        with(executor.getProjectResources())
+                .keep(new ProjectResourceTypeFilter(ProjectResourceType.CLASS))
+                .transform(new ProjectClassResourceTransformer())
+                .keep(new AssignableTypeFilter(DataAccessPostProcessor.class))
+                .each(new Processor<Class<?>>() {
+                    @Override
+                    public void process(Class<?> input) {
+                        model.addBean(new BeanDefinitionModel("_postProcessor_" + input.getSimpleName(), input.getCanonicalName()));
+                    }
+                });
         try {
             final Template template = FreemarkerUtils.getConfiguration(getClass(), "/ftl/").getTemplate("applicationContext.ftl");
             final StringWriter out = new StringWriter();
             template.process(model, out);
             outputManager.writeSourceFile("/src/main/resources/data/setup.xml", out.toString());
         } catch (Exception e) {
+            e.printStackTrace();
+            throw new MojoFailureException("Failed to produce application context XML", e);
+        }
+    }
+
+    public static void main(String[] args) throws Exception {
+        final ApplicationContextModel model = new ApplicationContextModel();
+
+        final BeanDefinitionModel propertyPlaceholder = new BeanDefinitionModel(PropertyPlaceholderConfigurer.class.getCanonicalName());
+        propertyPlaceholder.setProperty(new BeanPropertyModel("locations", "classpath:db.properties"));
+
+        final BeanDefinitionModel metadataRegistry = new BeanDefinitionModel("_generatedMetadataRegistry", GenerateMetadataRegistryTask.CLASS_NAME);
+
+        final BeanDefinitionModel databaseDialect = new BeanDefinitionModel("_databaseDialect", Mysql5Dialect.class.getCanonicalName());
+
+        final BeanDefinitionModel metadataContext = new BeanDefinitionModel("metadataContext", DefaultMetadataContext.class.getCanonicalName());
+        metadataContext.setProperty(new BeanPropertyModel("registries", metadataRegistry));
+
+        final BeanDefinitionModel accessDeniedHandler = new BeanDefinitionModel("_accessDeniedHandler", FatalAccessDeniedHandler.class.getCanonicalName());
+
+        final BeanDefinitionModel dataSecurityManager = new BeanDefinitionModel("_dataSecurityManager", DefaultDataSecurityManager.class.getCanonicalName());
+        dataSecurityManager.addConstructorArgument(new BeanPropertyModel("", AccessDeniedHandler.class.getCanonicalName(), accessDeniedHandler));
+
+        final BeanDefinitionModel statementRegistry = new BeanDefinitionModel("_generatedStatementRegistry", "com.agileapes.dragonfly.statement.GeneratedStatementRegistry");
+        statementRegistry.addConstructorArgument(new BeanPropertyModel("", DatabaseDialect.class.getCanonicalName(), databaseDialect));
+        statementRegistry.addConstructorArgument(new BeanPropertyModel("", MetadataRegistry.class.getCanonicalName(), metadataContext));
+
+        final BeanDefinitionModel dataAccessSession = new BeanDefinitionModel("_dataAccessSession", DataAccessSession.class.getCanonicalName());
+        dataAccessSession.addConstructorArgument(new BeanPropertyModel("", DatabaseDialect.class.getCanonicalName(), databaseDialect));
+        dataAccessSession.addConstructorArgument(new BeanPropertyModel("", StatementRegistry.class.getCanonicalName(), statementRegistry));
+        dataAccessSession.addConstructorArgument(new BeanPropertyModel("", MetadataRegistry.class.getCanonicalName(), metadataContext));
+        dataAccessSession.addConstructorArgument(new BeanPropertyModel(new BeanDefinitionModel("${db.dataSource}", "javax.sql.DataSource")));
+        dataAccessSession.addConstructorArgument(new BeanPropertyModel("java.lang.String", "${db.username}"));
+        dataAccessSession.addConstructorArgument(new BeanPropertyModel("java.lang.String", "${db.password}"));
+
+        final HashMap<String, BeanPropertyModel> interfaces = new HashMap<String, BeanPropertyModel>();
+        final HashMap<String, BeanDefinitionModel> entityFactories = new HashMap<String, BeanDefinitionModel>();
+        final BeanDefinitionModel entityContext = new BeanDefinitionModel(DefaultEntityContext.class.getCanonicalName());
+        entityContext.addConstructorArgument(new BeanPropertyModel("", DataSecurityManager.class.getCanonicalName(), dataSecurityManager));
+        entityContext.setProperty(new BeanPropertyModel("interfaces", interfaces));
+        entityContext.setProperty(new BeanPropertyModel("entityFactories", entityFactories));
+        final BeanDefinitionModel dataAccess = new BeanDefinitionModel(SecuredDataAccess.class.getCanonicalName());
+        dataAccess.addConstructorArgument(new BeanPropertyModel(dataAccessSession));
+        dataAccess.addConstructorArgument(new BeanPropertyModel("", DataSecurityManager.class.getCanonicalName(), dataSecurityManager));
+        dataAccess.addConstructorArgument(new BeanPropertyModel(EntityContext.class.getCanonicalName(), (Object) entityContext));
+
+//        model.addBean(propertyPlaceholder);
+//        model.addBean(metadataRegistry);
+//        model.addBean(databaseDialect);
+//        model.addBean(metadataContext);
+//        model.addBean(accessDeniedHandler);
+//        model.addBean(dataSecurityManager);
+//        model.addBean(statementRegistry);
+//        model.addBean(dataAccessSession);
+        model.addBean(dataAccess);
+
+        try {
+            final Template template = FreemarkerUtils.getConfiguration(GenerateSetupContextTask.class, "/ftl/").getTemplate("applicationContext.ftl");
+            final StringWriter out = new StringWriter();
+            template.process(model, out);
+            System.out.println(out);
+        } catch (Exception e) {
+            e.printStackTrace();
             throw new MojoFailureException("Failed to produce application context XML", e);
         }
     }

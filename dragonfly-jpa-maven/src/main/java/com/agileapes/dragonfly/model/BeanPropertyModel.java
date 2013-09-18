@@ -1,6 +1,7 @@
 package com.agileapes.dragonfly.model;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -15,6 +16,7 @@ public class BeanPropertyModel {
     private final BeanDefinitionModel reference;
     private final boolean set;
     private final boolean list;
+    private final boolean map;
 
     public BeanPropertyModel(BeanDefinitionModel reference) {
         this.reference = reference;
@@ -23,6 +25,11 @@ public class BeanPropertyModel {
         this.value = null;
         this.set = false;
         this.list = false;
+        this.map = false;
+    }
+
+    public BeanPropertyModel(Object value) {
+        this(null, value);
     }
 
     public BeanPropertyModel(String qualifier, Object value) {
@@ -32,6 +39,7 @@ public class BeanPropertyModel {
         this.value = value;
         this.set = value instanceof Set;
         this.list = value instanceof List;
+        this.map = value instanceof Map;
     }
 
     public BeanPropertyModel(String name, BeanDefinitionModel reference) {
@@ -45,6 +53,7 @@ public class BeanPropertyModel {
         this.value = null;
         this.set = false;
         this.list = false;
+        this.map = false;
     }
 
     public String getType() {
@@ -69,5 +78,9 @@ public class BeanPropertyModel {
 
     public boolean isList() {
         return list;
+    }
+
+    public boolean isMap() {
+        return map;
     }
 }

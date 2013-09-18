@@ -5,8 +5,8 @@ import com.agileapes.couteau.enhancer.impl.ImmutableMethodDescriptor;
 import com.agileapes.dragonfly.data.DataAccess;
 import com.agileapes.dragonfly.data.DataAccessSession;
 import com.agileapes.dragonfly.data.PartialDataAccess;
+import com.agileapes.dragonfly.entity.EntityContext;
 import com.agileapes.dragonfly.entity.EntityHandlerContext;
-import com.agileapes.dragonfly.entity.ModifiableEntityContext;
 import com.agileapes.dragonfly.events.DataAccessEventHandler;
 import com.agileapes.dragonfly.events.EventHandlerContext;
 import com.agileapes.dragonfly.metadata.TableMetadata;
@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 @SuppressWarnings("unchecked")
-public class SecuredDataAccess extends DefaultDataAccess implements PartialDataAccess, ModifiableEntityContext, EventHandlerContext {
+public class SecuredDataAccess extends DefaultDataAccess implements PartialDataAccess, EventHandlerContext {
 
     private static final Map<Integer, MethodDescriptor> methodDescriptors = new HashMap<Integer, MethodDescriptor>();
     static {
@@ -56,12 +56,12 @@ public class SecuredDataAccess extends DefaultDataAccess implements PartialDataA
     private final DataSecurityManager securityManager;
     private static final Log log = LogFactory.getLog(DataAccess.class);
 
-    public SecuredDataAccess(DataAccessSession session, DataSecurityManager securityManager) {
-        this(session, securityManager, true);
+    public SecuredDataAccess(DataAccessSession session, DataSecurityManager securityManager, EntityContext entityContext) {
+        this(session, securityManager, entityContext, true);
     }
 
-    public SecuredDataAccess(DataAccessSession session, DataSecurityManager securityManager, boolean autoInitialize) {
-        super(session, securityManager, autoInitialize);
+    public SecuredDataAccess(DataAccessSession session, DataSecurityManager securityManager, EntityContext entityContext, boolean autoInitialize) {
+        super(session, securityManager, entityContext, autoInitialize);
         this.securityManager = securityManager;
         log.info("Initializing secured data access interface");
     }
@@ -190,12 +190,6 @@ public class SecuredDataAccess extends DefaultDataAccess implements PartialDataA
     public List executeQuery(final Object sample, final String queryName) {
         securityManager.checkAccess(new MethodSubject(methodDescriptors.get(20)));
         return super.executeQuery(sample, queryName);
-    }
-
-    @Override
-    public void addInterface(final Class superType, final Class implementation) {
-        securityManager.checkAccess(new MethodSubject(methodDescriptors.get(21)));
-        super.addInterface(superType, implementation);
     }
 
     @Override

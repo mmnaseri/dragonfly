@@ -7,10 +7,10 @@ import com.agileapes.couteau.enhancer.impl.GeneratingClassEnhancer;
 import com.agileapes.couteau.reflection.util.ClassUtils;
 import com.agileapes.dragonfly.cg.StaticNamingPolicy;
 import com.agileapes.dragonfly.data.DataAccess;
+import com.agileapes.dragonfly.entity.EntityContext;
 import com.agileapes.dragonfly.entity.EntityFactory;
 import com.agileapes.dragonfly.entity.EntityHandlerContext;
 import com.agileapes.dragonfly.entity.InitializedEntity;
-import com.agileapes.dragonfly.entity.ModifiableEntityContext;
 import com.agileapes.dragonfly.error.EntityInitializationError;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.security.DataSecurityManager;
@@ -26,27 +26,17 @@ import java.util.UUID;
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/5, 15:24)
  */
-public class DefaultEntityContext implements ModifiableEntityContext {
+public class DefaultEntityContext implements EntityContext {
 
     private final String key;
-    private final DataAccess dataAccess;
-    private final Map<Class<?>, Class<?>> interfaces = new HashMap<Class<?>, Class<?>>();
+    private DataAccess dataAccess;
+    private final Map<Class<?>, Map<Class<?>, Class<?>>> interfaces = new HashMap<Class<?>, Map<Class<?>, Class<?>>>();
     private final DataSecurityManager securityManager;
     private final Cache<Class<?>, EntityFactory<?>> cache = new ConcurrentCache<Class<?>, EntityFactory<?>>();
 
-    public DefaultEntityContext(DataAccess dataAccess, DataSecurityManager securityManager) {
-        this.dataAccess = dataAccess;
+    public DefaultEntityContext(DataSecurityManager securityManager) {
         this.securityManager = securityManager;
         this.key = UUID.randomUUID().toString();
-    }
-    
-    @Override
-    public <I> void addInterface(Class<I> ifc, Class<? extends I> implementation) {
-        if (interfaces.containsKey(ifc)) {
-            return;
-        }
-        cache.invalidate();
-        this.interfaces.put(ifc, implementation);
     }
 
     @Override
@@ -58,8 +48,11 @@ public class DefaultEntityContext implements ModifiableEntityContext {
     @Override
     public <E> E getInstance(TableMetadata<E> tableMetadata) {
         final EntityProxy<E> entityProxy = new EntityProxy<E>(dataAccess, tableMetadata, securityManager, dataAccess.getHandlerContext().getHandler(tableMetadata.getEntityType()));
-        for (Map.Entry<Class<?>, Class<?>> entry : interfaces.entrySet()) {
-            entityProxy.addInterface(entry.getKey(), entry.getValue());
+        if (interfaces.containsKey(tableMetadata.getEntityType())) {
+            final Map<Class<?>, Class<?>> classMap = interfaces.get(tableMetadata.getEntityType());
+            for (Map.Entry<Class<?>, Class<?>> entry : classMap.entrySet()) {
+                entityProxy.addInterface(entry.getKey(), entry.getValue());
+            }
         }
         final E proxy = enhanceObject(tableMetadata.getEntityType(), entityProxy);
         //noinspection unchecked
@@ -114,6 +107,21 @@ public class DefaultEntityContext implements ModifiableEntityContext {
     @Override
     public EntityHandlerContext getHandlerContext() {
         return null;
+    }
+
+    public void setDataAccess(DataAccess dataAccess) {
+        this.dataAccess = dataAccess;
+    }
+
+    public void setInterfaces(Map<Class<?>, Map<Class<?>, Class<?>>> interfaces) {
+        this.interfaces.clear();
+        this.interfaces.putAll(interfaces);
+    }
+
+    public void setEntityFactories(Map<Class<?>, EntityFactory<?>> factories) {
+        for (Map.Entry<Class<?>, EntityFactory<?>> entry : factories.entrySet()) {
+            cache.write(entry.getKey(), entry.getValue());
+        }
     }
 
 }

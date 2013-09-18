@@ -9,7 +9,6 @@ import com.agileapes.couteau.maven.task.PluginTask;
 import com.agileapes.couteau.reflection.util.assets.AnnotatedElementFilter;
 import com.agileapes.dragonfly.entity.EntityDefinition;
 import com.agileapes.dragonfly.entity.EntityDefinitionContext;
-import com.agileapes.dragonfly.entity.impl.EntityProxy;
 import com.agileapes.dragonfly.entity.impl.ImmutableEntityDefinition;
 import com.agileapes.dragonfly.mojo.PluginExecutor;
 import org.apache.maven.plugin.MojoFailureException;
@@ -17,9 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.persistence.Entity;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.HashMap;
 
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 
@@ -48,11 +45,8 @@ public class EntityDefinitionCollectorTask extends PluginTask<PluginExecutor> {
         .transform(new Transformer<Class<?>, EntityDefinition<?>>() {
             @Override
             public EntityDefinition<?> map(Class<?> input) {
-                final List<Class<?>> interfaces = new ArrayList<Class<?>>();
-                Collections.addAll(interfaces, EntityProxy.class.getInterfaces());
-                Collections.addAll(interfaces, input.getInterfaces());
                 //noinspection unchecked
-                return new ImmutableEntityDefinition<Object>((Class<Object>) input, interfaces.toArray(new Class[interfaces.size()]));
+                return new ImmutableEntityDefinition<Object>((Class<Object>) input, new HashMap<Class<?>, Class<?>>());
             }
         }).each(new Processor<EntityDefinition<?>>() {
             @Override

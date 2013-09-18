@@ -23,10 +23,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
@@ -66,8 +63,11 @@ public class DiscoverExtensionsTask extends PluginTask<PluginExecutor> {
                 definitionContext.addInterceptor(new EntityDefinitionInterceptor() {
                     @Override
                     public <E> EntityDefinition<E> intercept(EntityDefinition<E> definition) {
-                        final List<Class> interfaces = with(definition.getInterfaces()).add(extension.getInterfaces()).list();
-                        return new ImmutableEntityDefinition<E>(definition.getEntityType(), interfaces.toArray(new Class[interfaces.size()]));
+                        final Map<Class<?>,Class<?>> interfaces = definition.getInterfaces();
+                        for (Class<?> superType : extension.getInterfaces()) {
+                            interfaces.put(superType, extension);
+                        }
+                        return new ImmutableEntityDefinition<E>(definition.getEntityType(), interfaces);
                     }
                 });
             }

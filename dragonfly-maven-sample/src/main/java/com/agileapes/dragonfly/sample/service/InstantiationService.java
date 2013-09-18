@@ -32,7 +32,7 @@ public class InstantiationService {
         long normalTime = System.nanoTime();
         final int benchmarkSize = 10000;
         final DefaultDataSecurityManager securityManager = new DefaultDataSecurityManager(new FatalAccessDeniedHandler());
-        final SecuredDataAccess dataAccess = new SecuredDataAccess(new DataAccessSession(new Mysql5Dialect(), new StatementRegistry(), new DefaultMetadataRegistry()), securityManager);
+        final SecuredDataAccess dataAccess = new SecuredDataAccess(new DataAccessSession(new Mysql5Dialect(), new StatementRegistry(), new DefaultMetadataRegistry()), securityManager, entityContext);
         for (int i = 0; i < benchmarkSize; i ++) {
             new EntityProxy<Object>(dataAccess, null, securityManager, new EntityHandler<Object>() {
                 @Override

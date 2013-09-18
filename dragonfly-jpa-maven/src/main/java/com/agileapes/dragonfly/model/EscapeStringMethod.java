@@ -10,7 +10,11 @@ import com.agileapes.couteau.freemarker.model.TypedMethodModel;
 public class EscapeStringMethod extends TypedMethodModel {
 
     @Invokable
-    public String escape(String string) {
+    public Object escape(Object input) {
+        if (!(input instanceof String)) {
+            return input;
+        }
+        final String string = (String) input;
         return string.replace("\n", "\\n").replaceAll("(^|[^\\\\])\"", "$1\\\\\"");
     }
 

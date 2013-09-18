@@ -8,6 +8,7 @@ import com.agileapes.couteau.reflection.cp.MappedClassLoader;
 import com.agileapes.dragonfly.cg.StaticNamingPolicy;
 import com.agileapes.dragonfly.entity.EntityDefinition;
 import com.agileapes.dragonfly.entity.EntityDefinitionContext;
+import com.agileapes.dragonfly.entity.impl.EntityProxy;
 import com.agileapes.dragonfly.io.OutputManager;
 import com.agileapes.dragonfly.mojo.PluginExecutor;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
@@ -19,6 +20,8 @@ import org.springframework.stereotype.Component;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+
+import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
@@ -55,7 +58,7 @@ public class GeneratedEnhancedEntitiesTask extends AbstractCodeGenerationTask {
         enhancer.setNamingPolicy(new StaticNamingPolicy("Entity"));
         for (EntityDefinition<?> entityDefinition : definitionContext.getDefinitions()) {
             enhancer.setSuperClass(entityDefinition.getEntityType());
-            enhancer.setInterfaces(entityDefinition.getInterfaces());
+            enhancer.setInterfaces(with(entityDefinition.getInterfaces().keySet()).add(EntityProxy.class.getInterfaces()).list().toArray(new Class[entityDefinition.getInterfaces().size()]));
             final Class<?> enhancedClass = enhancer.enhance();
             final MappedClassLoader classLoader = (MappedClassLoader) enhancedClass.getClassLoader();
             for (String className : classLoader.getClassNames()) {

@@ -34,6 +34,7 @@ import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 @Component
 public class GenerateEntityFactoryTask extends AbstractCodeGenerationTask {
 
+    public static final String ENTITY_FACTORY_SUFFIX = "EntityFactory";
     @Autowired
     private EntityDefinitionContext definitionContext;
 
@@ -78,7 +79,7 @@ public class GenerateEntityFactoryTask extends AbstractCodeGenerationTask {
                 } catch (Exception e) {
                     throw new Error("Failed to process template", e);
                 }
-                final String factoryName = input.getCanonicalName().concat("EntityFactory");
+                final String factoryName = input.getCanonicalName().concat(ENTITY_FACTORY_SUFFIX);
                 try {
                     compiler.compile(factoryName, new StringReader(out.toString()));
                     bytes = compiler.getClassLoader().getBytes(factoryName);

@@ -57,11 +57,11 @@ import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/5, 19:16)
  */
-public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityContext, EventHandlerContext {
+public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext {
 
     private static final Log log = LogFactory.getLog(DataAccess.class);
     private final DataAccessSession session;
-    private final ModifiableEntityContext entityContext;
+    private final EntityContext entityContext;
     private final RowHandler rowHandler;
     private final EntityHandlerContext handlerContext;
     private final BeanInitializer beanInitializer;
@@ -69,13 +69,18 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
     private final CompositeDataAccessEventHandler eventHandler;
     private final DataSecurityManager securityManager;
 
-    public DefaultDataAccess(DataAccessSession session, DataSecurityManager securityManager) {
-        this(session, securityManager, true);
+    public DefaultDataAccess(DataAccessSession session, DataSecurityManager securityManager, EntityContext entityContext) {
+        this(session, securityManager, entityContext, true);
     }
 
-    public DefaultDataAccess(DataAccessSession session, DataSecurityManager securityManager, boolean autoInitialize) {
+    public DefaultDataAccess(DataAccessSession session, DataSecurityManager securityManager, EntityContext entityContext, boolean autoInitialize) {
         this.session = session;
         this.securityManager = securityManager;
+        this.entityContext = entityContext;
+        if (entityContext instanceof DefaultEntityContext) {
+            DefaultEntityContext context = (DefaultEntityContext) entityContext;
+            context.setDataAccess(this);
+        }
         if (autoInitialize) {
             log.info("Automatically initializing the session");
             synchronized (this.session) {
@@ -85,12 +90,11 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
                 }
             }
         }
-        this.entityContext = new DefaultEntityContext(this, securityManager);
         this.rowHandler = new DefaultRowHandler();
         beanInitializer = new ConstructorBeanInitializer();
         columnMappingMetadataCollector = new ColumnMappingMetadataCollector();
         eventHandler = new CompositeDataAccessEventHandler();
-        handlerContext = new DefaultEntityHandlerContext(entityContext);
+        handlerContext = new DefaultEntityHandlerContext(this.entityContext);
     }
 
     @Override
@@ -570,12 +574,6 @@ public class DefaultDataAccess implements PartialDataAccess, ModifiableEntityCon
     @Override
     public EntityHandlerContext getHandlerContext() {
         return handlerContext;
-    }
-
-    @Override
-    public <I> void addInterface(Class<I> ifc, Class<? extends I> implementation) {
-        log.info("Registering enhancing interface " + ifc.getCanonicalName() + " with the context");
-        entityContext.addInterface(ifc, implementation);
     }
 
     @Override
