@@ -69,18 +69,13 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     private final CompositeDataAccessEventHandler eventHandler;
     private final DataSecurityManager securityManager;
 
-    public DefaultDataAccess(DataAccessSession session, DataSecurityManager securityManager, EntityContext entityContext) {
-        this(session, securityManager, entityContext, true);
+    public DefaultDataAccess(DataAccessSession session, DataSecurityManager securityManager, EntityContext entityContext, DefaultEntityHandlerContext handlerContext) {
+        this(session, securityManager, entityContext, handlerContext, true);
     }
 
-    public DefaultDataAccess(DataAccessSession session, DataSecurityManager securityManager, EntityContext entityContext, boolean autoInitialize) {
+    public DefaultDataAccess(DataAccessSession session, DataSecurityManager securityManager, EntityContext entityContext, EntityHandlerContext handlerContext, boolean autoInitialize) {
         this.session = session;
         this.securityManager = securityManager;
-        this.entityContext = entityContext;
-        if (entityContext instanceof DefaultEntityContext) {
-            DefaultEntityContext context = (DefaultEntityContext) entityContext;
-            context.setDataAccess(this);
-        }
         if (autoInitialize) {
             log.info("Automatically initializing the session");
             synchronized (this.session) {
@@ -94,7 +89,12 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         beanInitializer = new ConstructorBeanInitializer();
         columnMappingMetadataCollector = new ColumnMappingMetadataCollector();
         eventHandler = new CompositeDataAccessEventHandler();
-        handlerContext = new DefaultEntityHandlerContext(this.entityContext);
+        this.handlerContext = handlerContext;
+        if (entityContext instanceof DefaultEntityContext) {
+            DefaultEntityContext context = (DefaultEntityContext) entityContext;
+            context.setDataAccess(this);
+        }
+        this.entityContext = entityContext;
     }
 
     @Override
@@ -553,26 +553,22 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         return (DataAccessObject<E, K>) entity;
     }
 
-    @Override
-    public <E> E getInstance(Class<E> entityType) {
+    private <E> E getInstance(Class<E> entityType) {
         log.info("Dispensing enhanced instance for " + entityType.getCanonicalName());
         final E instance = entityContext.getInstance(session.getMetadataRegistry().getTableMetadata(entityType));
         ((InitializedEntity) instance).unfreeze();
         return instance;
     }
 
-    @Override
-    public <E> E getInstance(TableMetadata<E> tableMetadata) {
+    private <E> E getInstance(TableMetadata<E> tableMetadata) {
         return getInstance(tableMetadata.getEntityType());
     }
 
-    @Override
-    public <E> boolean has(E entity) {
+    private <E> boolean has(E entity) {
         return entityContext.has(entity);
     }
 
-    @Override
-    public EntityHandlerContext getHandlerContext() {
+    private EntityHandlerContext getHandlerContext() {
         return handlerContext;
     }
 

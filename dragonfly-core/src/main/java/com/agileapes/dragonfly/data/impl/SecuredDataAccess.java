@@ -7,6 +7,7 @@ import com.agileapes.dragonfly.data.DataAccessSession;
 import com.agileapes.dragonfly.data.PartialDataAccess;
 import com.agileapes.dragonfly.entity.EntityContext;
 import com.agileapes.dragonfly.entity.EntityHandlerContext;
+import com.agileapes.dragonfly.entity.impl.DefaultEntityHandlerContext;
 import com.agileapes.dragonfly.events.DataAccessEventHandler;
 import com.agileapes.dragonfly.events.EventHandlerContext;
 import com.agileapes.dragonfly.metadata.TableMetadata;
@@ -56,12 +57,12 @@ public class SecuredDataAccess extends DefaultDataAccess implements PartialDataA
     private final DataSecurityManager securityManager;
     private static final Log log = LogFactory.getLog(DataAccess.class);
 
-    public SecuredDataAccess(DataAccessSession session, DataSecurityManager securityManager, EntityContext entityContext) {
-        this(session, securityManager, entityContext, true);
+    public SecuredDataAccess(DataAccessSession session, DataSecurityManager securityManager, EntityContext entityContext, EntityHandlerContext handlerContext) {
+        this(session, securityManager, entityContext, handlerContext, true);
     }
 
-    public SecuredDataAccess(DataAccessSession session, DataSecurityManager securityManager, EntityContext entityContext, boolean autoInitialize) {
-        super(session, securityManager, entityContext, autoInitialize);
+    public SecuredDataAccess(DataAccessSession session, DataSecurityManager securityManager, EntityContext entityContext, EntityHandlerContext handlerContext, boolean autoInitialize) {
+        super(session, securityManager, entityContext, handlerContext, autoInitialize);
         this.securityManager = securityManager;
         log.info("Initializing secured data access interface");
     }
@@ -70,18 +71,6 @@ public class SecuredDataAccess extends DefaultDataAccess implements PartialDataA
     public Serializable getKey(final Object entity) {
         securityManager.checkAccess(new MethodSubject(methodDescriptors.get(0)));
         return super.getKey(entity);
-    }
-
-    @Override
-    public Object getInstance(final Class entityType) {
-        securityManager.checkAccess(new MethodSubject(methodDescriptors.get(1)));
-        return super.getInstance(entityType);
-    }
-
-    @Override
-    public Object getInstance(final TableMetadata tableMetadata) {
-        securityManager.checkAccess(new MethodSubject(methodDescriptors.get(2)));
-        return super.getInstance(tableMetadata);
     }
 
     @Override
@@ -118,12 +107,6 @@ public class SecuredDataAccess extends DefaultDataAccess implements PartialDataA
     public void truncate(final Class entityType) {
         securityManager.checkAccess(new MethodSubject(methodDescriptors.get(8)));
         super.truncate(entityType);
-    }
-
-    @Override
-    public boolean has(final Object entity) {
-        securityManager.checkAccess(new MethodSubject(methodDescriptors.get(9)));
-        return super.has(entity);
     }
 
     @Override
@@ -202,12 +185,6 @@ public class SecuredDataAccess extends DefaultDataAccess implements PartialDataA
     public List executeUntypedQuery(final Class entityType, final String queryName, final Map values) {
         securityManager.checkAccess(new MethodSubject(methodDescriptors.get(23)));
         return super.executeUntypedQuery(entityType, queryName, values);
-    }
-
-    @Override
-    public EntityHandlerContext getHandlerContext() {
-        securityManager.checkAccess(new MethodSubject(methodDescriptors.get(24)));
-        return super.getHandlerContext();
     }
 
     @Override

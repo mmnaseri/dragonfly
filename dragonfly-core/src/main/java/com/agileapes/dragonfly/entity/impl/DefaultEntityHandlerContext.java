@@ -24,6 +24,10 @@ public class DefaultEntityHandlerContext implements EntityHandlerContext {
 
     public DefaultEntityHandlerContext(EntityContext entityContext) {
         this.entityContext = entityContext;
+        if (entityContext instanceof DefaultEntityContext) {
+            final DefaultEntityContext context = (DefaultEntityContext) entityContext;
+            context.setHandlerContext(this);
+        }
         defaultEntityCreator = new DefaultMapEntityCreator(this.entityContext);
         defaultMapCreator = new DefaultEntityMapCreator();
         entityCreators = new ConcurrentHashMap<Class<?>, MapEntityCreator>();
@@ -32,7 +36,7 @@ public class DefaultEntityHandlerContext implements EntityHandlerContext {
     }
 
     @Override
-    public void addMapHandler(EntityHandler<?> entityHandler) {
+    public void addHandler(EntityHandler<?> entityHandler) {
         //noinspection unchecked
         entityCreators.put(entityHandler.getEntityType(), new DelegatingEntityCreator(entityContext, (EntityHandler<Object>) entityHandler));
         //noinspection unchecked

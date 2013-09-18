@@ -14,6 +14,7 @@ import com.agileapes.couteau.reflection.util.assets.GetterMethodFilter;
 import com.agileapes.dragonfly.cg.SecuredInterfaceInterceptor;
 import com.agileapes.dragonfly.data.DataAccess;
 import com.agileapes.dragonfly.data.DataAccessObject;
+import com.agileapes.dragonfly.entity.EntityContext;
 import com.agileapes.dragonfly.entity.EntityHandler;
 import com.agileapes.dragonfly.entity.InitializedEntity;
 import com.agileapes.dragonfly.error.EntityDeletedError;
@@ -42,6 +43,7 @@ public class EntityProxy<E> extends SecuredInterfaceInterceptor implements Initi
     private final DataAccess dataAccess;
     private final TableMetadata<E> tableMetadata;
     private final EntityHandler<E> handler;
+    private final EntityContext entityContext;
     private Class<E> entityType;
     private E entity;
     private E original;
@@ -50,11 +52,12 @@ public class EntityProxy<E> extends SecuredInterfaceInterceptor implements Initi
     private final Set<String> dirtiedProperties = new HashSet<String>();
     private boolean frozen = false;
 
-    public EntityProxy(DataAccess dataAccess, TableMetadata<E> tableMetadata, DataSecurityManager securityManager, EntityHandler<E> handler) {
+    public EntityProxy(DataAccess dataAccess, TableMetadata<E> tableMetadata, DataSecurityManager securityManager, EntityHandler<E> handler, EntityContext entityContext) {
         super(securityManager);
         this.dataAccess = dataAccess;
         this.tableMetadata = tableMetadata;
         this.handler = handler;
+        this.entityContext = entityContext;
     }
 
     @Override
@@ -256,7 +259,7 @@ public class EntityProxy<E> extends SecuredInterfaceInterceptor implements Initi
     }
 
     private Collection<?> loadOneToMany(ReferenceMetadata<E, ?> referenceMetadata) {
-        final Object foreignEntity = dataAccess.getInstance(referenceMetadata.getForeignTable().getEntityType());
+        final Object foreignEntity = entityContext.getInstance(referenceMetadata.getForeignTable().getEntityType());
         final BeanWrapper<?> wrapper = new MethodBeanWrapper<Object>(foreignEntity);
         try {
             wrapper.setPropertyValue(referenceMetadata.getForeignColumn().getPropertyName(), entity);

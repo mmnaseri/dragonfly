@@ -12,6 +12,7 @@ import com.agileapes.dragonfly.entity.EntityFactory;
 import com.agileapes.dragonfly.entity.EntityHandlerContext;
 import com.agileapes.dragonfly.entity.InitializedEntity;
 import com.agileapes.dragonfly.error.EntityInitializationError;
+import com.agileapes.dragonfly.metadata.MetadataRegistry;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.security.DataSecurityManager;
 
@@ -30,24 +31,26 @@ public class DefaultEntityContext implements EntityContext {
 
     private final String key;
     private DataAccess dataAccess;
+    private EntityHandlerContext handlerContext;
     private final Map<Class<?>, Map<Class<?>, Class<?>>> interfaces = new HashMap<Class<?>, Map<Class<?>, Class<?>>>();
     private final DataSecurityManager securityManager;
+    private final MetadataRegistry metadataRegistry;
     private final Cache<Class<?>, EntityFactory<?>> cache = new ConcurrentCache<Class<?>, EntityFactory<?>>();
 
-    public DefaultEntityContext(DataSecurityManager securityManager) {
+    public DefaultEntityContext(DataSecurityManager securityManager, MetadataRegistry metadataRegistry) {
         this.securityManager = securityManager;
+        this.metadataRegistry = metadataRegistry;
         this.key = UUID.randomUUID().toString();
     }
 
     @Override
     public <E> E getInstance(Class<E> entityType) {
-        throw new UnsupportedOperationException("This context cannot generate instances " +
-                "without direct access to table metadata");
+        return getInstance(metadataRegistry.getTableMetadata(entityType));
     }
 
     @Override
     public <E> E getInstance(TableMetadata<E> tableMetadata) {
-        final EntityProxy<E> entityProxy = new EntityProxy<E>(dataAccess, tableMetadata, securityManager, dataAccess.getHandlerContext().getHandler(tableMetadata.getEntityType()));
+        final EntityProxy<E> entityProxy = new EntityProxy<E>(dataAccess, tableMetadata, securityManager, handlerContext.getHandler(tableMetadata.getEntityType()), this);
         if (interfaces.containsKey(tableMetadata.getEntityType())) {
             final Map<Class<?>, Class<?>> classMap = interfaces.get(tableMetadata.getEntityType());
             for (Map.Entry<Class<?>, Class<?>> entry : classMap.entrySet()) {
@@ -124,4 +127,7 @@ public class DefaultEntityContext implements EntityContext {
         }
     }
 
+    public void setHandlerContext(EntityHandlerContext handlerContext) {
+        this.handlerContext = handlerContext;
+    }
 }

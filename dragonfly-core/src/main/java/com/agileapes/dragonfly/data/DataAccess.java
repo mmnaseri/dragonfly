@@ -17,7 +17,7 @@ import java.util.Map;
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/5, 19:06)
  */
-public interface DataAccess extends EntityContext {
+public interface DataAccess {
 
     /**
      * <p>Attempts to persist the given entity. This is done either by inserting the new
@@ -28,7 +28,7 @@ public interface DataAccess extends EntityContext {
      * the key value.</p>
      * @param entity    the entity to be persisted. This entity must belong to the data access
      *                  interface's defining context, i.e., it must be initialized through
-     *                  {@link #getInstance(Class)} or {@link #getInstance(TableMetadata)}
+     *                  {@link EntityContext#getInstance(Class)} or {@link EntityContext#getInstance(TableMetadata)}
      * @param <E>       the type of the entity
      */
     <E> void save(E entity);
@@ -40,7 +40,7 @@ public interface DataAccess extends EntityContext {
      * item at hand will be deleted.</p>
      * @param entity    the entity to be deleted. This entity must belong to the data access
      *                  interface's defining context, i.e., it must be initialized through
-     *                  {@link #getInstance(Class)} or {@link #getInstance(TableMetadata)}
+     *                  {@link EntityContext#getInstance(Class)} or {@link EntityContext#getInstance(TableMetadata)}
      * @param <E>       the type of the entity
      */
     <E> void delete(E entity);
@@ -80,7 +80,7 @@ public interface DataAccess extends EntityContext {
      * Finds all matching items in the database.
      * @param sample    the entity to be used as a sample. This entity must belong to the data access
      *                  interface's defining context, i.e., it must be initialized through
-     *                  {@link #getInstance(Class)} or {@link #getInstance(TableMetadata)}
+     *                  {@link EntityContext#getInstance(Class)} or {@link EntityContext#getInstance(TableMetadata)}
      * @param <E>       the type of the entity.
      * @return a list of all items matching the description as provided by the sample.
      */
@@ -112,7 +112,7 @@ public interface DataAccess extends EntityContext {
      * Returns the value of the key attributed to the entity
      * @param entity    the entity to be examined. This entity must belong to the data access
      *                  interface's defining context, i.e., it must be initialized through
-     *                  {@link #getInstance(Class)} or {@link #getInstance(TableMetadata)}
+     *                  {@link EntityContext#getInstance(Class)} or {@link EntityContext#getInstance(TableMetadata)}
      * @param <E>       the type of the entity
      * @param <K>       the type of the key
      * @return the value of the key
@@ -138,7 +138,7 @@ public interface DataAccess extends EntityContext {
      * provided sample
      * @param sample        the entity to be used as a sample. This entity must belong to the data access
      *                      interface's defining context, i.e., it must be initialized through
-     *                      {@link #getInstance(Class)} or {@link #getInstance(TableMetadata)}
+     *                      {@link EntityContext#getInstance(Class)} or {@link EntityContext#getInstance(TableMetadata)}
      * @param queryName     the name of the query to be executed. This query has to be
      *                      of a non-returning (update) type.
      * @param <E>           the type of the entity.
@@ -165,7 +165,7 @@ public interface DataAccess extends EntityContext {
      * into the query with help from the specified sample as necessary.
      * @param sample        the entity to be used as a sample. This entity must belong to the data access
      *                      interface's defining context, i.e., it must be initialized through
-     *                      {@link #getInstance(Class)} or {@link #getInstance(TableMetadata)}
+     *                      {@link EntityContext#getInstance(Class)} or {@link EntityContext#getInstance(TableMetadata)}
      * @param queryName     the name of the query to be executed. This query has to be
      *                      of a value-returning (query) type.
      * @param <E>           the type of the items

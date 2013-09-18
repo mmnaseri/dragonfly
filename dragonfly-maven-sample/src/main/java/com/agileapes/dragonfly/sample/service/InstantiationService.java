@@ -5,6 +5,7 @@ import com.agileapes.dragonfly.data.impl.SecuredDataAccess;
 import com.agileapes.dragonfly.dialect.impl.Mysql5Dialect;
 import com.agileapes.dragonfly.entity.EntityContext;
 import com.agileapes.dragonfly.entity.EntityHandler;
+import com.agileapes.dragonfly.entity.impl.DefaultEntityHandlerContext;
 import com.agileapes.dragonfly.entity.impl.EntityProxy;
 import com.agileapes.dragonfly.metadata.impl.DefaultMetadataRegistry;
 import com.agileapes.dragonfly.sample.entities.Person;
@@ -32,7 +33,7 @@ public class InstantiationService {
         long normalTime = System.nanoTime();
         final int benchmarkSize = 10000;
         final DefaultDataSecurityManager securityManager = new DefaultDataSecurityManager(new FatalAccessDeniedHandler());
-        final SecuredDataAccess dataAccess = new SecuredDataAccess(new DataAccessSession(new Mysql5Dialect(), new StatementRegistry(), new DefaultMetadataRegistry()), securityManager, entityContext);
+        final SecuredDataAccess dataAccess = new SecuredDataAccess(new DataAccessSession(new Mysql5Dialect(), new StatementRegistry(), new DefaultMetadataRegistry()), securityManager, entityContext, new DefaultEntityHandlerContext(null));
         for (int i = 0; i < benchmarkSize; i ++) {
             new EntityProxy<Object>(dataAccess, null, securityManager, new EntityHandler<Object>() {
                 @Override
@@ -86,7 +87,7 @@ public class InstantiationService {
                 public Collection<?> getRelatedItems(Object entity) {
                     return null;
                 }
-            });
+            }, entityContext);
             new Person();
         }
         normalTime = System.nanoTime() - normalTime;

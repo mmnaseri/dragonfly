@@ -6,7 +6,7 @@ package com.agileapes.dragonfly.entity;
  */
 public interface EntityHandlerContext extends EntityMapCreator, MapEntityCreator {
 
-    void addMapHandler(EntityHandler<?> mapHandler);
+    void addHandler(EntityHandler<?> handler);
 
     <E> EntityHandler<E> getHandler(Class<E> entityType);
 }

@@ -20,6 +20,7 @@ import org.springframework.stereotype.Component;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.List;
 
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 
@@ -58,7 +59,8 @@ public class GeneratedEnhancedEntitiesTask extends AbstractCodeGenerationTask {
         enhancer.setNamingPolicy(new StaticNamingPolicy("Entity"));
         for (EntityDefinition<?> entityDefinition : definitionContext.getDefinitions()) {
             enhancer.setSuperClass(entityDefinition.getEntityType());
-            enhancer.setInterfaces(with(entityDefinition.getInterfaces().keySet()).add(EntityProxy.class.getInterfaces()).list().toArray(new Class[entityDefinition.getInterfaces().size()]));
+            final List<Class<?>> classes = with(entityDefinition.getInterfaces().keySet()).add(EntityProxy.class.getInterfaces()).list();
+            enhancer.setInterfaces(classes.toArray(new Class[classes.size()]));
             final Class<?> enhancedClass = enhancer.enhance();
             final MappedClassLoader classLoader = (MappedClassLoader) enhancedClass.getClassLoader();
             for (String className : classLoader.getClassNames()) {

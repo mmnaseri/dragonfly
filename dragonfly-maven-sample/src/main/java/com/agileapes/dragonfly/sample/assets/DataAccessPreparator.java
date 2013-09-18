@@ -2,6 +2,8 @@ package com.agileapes.dragonfly.sample.assets;
 
 import com.agileapes.dragonfly.data.DataAccess;
 import com.agileapes.dragonfly.data.DataAccessPostProcessor;
+import com.agileapes.dragonfly.entity.EntityHandlerContext;
+import com.agileapes.dragonfly.entity.EntityHandlerContextPostProcessor;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -16,8 +18,23 @@ public class DataAccessPreparator implements BeanFactoryPostProcessor {
 
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-        final Collection<DataAccess> dataAccessCollection = beanFactory.getBeansOfType(DataAccess.class).values();
-        final Collection<DataAccessPostProcessor> postProcessors = beanFactory.getBeansOfType(DataAccessPostProcessor.class).values();
+        postProcessDataAccess(beanFactory);
+        postProcessEntityHandlerContext(beanFactory);
+    }
+
+    private void postProcessEntityHandlerContext(ConfigurableListableBeanFactory beanFactory) {
+        final Collection<EntityHandlerContextPostProcessor> postProcessors = beanFactory.getBeansOfType(EntityHandlerContextPostProcessor.class, false, true).values();
+        final Collection<EntityHandlerContext> contexts = beanFactory.getBeansOfType(EntityHandlerContext.class, false, true).values();
+        for (EntityHandlerContext context : contexts) {
+            for (EntityHandlerContextPostProcessor postProcessor : postProcessors) {
+                postProcessor.postProcessEntityHandlerContext(context);
+            }
+        }
+    }
+
+    private void postProcessDataAccess(ConfigurableListableBeanFactory beanFactory) {
+        final Collection<DataAccess> dataAccessCollection = beanFactory.getBeansOfType(DataAccess.class, false, true).values();
+        final Collection<DataAccessPostProcessor> postProcessors = beanFactory.getBeansOfType(DataAccessPostProcessor.class, false, true).values();
         for (DataAccess dataAccess : dataAccessCollection) {
             for (DataAccessPostProcessor postProcessor : postProcessors) {
                 postProcessor.postProcessDataAccess(dataAccess);
