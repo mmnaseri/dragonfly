@@ -78,7 +78,6 @@ public class GenerateEntityFactoryTask extends AbstractCodeGenerationTask {
                 } catch (Exception e) {
                     throw new Error("Failed to process template", e);
                 }
-                System.out.println(out);
                 final String factoryName = input.getCanonicalName().concat("EntityFactory");
                 try {
                     compiler.compile(factoryName, new StringReader(out.toString()));

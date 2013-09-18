@@ -15,12 +15,12 @@ import com.agileapes.couteau.reflection.property.WritePropertyAccessor;
 import com.agileapes.couteau.reflection.property.impl.MethodReadPropertyAccessor;
 import com.agileapes.couteau.reflection.property.impl.MethodWritePropertyAccessor;
 import com.agileapes.couteau.reflection.util.ReflectionUtils;
-import com.agileapes.dragonfly.entity.impl.HandlerContextPreparatorPostProcessor;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
 import com.agileapes.dragonfly.metadata.MetadataRegistry;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.metadata.ValueGenerationType;
-import com.agileapes.dragonfly.model.*;
+import com.agileapes.dragonfly.model.EntityHandlerModel;
+import com.agileapes.dragonfly.model.PropertyAccessModel;
 import com.agileapes.dragonfly.mojo.PluginExecutor;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
@@ -37,9 +37,7 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.sql.Types;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 
@@ -50,9 +48,14 @@ import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 @Component
 public class GenerateEntityHandlersTask extends AbstractCodeGenerationTask {
 
+    public static final String ENTITY_HANDLER_SUFFIX = "EntityHandler";
+
+    @Value("#{metadataCollector.metadataRegistry}")
+    private MetadataRegistry metadataRegistry;
+
     @Override
     protected String getIntro() {
-        return "Generating entity handler context";
+        return "Generating entity handlers ...";
     }
 
     @Value("#{metadataCollector}")
@@ -61,12 +64,8 @@ public class GenerateEntityHandlersTask extends AbstractCodeGenerationTask {
         super.setDependencies(dependencies);
     }
 
-    @Value("#{metadataCollector.metadataRegistry}")
-    private MetadataRegistry metadataRegistry;
-
     @Override
     public void execute(PluginExecutor executor) throws MojoFailureException {
-        final Set<String> generatedClasses = new HashSet<String>();
         final Configuration configuration = FreemarkerUtils.getConfiguration(getClass(), "/ftl/");
         final Template template;
         try {
@@ -100,18 +99,15 @@ public class GenerateEntityHandlersTask extends AbstractCodeGenerationTask {
             } catch (IOException e) {
                 throw new MojoFailureException("An I/O error prevented code generation", e);
             }
-            System.out.println(out);
             final DynamicClassCompiler compiler = new DefaultDynamicClassCompiler(getClass().getClassLoader());
             try {
                 compiler.setOption(SimpleJavaSourceCompiler.Option.CLASSPATH, getClassPath(executor));
             } catch (DependencyResolutionRequiredException e) {
                 throw new MojoFailureException("Failed to prepare classpath", e);
             }
-            final String className = entityType.getCanonicalName() + "EntityHandler";
+            final String className = entityType.getCanonicalName() + ENTITY_HANDLER_SUFFIX;
             try {
                 compiler.compile(className, new StringReader(out.toString()));
-                generatedClasses.add(className);
-                System.out.println(out);
             } catch (CompileException e) {
                 throw new MojoFailureException("Failed to compile source code", e);
             }
@@ -127,34 +123,6 @@ public class GenerateEntityHandlersTask extends AbstractCodeGenerationTask {
             } catch (IOException e) {
                 throw new MojoFailureException("Failed to write output", e);
             }
-        }
-        final Template handlersTemplate;
-        try {
-            handlersTemplate = configuration.getTemplate("applicationContext.ftl");
-        } catch (IOException e) {
-            throw new MojoFailureException("Failed to locate template", e);
-        }
-        final StringWriter out = new StringWriter();
-        try {
-            final ApplicationContextModel model = new ApplicationContextModel();
-            final BeanDefinitionModel context = new BeanDefinitionModel(HandlerContextPreparatorPostProcessor.class.getCanonicalName());
-            model.addBean(context);
-            final HashSet<BeanDefinitionModel> handlers = new HashSet<BeanDefinitionModel>();
-            context.setProperty(new BeanPropertyModel("handlers", handlers));
-            for (String generatedClass : generatedClasses) {
-                handlers.add(new BeanDefinitionModel(generatedClass));
-            }
-            handlersTemplate.process(model, out);
-        } catch (TemplateException e) {
-            e.printStackTrace();
-            throw new MojoFailureException("Failed to process template", e);
-        } catch (IOException e) {
-            throw new MojoFailureException("Failed to produce output", e);
-        }
-        try {
-            getOutputManager().writeSourceFile("/src/main/resources/data/handlers.xml", out.toString());
-        } catch (IOException e) {
-            throw new MojoFailureException("Failed to write output file");
         }
     }
 
