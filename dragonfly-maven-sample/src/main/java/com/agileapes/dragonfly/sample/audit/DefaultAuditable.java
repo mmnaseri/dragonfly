@@ -16,7 +16,7 @@ public class DefaultAuditable implements Auditable, Identifiable {
     private Date updateTime;
     private String insertUser;
     private Date insertTime;
-    private int updateCount;
+    private Integer updateCount;
     private Long identifier;
 
     @Override
@@ -46,8 +46,8 @@ public class DefaultAuditable implements Auditable, Identifiable {
     }
 
     @Override
-    @Column(name = "update_count")
-    public int getUpdateCount() {
+    @Column(name = "update_count", nullable = false)
+    public Integer getUpdateCount() {
         return updateCount;
     }
 
@@ -72,7 +72,7 @@ public class DefaultAuditable implements Auditable, Identifiable {
     }
 
     @Override
-    public void setUpdateCount(int updateCount) {
+    public void setUpdateCount(Integer updateCount) {
         this.updateCount = updateCount;
     }
 

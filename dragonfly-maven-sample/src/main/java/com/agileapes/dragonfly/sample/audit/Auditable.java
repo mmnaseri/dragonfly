@@ -17,7 +17,7 @@ public interface Auditable {
 
     Date getUpdateTime();
 
-    int getUpdateCount();
+    Integer getUpdateCount();
 
     void setInsertUser(String insertUser);
 
@@ -27,6 +27,6 @@ public interface Auditable {
 
     void setUpdateTime(Date updateTime);
 
-    void setUpdateCount(int updateCount);
+    void setUpdateCount(Integer updateCount);
 
 }

@@ -10,7 +10,6 @@ import com.agileapes.dragonfly.annotations.StoredProcedure;
 import com.agileapes.dragonfly.annotations.StoredProcedureParameter;
 import com.agileapes.dragonfly.annotations.StoredProcedures;
 import com.agileapes.dragonfly.error.EntityDefinitionError;
-import com.agileapes.dragonfly.error.InvalidForeignReferenceDefinition;
 import com.agileapes.dragonfly.error.NoSuchColumnError;
 import com.agileapes.dragonfly.error.UnsupportedColumnTypeError;
 import com.agileapes.dragonfly.metadata.*;
@@ -217,20 +216,6 @@ public class AnnotationMetadataResolver implements MetadataResolver {
         }).transform(new Transformer<ColumnMetadata, ForeignKeyConstraintMetadata>() {
             @Override
             public ForeignKeyConstraintMetadata map(ColumnMetadata columnMetadata) {
-//                if (columnMetadata.getForeignReference().getTable().getEntityType().equals(entityType)) {
-//                    String columnName = columnMetadata.getForeignReference().getName();
-//                    final ColumnMetadata metadata;
-//                    if (columnName.isEmpty()) {
-//                        final PrimaryKeyConstraintMetadata primaryKey = tableMetadata.getPrimaryKey();
-//                        if (primaryKey.getColumns().size() != 1) {
-//                            throw new InvalidForeignReferenceDefinition("Cannot determine foreign reference in " + entityType.getCanonicalName() + "." + columnMetadata.getName());
-//                        }
-//                        metadata = primaryKey.getColumns().iterator().next();
-//                    } else {
-//                        metadata = getColumnMetadata(columnName, tableColumns, entityType);
-//                    }
-//                    ((ResolvedColumnMetadata) columnMetadata).setForeignReference(metadata);
-//                }
                 return new ForeignKeyConstraintMetadata(tableMetadata, columnMetadata);
             }
         }).list());

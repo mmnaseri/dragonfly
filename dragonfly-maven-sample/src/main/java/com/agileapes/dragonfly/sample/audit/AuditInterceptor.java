@@ -25,6 +25,7 @@ public class AuditInterceptor implements DataAccessPostProcessor, UserContextAwa
             public <E> void beforeInsert(E entity) {
                 ((Auditable) entity).setInsertUser(userContext.getCurrentUser());
                 ((Auditable) entity).setInsertTime(new Date());
+                ((Auditable) entity).setUpdateCount(0);
             }
 
             @Override
