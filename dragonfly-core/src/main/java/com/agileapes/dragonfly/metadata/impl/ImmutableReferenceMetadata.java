@@ -9,6 +9,8 @@ import com.agileapes.dragonfly.metadata.*;
 public class ImmutableReferenceMetadata<S, D> implements ReferenceMetadata<S, D> {
 
     private final String propertyName;
+    private final boolean owner;
+    private final Class<?> declaringClass;
     private ColumnMetadata foreignColumn;
     private TableMetadata<S> localTable;
     private TableMetadata<D> foreignTable;
@@ -16,7 +18,7 @@ public class ImmutableReferenceMetadata<S, D> implements ReferenceMetadata<S, D>
     private final boolean lazy;
     private final CascadeMetadata cascadeMetadata;
 
-    public ImmutableReferenceMetadata(TableMetadata<S> localTable, String propertyName, TableMetadata<D> foreignTable, ColumnMetadata foreignColumn, RelationType relationType, CascadeMetadata cascadeMetadata, boolean lazy) {
+    public ImmutableReferenceMetadata(Class<?> declaringClass, String propertyName, boolean owner, TableMetadata<S> localTable, TableMetadata<D> foreignTable, ColumnMetadata foreignColumn, RelationType relationType, CascadeMetadata cascadeMetadata, boolean lazy) {
         this.localTable = localTable;
         this.foreignTable = foreignTable;
         this.relationType = relationType;
@@ -24,6 +26,8 @@ public class ImmutableReferenceMetadata<S, D> implements ReferenceMetadata<S, D>
         this.cascadeMetadata = cascadeMetadata;
         this.foreignColumn = foreignColumn;
         this.propertyName = propertyName;
+        this.owner = owner;
+        this.declaringClass = declaringClass;
     }
 
     @Override
@@ -59,6 +63,16 @@ public class ImmutableReferenceMetadata<S, D> implements ReferenceMetadata<S, D>
     @Override
     public ColumnMetadata getForeignColumn() {
         return foreignColumn;
+    }
+
+    @Override
+    public boolean isRelationOwner() {
+        return owner;
+    }
+
+    @Override
+    public Class<?> getDeclaringClass() {
+        return declaringClass;
     }
 
     public void setLocalTable(TableMetadata<S> localTable) {

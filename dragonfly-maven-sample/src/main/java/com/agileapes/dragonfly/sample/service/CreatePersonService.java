@@ -3,11 +3,13 @@ package com.agileapes.dragonfly.sample.service;
 import com.agileapes.dragonfly.data.DataAccess;
 import com.agileapes.dragonfly.data.DataAccessObject;
 import com.agileapes.dragonfly.entity.EntityContext;
+import com.agileapes.dragonfly.sample.entities.LibraryCard;
 import com.agileapes.dragonfly.sample.entities.Person;
 import com.agileapes.dragonfly.sample.entities.Thing;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Random;
 
@@ -26,15 +28,17 @@ public class CreatePersonService {
 
     public void execute() {
         final Person person = entityContext.getInstance(Person.class);
+        person.setLibraryCard(new LibraryCard());
         person.setName("Person - " + Math.abs((new Random().nextInt())));
         person.setBirthday(new Date());
-        dataAccess.save(person);
+        final ArrayList<Thing> things = new ArrayList<Thing>();
+        person.setThings(things);
         for (int i = 0; i < 3; i ++) {
             final Thing thing = entityContext.getInstance(Thing.class);
-            thing.setOwner(person);
             thing.setName("Thing - " + Math.abs((new Random().nextInt())));
-            ((DataAccessObject) thing).save();
+            things.add(thing);
         }
+        ((DataAccessObject) person).save();
     }
 
 }

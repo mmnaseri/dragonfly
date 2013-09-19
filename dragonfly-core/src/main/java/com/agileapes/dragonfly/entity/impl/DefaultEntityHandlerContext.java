@@ -86,9 +86,21 @@ public class DefaultEntityHandlerContext implements EntityHandlerContext {
             //noinspection unchecked
             return (EntityHandler<E>) entityHandlers.get(entityType);
         }
+        for (Class<?> registeredType : entityHandlers.keySet()) {
+            if (registeredType.isAssignableFrom(entityType)) {
+                //noinspection unchecked
+                return (EntityHandler<E>) entityHandlers.get(registeredType);
+            }
+        }
         final GenericEntityHandler<E> entityHandler = new GenericEntityHandler<E>(entityType, entityContext, metadataRegistry.getTableMetadata(entityType));
         entityHandlers.put(entityType, entityHandler);
         return entityHandler;
     }
-    
+
+    @Override
+    public <E> EntityHandler<E> getHandler(E entity) {
+        //noinspection unchecked
+        return (EntityHandler<E>) getHandler(entity.getClass());
+    }
+
 }

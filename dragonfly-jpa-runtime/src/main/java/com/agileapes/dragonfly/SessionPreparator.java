@@ -30,7 +30,6 @@ import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
-import org.springframework.stereotype.Component;
 
 import javax.persistence.Entity;
 import java.util.*;
@@ -41,7 +40,6 @@ import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/18, 17:56)
  */
-@Component
 public class SessionPreparator implements BeanFactoryPostProcessor {
 
     private final static Log log = LogFactory.getLog(SessionPreparator.class);

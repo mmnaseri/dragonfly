@@ -109,8 +109,9 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         final DataAccessObject<E, Serializable> object = (DataAccessObject<E, Serializable>) entity;
         int affectedRows;
         final boolean shouldUpdate;
+        final EntityHandler<E> entityHandler = handlerContext.getHandler(entity);
         try {
-            shouldUpdate = (object.hasKey() && object.accessKey() != null) || ((InitializedEntity) object).isDirtied() && find(entity).size() == 1;
+            shouldUpdate = (entityHandler.hasKey() && entityHandler.getKey(entity) != null) || ((InitializedEntity) object).isDirtied() && find(entity).size() == 1;
             if (shouldUpdate) {
                 log.info("Updating existing entity on the database");
                 eventHandler.beforeUpdate(entity);
@@ -121,15 +122,14 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
                 eventHandler.beforeInsert(entity);
                 affectedRows = internalExecuteUpdate(entity, "insert", true);
                 if (affectedRows > 0 && needsReflection) {
-                    final EntityHandler<E> handler = handlerContext.getHandler(object.getTableMetadata().getEntityType());
-                    handler.setKey(original, handler.getKey(entity));
+                    entityHandler.setKey(original, entityHandler.getKey(entity));
                 }
             }
         } catch (Exception e) {
             throw new StatementExecutionFailureError("Failed to execute save statement", e);
         }
         if (affectedRows <= 0) {
-            throw new UnsuccessfulOperationError("Failed to save entity " + object.getQualifiedName());
+            throw new UnsuccessfulOperationError("Failed to save entity " + entityHandler.getEntityType().getCanonicalName());
         }
         object.saveRelations();
         if (shouldUpdate) {
@@ -158,8 +158,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         eventHandler.beforeDelete(entityType, key);
         final E entity = getInstance(entityType);
         //noinspection unchecked
-        final DataAccessObject<E, K> object = (DataAccessObject<E, K>) entity;
-        object.changeKey(key);
+        handlerContext.getHandler(entityType).setKey(entity, key);
         delete(entity);
         eventHandler.afterDelete(entityType, key);
     }
@@ -197,9 +196,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         eventHandler.beforeFind(entityType, key);
         log.info("Looking for entity of type " + entityType + " with key " + key);
         final E entity = getInstance(entityType);
-        //noinspection unchecked
-        final DataAccessObject<E, K> object = (DataAccessObject<E, K>) entity;
-        object.changeKey(key);
+        handlerContext.getHandler(entityType).setKey(entity, key);
         final List<E> result = internalExecuteQuery(entity, "findByKey");
         if (result.isEmpty()) {
             throw new ObjectNotFoundError(entityType, key);
@@ -224,27 +221,32 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     @Override
     public <E, K extends Serializable> K getKey(E entity) {
         //noinspection unchecked
-        return (K) checkEntity(entity).accessKey();
+        return (K) handlerContext.getHandler(entity).getKey(entity);
     }
 
     private <E> int internalExecuteUpdate(E original, E replacement, String queryName) {
-        final DataAccessObject<E, Serializable> object = checkEntity(original);
-        final Map<String, Object> map = MapTools.prefixKeys(handlerContext.toMap(object.getTableMetadata(), original), "value.");
-        map.putAll(MapTools.prefixKeys(handlerContext.toMap(object.getTableMetadata(), original), "old."));
-        final Map<String, Object> newMap = handlerContext.toMap(object.getTableMetadata(), replacement);
+        final EntityHandler<E> entityHandler = handlerContext.getHandler(original);
+        final Map<String, Object> originalMap = entityHandler.toMap(original);
+        final Map<String, Object> map = MapTools.prefixKeys(originalMap, "value.");
+        map.putAll(MapTools.prefixKeys(originalMap, "old."));
+        final Map<String, Object> newMap = entityHandler.toMap(replacement);
         for (Map.Entry<String, Object> entry : newMap.entrySet()) {
             if (!map.containsKey("value." + entry.getKey())) {
                 map.put("value." + entry.getKey(), entry.getValue());
             }
         }
         map.putAll(MapTools.prefixKeys(newMap, "new."));
-        return executeUpdate(object.getTableMetadata().getEntityType(), queryName, map);
+        return executeUpdate(entityHandler.getEntityType(), queryName, map);
     }
 
     private <E> List<E> internalExecuteQuery(E sample, String queryName) {
         final DataAccessObject<E, Serializable> object = checkEntity(sample);
+        final EntityHandler<E> entityHandler = handlerContext.getHandler(sample);
+        ((InitializedEntity) object).freeze();
         //noinspection unchecked
-        return executeQuery(object.getTableMetadata().getEntityType(), queryName, MapTools.prefixKeys(handlerContext.toMap(object.getTableMetadata(), (E) object), "value."));
+        final List<E> list = executeQuery(entityHandler.getEntityType(), queryName, MapTools.prefixKeys(entityHandler.toMap((E) object), "value."));
+        ((InitializedEntity) object).unfreeze();
+        return list;
     }
 
     @Override
@@ -278,33 +280,36 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     }
 
     private <E> int internalExecuteUpdate(E sample, String queryName, boolean prefix) {
-        final DataAccessObject<E, Serializable> object = checkEntity(sample);
+        final InitializedEntity entity = (InitializedEntity) checkEntity(sample);
         final Map<String, Object> map = new HashMap<String, Object>();
+        final EntityHandler<E> entityHandler = handlerContext.getHandler(sample);
+        entity.freeze();
         if (prefix) {
-            map.putAll(MapTools.prefixKeys(handlerContext.toMap(object.getTableMetadata(), sample), "value."));
+            map.putAll(MapTools.prefixKeys(entityHandler.toMap(sample), "value."));
         } else {
-            map.putAll(handlerContext.toMap(object.getTableMetadata(), sample));
+            map.putAll(entityHandler.toMap(sample));
         }
+        entity.unfreeze();
         final int affectedRows;
         try {
-            final Statement statement = session.getStatementRegistry().get(object.getQualifiedName() + "." + queryName);
+            final Statement statement = session.getStatementRegistry().get(entityHandler.getEntityType().getCanonicalName() + "." + queryName);
             final PreparedStatement preparedStatement = statement.prepare(session.getConnection(), handlerContext, map);
             affectedRows = preparedStatement.executeUpdate();
-            if (StatementType.INSERT.equals(statement.getType()) && object.hasKey() && object.isKeyAutoGenerated()) {
+            if (StatementType.INSERT.equals(statement.getType()) && entityHandler.hasKey() && entityHandler.isKeyAutoGenerated()) {
                 if (affectedRows <= 0) {
                     throw new UnsuccessfulOperationError("Failed to insert item");
                 }
                 final ResultSet generatedKeys = preparedStatement.getGeneratedKeys();
-                final Serializable key = session.getDatabaseDialect().retrieveKey(generatedKeys, object.getTableMetadata());
+                final Serializable key = session.getDatabaseDialect().retrieveKey(generatedKeys, session.getMetadataRegistry().getTableMetadata(entityHandler.getEntityType()));
                 if (key == null) {
                     throw new UnsuccessfulOperationError("Failed to obtain generated key values for the entity");
                 }
-                object.changeKey(key);
+                entityHandler.setKey(sample, key);
             }
         } catch (SQLException e) {
             throw new StatementExecutionFailureError("Failed to execute update", e);
         } catch (RegistryException e) {
-            throw new UnrecognizedQueryError(object.getTableMetadata().getEntityType(), queryName);
+            throw new UnrecognizedQueryError(entityHandler.getEntityType(), queryName);
         }
         return affectedRows;
     }
@@ -320,14 +325,14 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
                 throw new InvalidStatementTypeError(statement.getType());
             }
             final PreparedStatement preparedStatement = statement.prepare(session.getConnection(), handlerContext, values);
+            final EntityHandler<E> entityHandler = handlerContext.getHandler(entityType);
             final ResultSet resultSet = preparedStatement.executeQuery();
             result = new ArrayList<E>();
             while (resultSet.next()) {
-                final E entity = getInstance(entityType);
+                E entity = getInstance(entityType);
                 //noinspection unchecked
                 ((InitializedEntity<E>) entity).freeze();
-                //noinspection unchecked
-                handlerContext.fromMap(entity, ((DataAccessObject) entity).getTableMetadata().getColumns(), rowHandler.handleRow(resultSet));
+                entity = entityHandler.fromMap(entity, rowHandler.handleRow(resultSet));
                 //noinspection unchecked
                 ((InitializedEntity<E>) entity).setOriginalCopy(entity);
                 //noinspection unchecked
@@ -351,9 +356,9 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         //noinspection unchecked
         sample = (E) checkEntity(sample);
         eventHandler.beforeExecuteQuery(sample, queryName);
-        final DataAccessObject<E, Serializable> object = checkEntity(sample);
-        final Map<String, Object> map = handlerContext.toMap(object.getTableMetadata(), sample);
-        final List<E> result = executeQuery(object.getTableMetadata().getEntityType(), queryName, map);
+        final EntityHandler<E> entityHandler = handlerContext.getHandler(sample);
+        final Map<String, Object> map = entityHandler.toMap(sample);
+        final List<E> result = executeQuery(entityHandler.getEntityType(), queryName, map);
         eventHandler.afterExecuteQuery(sample, queryName, result);
         return result;
     }
@@ -566,10 +571,6 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
 
     private <E> boolean has(E entity) {
         return entityContext.has(entity);
-    }
-
-    private EntityHandlerContext getHandlerContext() {
-        return handlerContext;
     }
 
     @Override

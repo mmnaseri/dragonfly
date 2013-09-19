@@ -9,4 +9,6 @@ public interface EntityHandlerContext extends EntityMapCreator, MapEntityCreator
     void addHandler(EntityHandler<?> handler);
 
     <E> EntityHandler<E> getHandler(Class<E> entityType);
+
+    <E> EntityHandler<E> getHandler(E entity);
 }

@@ -7,19 +7,18 @@ import com.agileapes.couteau.reflection.beans.BeanWrapper;
 import com.agileapes.couteau.reflection.beans.impl.MethodBeanAccessor;
 import com.agileapes.couteau.reflection.beans.impl.MethodBeanWrapper;
 import com.agileapes.couteau.reflection.error.NoSuchPropertyException;
+import com.agileapes.couteau.reflection.error.PropertyAccessException;
+import com.agileapes.couteau.reflection.error.PropertyTypeMismatchException;
 import com.agileapes.dragonfly.entity.EntityContext;
 import com.agileapes.dragonfly.entity.EntityHandler;
 import com.agileapes.dragonfly.entity.InitializedEntity;
+import com.agileapes.dragonfly.error.EntityDefinitionError;
 import com.agileapes.dragonfly.error.NoPrimaryKeyDefinedError;
-import com.agileapes.dragonfly.metadata.ColumnMetadata;
-import com.agileapes.dragonfly.metadata.TableMetadata;
-import com.agileapes.dragonfly.metadata.ValueGenerationType;
+import com.agileapes.dragonfly.metadata.*;
 import com.agileapes.dragonfly.metadata.impl.PrimaryKeyConstraintMetadata;
 
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
+import java.util.*;
 
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 
@@ -152,12 +151,51 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
     }
 
     @Override
-    public void prepareRelations(E entity) {
-    }
-
-    @Override
-    public Collection<?> getRelatedItems(E entity) {
-        return Collections.emptySet();
+    public Collection<?> getRelatedItems(E entity, Filter<CascadeMetadata> cascadeMetadataFilter) {
+        final ArrayList<Object> result = new ArrayList<Object>();
+        final BeanAccessor<E> accessor = new MethodBeanAccessor<E>(entity);
+        for (ReferenceMetadata<E, ?> referenceMetadata : tableMetadata.getForeignReferences()) {
+            if (referenceMetadata.isRelationOwner()) {
+                continue;
+            }
+            if (!referenceMetadata.getDeclaringClass().isInstance(entity)) {
+                continue;
+            }
+            if (!cascadeMetadataFilter.accepts(referenceMetadata.getCascadeMetadata())) {
+                continue;
+            }
+            final Object propertyValue;
+            try {
+                propertyValue = accessor.getPropertyValue(referenceMetadata.getPropertyName());
+            } catch (NoSuchPropertyException ignored) {
+                continue;
+            } catch (PropertyAccessException e) {
+                throw new EntityDefinitionError("Error accessing entity property " + referenceMetadata.getDeclaringClass().getCanonicalName() + "." + referenceMetadata.getPropertyName(), e);
+            }
+            final Collection<Object> objects = new HashSet<Object>();
+            if (referenceMetadata.getRelationType().getForeignCardinality() > 1) {
+                objects.addAll((Collection<?>) propertyValue);
+            } else {
+                objects.add(propertyValue);
+            }
+            for (Object object : objects) {
+                if (object == null) {
+                    continue;
+                }
+                final BeanWrapper<Object> wrapper = new MethodBeanWrapper<Object>(object);
+                try {
+                    wrapper.setPropertyValue(referenceMetadata.getForeignColumn().getPropertyName(), entity);
+                } catch (NoSuchPropertyException e) {
+                    throw new EntityDefinitionError("Property not found", e);
+                } catch (PropertyAccessException e) {
+                    throw new EntityDefinitionError("Property access error", e);
+                } catch (PropertyTypeMismatchException e) {
+                    throw new EntityDefinitionError("Could not match property type to local entity", e);
+                }
+                result.add(object);
+            }
+        }
+        return result;
     }
 
 }

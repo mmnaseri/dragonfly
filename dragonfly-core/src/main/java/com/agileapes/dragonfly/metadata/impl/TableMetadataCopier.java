@@ -67,7 +67,7 @@ public class TableMetadataCopier<E> {
         }
         for (ReferenceMetadata<E, ?> foreignReference : tableMetadata.getForeignReferences()) {
             //noinspection unchecked
-            foreignReferences.add(new ImmutableReferenceMetadata<E, Object>(metadata, foreignReference.getPropertyName(), (TableMetadata<Object>) foreignReference.getForeignTable(), foreignReference.getForeignColumn(), foreignReference.getRelationType(), foreignReference.getCascadeMetadata(), foreignReference.isLazy()));
+            foreignReferences.add(new ImmutableReferenceMetadata<E, Object>(foreignReference.getDeclaringClass(), foreignReference.getPropertyName(), foreignReference.isRelationOwner(), metadata, (TableMetadata<Object>) foreignReference.getForeignTable(), foreignReference.getForeignColumn(), foreignReference.getRelationType(), foreignReference.getCascadeMetadata(), foreignReference.isLazy()));
         }
         return metadata;
     }

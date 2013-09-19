@@ -6,6 +6,25 @@ package com.agileapes.dragonfly.metadata;
  */
 public enum RelationType {
 
-    ONE_TO_ONE, ONE_TO_MANY, MANY_TO_ONE, MANY_TO_MANY
+    ONE_TO_ONE(1, 1),
+    ONE_TO_MANY(1, Integer.MAX_VALUE),
+    MANY_TO_ONE(Integer.MAX_VALUE, 1),
+    MANY_TO_MANY(Integer.MAX_VALUE, Integer.MAX_VALUE);
+
+    private final int localCardinality;
+    private final int foreignCardinality;
+
+    private RelationType(int localCardinality, int foreignCardinality) {
+        this.localCardinality = localCardinality;
+        this.foreignCardinality = foreignCardinality;
+    }
+
+    public int getLocalCardinality() {
+        return localCardinality;
+    }
+
+    public int getForeignCardinality() {
+        return foreignCardinality;
+    }
 
 }

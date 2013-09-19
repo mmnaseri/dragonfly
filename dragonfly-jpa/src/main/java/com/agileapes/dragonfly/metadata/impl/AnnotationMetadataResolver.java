@@ -123,7 +123,7 @@ public class AnnotationMetadataResolver implements MetadataResolver {
                     final RelationType relationType = getRelationType(method);
                     final CascadeMetadata cascadeMetadata = getCascadeMetadata(method);
                     final boolean isLazy = determineLaziness(method);
-                    final ImmutableReferenceMetadata<E, Object> reference = new ImmutableReferenceMetadata<E, Object>(null, columnMetadata.getPropertyName(), null, null, relationType, cascadeMetadata, isLazy);
+                    final ImmutableReferenceMetadata<E, Object> reference = new ImmutableReferenceMetadata<E, Object>(declaringClass, columnMetadata.getPropertyName(), true, null, null, null, relationType, cascadeMetadata, isLazy);
                     reference.setForeignColumn(foreignColumn);
                     foreignReferences.add(reference);
                 }
@@ -158,8 +158,8 @@ public class AnnotationMetadataResolver implements MetadataResolver {
                         throw new EntityDefinitionError("Ambiguous one to many relationship on " + entityType.getCanonicalName() + "." + propertyName);
                     }
                     final Method foreignMethod = list.get(0);
-                    final Column column = method.getAnnotation(Column.class);
-                    final JoinColumn joinColumn = method.getAnnotation(JoinColumn.class);
+                    final Column column = foreignMethod.getAnnotation(Column.class);
+                    final JoinColumn joinColumn = foreignMethod.getAnnotation(JoinColumn.class);
                     foreignColumnName = column == null ? joinColumn.name() : column.name();
                     if (foreignColumnName.isEmpty()) {
                         foreignColumnName = ReflectionUtils.getPropertyName(foreignMethod.getName());
@@ -167,8 +167,48 @@ public class AnnotationMetadataResolver implements MetadataResolver {
                 }
                 //noinspection unchecked
                 final UnresolvedColumnMetadata foreignColumn = new UnresolvedColumnMetadata(foreignColumnName, new UnresolvedTableMetadata<Object>((Class<Object>) foreignEntity));
-                final ImmutableReferenceMetadata<E, Object> reference = new ImmutableReferenceMetadata<E, Object>(null, propertyName, null, null, getRelationType(method), getCascadeMetadata(method), determineLaziness(method));
+                final ImmutableReferenceMetadata<E, Object> reference = new ImmutableReferenceMetadata<E, Object>(ReflectionUtils.getDeclaringClass(method), propertyName, false, null, null, null, getRelationType(method), getCascadeMetadata(method), determineLaziness(method));
                 reference.setForeignColumn(foreignColumn);
+                foreignReferences.add(reference);
+            }
+        });
+        //noinspection unchecked
+        withMethods(entityType)
+        .keep(new GetterMethodFilter())
+        .keep(new AnnotatedElementFilter(OneToOne.class))
+        .drop(new AnnotatedElementFilter(Column.class, JoinColumn.class))
+        .each(new Processor<Method>() {
+            @Override
+            public void process(Method method) {
+                final OneToOne annotation = method.getAnnotation(OneToOne.class);
+                Class<?> foreignEntity = annotation.targetEntity().equals(void.class) ? method.getReturnType() : annotation.targetEntity();
+                final String propertyName = ReflectionUtils.getPropertyName(method.getName());
+                final ImmutableReferenceMetadata<E, Object> reference = new ImmutableReferenceMetadata<E, Object>(ReflectionUtils.getDeclaringClass(method), propertyName, false, null, null, null, getRelationType(method), getCascadeMetadata(method), determineLaziness(method));
+                String foreignColumnName = annotation.mappedBy();
+                if (foreignColumnName.isEmpty()) {
+                    //noinspection unchecked
+                    final List<Method> methods = withMethods(foreignEntity)
+                            .keep(new GetterMethodFilter())
+                            .keep(new MethodReturnTypeFilter(entityType))
+                            .keep(new AnnotatedElementFilter(OneToOne.class))
+                            .keep(new AnnotatedElementFilter(Column.class, JoinColumn.class))
+                            .list();
+                    if (methods.isEmpty()) {
+                        throw new EntityDefinitionError("No OneToOne relations were found on " + foreignEntity.getCanonicalName() + " for " + entityType.getCanonicalName());
+                    }
+                    if (methods.size() > 1) {
+                        throw new EntityDefinitionError("Ambiguous OneToOne relation on " + entityType.getCanonicalName() + "." + propertyName);
+                    }
+                    final Method foreignMethod = methods.get(0);
+                    final Column column = foreignMethod.getAnnotation(Column.class);
+                    final JoinColumn joinColumn = foreignMethod.getAnnotation(JoinColumn.class);
+                    foreignColumnName = column == null ? joinColumn.name() : column.name();
+                    if (foreignColumnName.isEmpty()) {
+                        foreignColumnName = ReflectionUtils.getPropertyName(foreignMethod.getName());
+                    }
+                }
+                //noinspection unchecked
+                reference.setForeignColumn(new UnresolvedColumnMetadata(foreignColumnName, new UnresolvedTableMetadata<Object>((Class<Object>) foreignEntity)));
                 foreignReferences.add(reference);
             }
         });

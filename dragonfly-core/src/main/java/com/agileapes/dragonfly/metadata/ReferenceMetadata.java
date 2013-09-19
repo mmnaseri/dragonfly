@@ -20,4 +20,8 @@ public interface ReferenceMetadata<S, D> extends Metadata {
 
     ColumnMetadata getForeignColumn();
 
+    boolean isRelationOwner();
+
+    Class<?> getDeclaringClass();
+
 }

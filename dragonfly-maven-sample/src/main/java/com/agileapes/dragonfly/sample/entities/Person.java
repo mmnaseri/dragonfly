@@ -56,6 +56,8 @@ public class Person {
     private Date birthday;
     private Person friend;
     private Collection<Thing> things;
+    private LibraryCard libraryCard;
+    private Person myFriend;
 
     @Column
     public String getName() {
@@ -67,7 +69,7 @@ public class Person {
     }
 
     @JoinColumn
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     public Person getFather() {
         return father;
     }
@@ -77,7 +79,7 @@ public class Person {
     }
 
     @JoinColumn
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     public Person getMother() {
         return mother;
     }
@@ -97,7 +99,7 @@ public class Person {
     }
 
     @JoinColumn
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     public Person getFriend() {
         return friend;
     }
@@ -107,7 +109,7 @@ public class Person {
     }
 
     @JoinColumn
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "owner")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "owner", cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
     public Collection<Thing> getThings() {
         return things;
     }
@@ -116,4 +118,21 @@ public class Person {
         this.things = things;
     }
 
+    @OneToOne(fetch = FetchType.LAZY, cascade = {CascadeType.ALL})
+    public LibraryCard getLibraryCard() {
+        return libraryCard;
+    }
+
+    public void setLibraryCard(LibraryCard libraryCard) {
+        this.libraryCard = libraryCard;
+    }
+
+    @OneToOne(mappedBy = "friend", fetch = FetchType.LAZY)
+    public Person getMyFriend() {
+        return myFriend;
+    }
+
+    public void setMyFriend(Person myFriend) {
+        this.myFriend = myFriend;
+    }
 }

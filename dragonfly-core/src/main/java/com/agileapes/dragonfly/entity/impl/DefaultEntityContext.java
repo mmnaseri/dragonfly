@@ -7,8 +7,10 @@ import com.agileapes.couteau.enhancer.impl.GeneratingClassEnhancer;
 import com.agileapes.couteau.reflection.util.ClassUtils;
 import com.agileapes.dragonfly.cg.StaticNamingPolicy;
 import com.agileapes.dragonfly.data.DataAccess;
-import com.agileapes.dragonfly.entity.*;
-import com.agileapes.dragonfly.error.EntityInitializationError;
+import com.agileapes.dragonfly.entity.EntityFactory;
+import com.agileapes.dragonfly.entity.EntityHandlerContext;
+import com.agileapes.dragonfly.entity.InitializedEntity;
+import com.agileapes.dragonfly.entity.ModifiableEntityContext;
 import com.agileapes.dragonfly.metadata.MetadataRegistry;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.security.DataSecurityManager;
@@ -83,11 +85,10 @@ public class DefaultEntityContext implements ModifiableEntityContext {
     private <E> Class<? extends E> enhanceClass(Class<E> original, EntityProxy<E> entityProxy) {
         final StaticNamingPolicy namingPolicy = new StaticNamingPolicy("Entity");
         final String className = namingPolicy.getClassName(original, null);
-        final Class<? extends E> enhancedClass;
+        Class<? extends E> enhancedClass = null;
         try {
             enhancedClass = ((Class<?>) ClassUtils.forName(className, original.getClassLoader())).asSubclass(original);
-        } catch (ClassNotFoundException e) {
-            throw new EntityInitializationError(original, e);
+        } catch (ClassNotFoundException ignored) {
         }
         if (enhancedClass != null) {
             return enhancedClass;

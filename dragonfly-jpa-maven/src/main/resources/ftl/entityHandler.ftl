@@ -9,6 +9,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import javax.annotation.Generated;
 import java.io.Serializable;
+import com.agileapes.dragonfly.metadata.CascadeMetadata;
+import com.agileapes.couteau.basics.api.Filter;
 
 @Generated(
     value = "Dragonfly",
@@ -107,11 +109,7 @@ public class ${entityType.simpleName}EntityHandler implements EntityHandler<${en
     }
 
     @Override
-    public void prepareRelations(${entityType.canonicalName} entity) {
-    }
-
-    @Override
-    public Collection<?> getRelatedItems(${entityType.canonicalName} entity) {
+    public Collection<?> prepareRelations(${entityType.canonicalName} entity, Filter<CascadeMetadata> cascadeMetadataFilter) {
         return new ArrayList<Object>();
     }
 

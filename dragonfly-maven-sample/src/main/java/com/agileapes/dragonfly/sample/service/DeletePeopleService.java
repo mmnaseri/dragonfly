@@ -1,10 +1,14 @@
 package com.agileapes.dragonfly.sample.service;
 
 import com.agileapes.dragonfly.data.DataAccess;
+import com.agileapes.dragonfly.data.DataAccessObject;
+import com.agileapes.dragonfly.sample.entities.LibraryCard;
 import com.agileapes.dragonfly.sample.entities.Person;
 import com.agileapes.dragonfly.sample.entities.Thing;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
@@ -17,8 +21,16 @@ public class DeletePeopleService {
     private DataAccess dataAccess;
 
     public void execute() {
-        dataAccess.deleteAll(Thing.class);
-        dataAccess.deleteAll(Person.class);
+        System.out.println("things = " + dataAccess.findAll(Thing.class).size());
+        System.out.println("cards = " + dataAccess.findAll(LibraryCard.class).size());
+        final List<Person> people = dataAccess.findAll(Person.class);
+        for (Person person : people) {
+            person.getLibraryCard();
+            person.getThings();
+            ((DataAccessObject) person).delete();
+        }
+        System.out.println("things = " + dataAccess.findAll(Thing.class).size());
+        System.out.println("cards = " + dataAccess.findAll(LibraryCard.class).size());
     }
 
 }
