@@ -118,7 +118,7 @@ public class Person {
         this.things = things;
     }
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = {CascadeType.ALL})
+    @OneToOne(fetch = FetchType.EAGER, cascade = {CascadeType.ALL})
     public LibraryCard getLibraryCard() {
         return libraryCard;
     }

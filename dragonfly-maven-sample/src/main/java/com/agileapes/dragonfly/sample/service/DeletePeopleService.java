@@ -25,7 +25,6 @@ public class DeletePeopleService {
         System.out.println("cards = " + dataAccess.findAll(LibraryCard.class).size());
         final List<Person> people = dataAccess.findAll(Person.class);
         for (Person person : people) {
-            person.getLibraryCard();
             person.getThings();
             ((DataAccessObject) person).delete();
         }

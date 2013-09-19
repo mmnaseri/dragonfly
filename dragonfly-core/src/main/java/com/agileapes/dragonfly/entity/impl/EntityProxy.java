@@ -106,7 +106,7 @@ public class EntityProxy<E> extends SecuredInterfaceInterceptor implements Initi
 
     @Override
     public void delete() {
-        dataAccess.delete(entityType, handler.getKey(entity));
+        dataAccess.delete(entity);
         deleted = true;
     }
 
@@ -171,8 +171,8 @@ public class EntityProxy<E> extends SecuredInterfaceInterceptor implements Initi
                 final Object propertyValue;
                 if (referenceMetadata.getRelationType().equals(RelationType.ONE_TO_MANY)) {
                     propertyValue = loadOneToMany(referenceMetadata);
-//                } else if (referenceMetadata.getRelationType().equals(RelationType.ONE_TO_ONE)) {
-//                    propertyValue = loadOneToOne(referenceMetadata);
+                } else if (referenceMetadata.getRelationType().equals(RelationType.ONE_TO_ONE)) {
+                    propertyValue = loadOneToOne(referenceMetadata);
                 } else {
                     return;
                 }
