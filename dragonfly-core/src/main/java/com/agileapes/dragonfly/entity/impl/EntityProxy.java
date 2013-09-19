@@ -168,7 +168,14 @@ public class EntityProxy<E> extends SecuredInterfaceInterceptor implements Initi
         }).each(new Processor<ReferenceMetadata<E, ?>>() {
             @Override
             public void process(ReferenceMetadata<E, ?> referenceMetadata) {
-                final Object propertyValue;
+                Object propertyValue = null;
+                try {
+                    propertyValue = wrapper.getPropertyValue(referenceMetadata.getPropertyName());
+                } catch (Exception ignored) {
+                }
+                if (propertyValue != null) {
+                    return;
+                }
                 if (referenceMetadata.getRelationType().equals(RelationType.ONE_TO_MANY)) {
                     propertyValue = loadOneToMany(referenceMetadata);
                 } else if (referenceMetadata.getRelationType().equals(RelationType.ONE_TO_ONE)) {
