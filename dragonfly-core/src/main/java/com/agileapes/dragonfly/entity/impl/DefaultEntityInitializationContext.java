@@ -43,9 +43,15 @@ public class DefaultEntityInitializationContext extends CachingDataDispenser<Def
 
     private final Cache<EntityInstanceDescriptor, Object> cache = new ConcurrentCache<EntityInstanceDescriptor, Object>();
     private final DataAccess dataAccess;
+    private final EntityInitializationContext parent;
 
     public DefaultEntityInitializationContext(DataAccess dataAccess) {
+        this(dataAccess, null);
+    }
+
+    public DefaultEntityInitializationContext(DataAccess dataAccess, EntityInitializationContext parent) {
         this.dataAccess = dataAccess;
+        this.parent = parent;
     }
 
     @Override
@@ -55,6 +61,9 @@ public class DefaultEntityInitializationContext extends CachingDataDispenser<Def
 
     @Override
     protected Object produce(EntityInstanceDescriptor key) {
+        if (parent != null) {
+            return parent.get(key.entityType, key.key);
+        }
         return dataAccess.find(key.entityType, key.key);
     }
 

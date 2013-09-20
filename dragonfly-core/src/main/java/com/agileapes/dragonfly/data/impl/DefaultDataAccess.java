@@ -219,12 +219,6 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         return list;
     }
 
-    @Override
-    public <E, K extends Serializable> K getKey(E entity) {
-        //noinspection unchecked
-        return (K) handlerContext.getHandler(entity).getKey(entity);
-    }
-
     private <E> int internalExecuteUpdate(E original, E replacement, String queryName) {
         final EntityHandler<E> entityHandler = handlerContext.getHandler(original);
         final Map<String, Object> originalMap = entityHandler.toMap(original);
