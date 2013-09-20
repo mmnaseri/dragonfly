@@ -2,6 +2,8 @@ package com.agileapes.dragonfly.entity.impl;
 
 import com.agileapes.couteau.basics.api.Filter;
 import com.agileapes.couteau.basics.api.Processor;
+import com.agileapes.couteau.basics.api.Transformer;
+import com.agileapes.couteau.basics.api.impl.NullFilter;
 import com.agileapes.couteau.reflection.beans.BeanAccessor;
 import com.agileapes.couteau.reflection.beans.BeanWrapper;
 import com.agileapes.couteau.reflection.beans.impl.MethodBeanAccessor;
@@ -11,11 +13,13 @@ import com.agileapes.couteau.reflection.error.PropertyAccessException;
 import com.agileapes.couteau.reflection.error.PropertyTypeMismatchException;
 import com.agileapes.dragonfly.entity.EntityContext;
 import com.agileapes.dragonfly.entity.EntityHandler;
+import com.agileapes.dragonfly.entity.EntityInitializationContext;
 import com.agileapes.dragonfly.entity.InitializedEntity;
 import com.agileapes.dragonfly.error.EntityDefinitionError;
 import com.agileapes.dragonfly.error.NoPrimaryKeyDefinedError;
 import com.agileapes.dragonfly.metadata.*;
 import com.agileapes.dragonfly.metadata.impl.PrimaryKeyConstraintMetadata;
+import com.agileapes.dragonfly.tools.ColumnPropertyFilter;
 
 import java.io.Serializable;
 import java.util.*;
@@ -65,8 +69,35 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
     }
 
     @Override
-    public E fromMap(E entity, Map<String, Object> map) {
-        return entityCreator.fromMap(tableMetadata, map);
+    public E fromMap(E entity, final Map<String, Object> map, final EntityInitializationContext initializationContext) {
+        final E result = entityCreator.fromMap(tableMetadata, map, initializationContext);
+        final BeanWrapper<E> wrapper = new MethodBeanWrapper<E>(result);
+        //noinspection unchecked
+        with(tableMetadata.getForeignReferences())
+                .drop(new Filter<ReferenceMetadata<E, ?>>() {
+                    @Override
+                    public boolean accepts(ReferenceMetadata<E, ?> item) {
+                        return item.isLazy() || !item.isRelationOwner() || item.getRelationType().getForeignCardinality() > 1;
+                    }
+                })
+                .transform(new Transformer<ReferenceMetadata<E, ?>, ColumnMetadata>() {
+                    @Override
+                    public ColumnMetadata map(ReferenceMetadata<E, ?> reference) {
+                        return with(reference.getLocalTable().getColumns()).find(new ColumnPropertyFilter(reference.getPropertyName()));
+                    }
+                })
+                .drop(new NullFilter<ColumnMetadata>())
+                .each(new Processor<ColumnMetadata>() {
+                    @Override
+                    public void process(ColumnMetadata input) {
+                        try {
+                            wrapper.setPropertyValue(input.getPropertyName(), initializationContext.get(input.getPropertyType(), (Serializable) map.get(input.getName())));
+                        } catch (Exception e) {
+                            throw new EntityDefinitionError("Entity definition is corrupted as the proper way of injecting dependencies cannot be deduced", e);
+                        }
+                    }
+                });
+        return result;
     }
 
     @Override

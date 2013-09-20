@@ -35,9 +35,10 @@ public interface EntityHandler<E> {
      * that here, the map's keys are column names.
      * @param entity    the entity to be populated
      * @param map       the map to read from
+     * @param initializationContext
      * @return populated entity (same instance as the input)
      */
-    E fromMap(E entity, Map<String, Object> map);
+    E fromMap(E entity, Map<String, Object> map, EntityInitializationContext initializationContext);
 
     /**
      * Returns the current value set for the key property on the given entity, or throws
