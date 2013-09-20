@@ -7,10 +7,8 @@ import com.agileapes.dragonfly.data.DataAccessSession;
 import com.agileapes.dragonfly.data.PartialDataAccess;
 import com.agileapes.dragonfly.entity.EntityContext;
 import com.agileapes.dragonfly.entity.EntityHandlerContext;
-import com.agileapes.dragonfly.entity.impl.DefaultEntityHandlerContext;
 import com.agileapes.dragonfly.events.DataAccessEventHandler;
 import com.agileapes.dragonfly.events.EventHandlerContext;
-import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.security.DataSecurityManager;
 import com.agileapes.dragonfly.security.impl.MethodSubject;
 import org.apache.commons.logging.Log;
@@ -23,13 +21,10 @@ import java.util.List;
 import java.util.Map;
 
 @SuppressWarnings("unchecked")
-public class SecuredDataAccess extends DefaultDataAccess implements PartialDataAccess, EventHandlerContext {
+public class SecuredDataAccess extends CachingDataAccess implements PartialDataAccess, EventHandlerContext {
 
     private static final Map<Integer, MethodDescriptor> methodDescriptors = new HashMap<Integer, MethodDescriptor>();
     static {
-        methodDescriptors.put(0, new ImmutableMethodDescriptor(DefaultDataAccess.class, Serializable.class, "getKey", new Class[]{Object.class}, new Annotation[0]));
-        methodDescriptors.put(1, new ImmutableMethodDescriptor(DefaultDataAccess.class, Object.class, "getInstance", new Class[]{Class.class}, new Annotation[0]));
-        methodDescriptors.put(2, new ImmutableMethodDescriptor(DefaultDataAccess.class, Object.class, "getInstance", new Class[]{TableMetadata.class}, new Annotation[0]));
         methodDescriptors.put(3, new ImmutableMethodDescriptor(DefaultDataAccess.class, Object.class, "find", new Class[]{Class.class, Serializable.class}, new Annotation[0]));
         methodDescriptors.put(4, new ImmutableMethodDescriptor(DefaultDataAccess.class, List.class, "find", new Class[]{Object.class}, new Annotation[0]));
         methodDescriptors.put(5, new ImmutableMethodDescriptor(DefaultDataAccess.class, void.class, "save", new Class[]{Object.class}, new Annotation[0]));
@@ -65,12 +60,6 @@ public class SecuredDataAccess extends DefaultDataAccess implements PartialDataA
         super(session, securityManager, entityContext, handlerContext, autoInitialize);
         this.securityManager = securityManager;
         log.info("Initializing secured data access interface");
-    }
-
-    @Override
-    public Serializable getKey(final Object entity) {
-        securityManager.checkAccess(new MethodSubject(methodDescriptors.get(0)));
-        return super.getKey(entity);
     }
 
     @Override

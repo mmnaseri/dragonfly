@@ -109,17 +109,6 @@ public interface DataAccess {
     <E> List<E> findAll(Class<E> entityType);
 
     /**
-     * Returns the value of the key attributed to the entity
-     * @param entity    the entity to be examined. This entity must belong to the data access
-     *                  interface's defining context, i.e., it must be initialized through
-     *                  {@link EntityContext#getInstance(Class)} or {@link EntityContext#getInstance(TableMetadata)}
-     * @param <E>       the type of the entity
-     * @param <K>       the type of the key
-     * @return the value of the key
-     */
-    <E, K extends Serializable> K getKey(E entity);
-
-    /**
      * Executes the named query for the item, injecting values as necessary from the
      * provided map
      * @param entityType    the type of the entity. This must be an entity for which
