@@ -17,7 +17,7 @@
         <property name="locations" value="classpath:db.properties"/>
     </bean>
 
-    <bean id="statementRegistry" class="com.agileapes.dragonfly.statement.impl.StatementRegistry"/>
+    <bean id="statementRegistry" class="com.agileapes.dragonfly.statement.impl.DefaultStatementRegistry"/>
 
     <bean id="metadataContext" class="com.agileapes.dragonfly.metadata.impl.DefaultMetadataContext"/>
 

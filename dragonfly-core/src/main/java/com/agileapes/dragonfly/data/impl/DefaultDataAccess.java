@@ -132,7 +132,6 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         if (affectedRows <= 0) {
             throw new UnsuccessfulOperationError("Failed to save entity " + entityHandler.getEntityType().getCanonicalName());
         }
-        object.saveRelations();
         if (shouldUpdate) {
             eventHandler.afterUpdate(entity);
         } else {
@@ -147,7 +146,6 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         entity = (E) checkEntity(entity);
         log.info("Going to delete entity " + entity);
         eventHandler.beforeDelete(entity);
-        ((DataAccessObject) entity).deleteRelations();
         if (internalExecuteUpdate(entity, "deleteLike", true) <= 0) {
             throw new UnsupportedOperationException("Failed to delete entity");
         }
@@ -330,8 +328,6 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
                 entity = entityHandler.fromMap(entity, rowHandler.handleRow(resultSet), new DefaultEntityInitializationContext(this));
                 //noinspection unchecked
                 ((InitializedEntity<E>) entity).setOriginalCopy(entity);
-                //noinspection unchecked
-                ((DataAccessObject) entity).loadRelations();
                 //noinspection unchecked
                 ((InitializedEntity<E>) entity).unfreeze();
                 result.add(entity);

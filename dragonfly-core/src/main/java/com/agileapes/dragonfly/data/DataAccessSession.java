@@ -2,7 +2,10 @@ package com.agileapes.dragonfly.data;
 
 import com.agileapes.dragonfly.data.impl.DefaultDataStructureHandler;
 import com.agileapes.dragonfly.dialect.DatabaseDialect;
-import com.agileapes.dragonfly.error.DataAccessSessionInitializationError;import com.agileapes.dragonfly.metadata.MetadataRegistry;
+import com.agileapes.dragonfly.error.DataAccessSessionInitializationError;
+import com.agileapes.dragonfly.error.DatabaseConnectionError;
+import com.agileapes.dragonfly.metadata.MetadataRegistry;
+import com.agileapes.dragonfly.statement.impl.LocalStatementRegistry;
 import com.agileapes.dragonfly.statement.impl.StatementRegistry;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -83,14 +86,17 @@ public class DataAccessSession {
      * Returns a connection from the underlying data source, using authentication credentials
      * if necessary
      * @return the connection instance
-     * @throws SQLException
      */
-    public Connection getConnection() throws SQLException {
+    public Connection getConnection() {
         log.info("Connection requested");
-        if (username != null && password != null) {
-            return dataSource.getConnection(username, password);
-        } else {
-            return dataSource.getConnection();
+        try {
+            if (username != null && password != null) {
+                return dataSource.getConnection(username, password);
+            } else {
+                return dataSource.getConnection();
+            }
+        } catch (SQLException e) {
+            throw new DatabaseConnectionError(e);
         }
     }
 
@@ -106,6 +112,20 @@ public class DataAccessSession {
      */
     public StatementRegistry getStatementRegistry() {
         return statementRegistry;
+    }
+
+    /**
+     * @return the statement registry associated with session
+     */
+    public StatementRegistry getStatementRegistry(String region) {
+        return new LocalStatementRegistry(statementRegistry, region);
+    }
+
+    /**
+     * @return the statement registry associated with session
+     */
+    public StatementRegistry getStatementRegistry(Class<?> entityType) {
+        return getStatementRegistry(entityType.getCanonicalName());
     }
 
     /**

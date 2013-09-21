@@ -49,19 +49,20 @@ public class DefaultEntityContext implements ModifiableEntityContext {
 
     @Override
     public <E> E getInstance(TableMetadata<E> tableMetadata) {
-        final EntityProxy<E> entityProxy = new EntityProxy<E>(dataAccess, tableMetadata, securityManager, handlerContext.getHandler(tableMetadata.getEntityType()), this);
+        final EntityProxy<E> entityProxy = new EntityProxy<E>(securityManager);
         if (interfaces.containsKey(tableMetadata.getEntityType())) {
             final Map<Class<?>, Class<?>> classMap = interfaces.get(tableMetadata.getEntityType());
             for (Map.Entry<Class<?>, Class<?>> entry : classMap.entrySet()) {
                 entityProxy.addInterface(entry.getKey(), entry.getValue());
             }
         }
-        final E proxy = enhanceObject(tableMetadata.getEntityType(), entityProxy);
-        //noinspection unchecked
-        ((InitializedEntity<E>) proxy).initialize(tableMetadata.getEntityType(), proxy, key);
-        //noinspection unchecked
-        ((InitializedEntity<E>) proxy).setOriginalCopy(proxy);
-        return proxy;
+        final E entity = enhanceObject(tableMetadata.getEntityType(), entityProxy);
+        if (entity instanceof InitializedEntity<?>) {
+            //noinspection unchecked
+            InitializedEntity<E> initializedEntity = (InitializedEntity<E>) entity;
+            initializedEntity.initialize(tableMetadata.getEntityType(), entity, key);
+        }
+        return entity;
     }
 
     private <E> E enhanceObject(Class<E> type, EntityProxy<E> entityProxy) {
@@ -102,7 +103,11 @@ public class DefaultEntityContext implements ModifiableEntityContext {
 
     @Override
     public <E> boolean has(E entity) {
-        return entity instanceof InitializedEntity && ((InitializedEntity) entity).getToken().equals(key);
+        if (entity instanceof InitializedEntity) {
+            InitializedEntity initializedEntity = (InitializedEntity) entity;
+            return key.equals(initializedEntity.getToken());
+        }
+        return false;
     }
 
     @Override

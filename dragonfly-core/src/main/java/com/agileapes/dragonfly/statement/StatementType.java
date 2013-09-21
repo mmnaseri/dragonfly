@@ -6,7 +6,7 @@ package com.agileapes.dragonfly.statement;
  */
 public enum StatementType {
 
-    QUERY("SELECT"), INSERT("INSERT"), UPDATE("UPDATE"), DELETE("DELETE"), TRUNCATE("TRUNCATE"), DEFINITION("<none>");
+    QUERY("SELECT"), INSERT("INSERT"), UPDATE("UPDATE"), DELETE("DELETE"), TRUNCATE("TRUNCATE"), DEFINITION("<none>"), CALL("CALL");
 
     private final String starter;
 
@@ -23,6 +23,9 @@ public enum StatementType {
             if (type.starter.startsWith(starter)) {
                 return type;
             }
+        }
+        if (starter.matches("CALL\\s.*")) {
+            return CALL;
         }
         return DEFINITION;
     }

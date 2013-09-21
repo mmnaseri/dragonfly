@@ -1,9 +1,6 @@
 package com.agileapes.dragonfly.sample;
 
-import com.agileapes.dragonfly.sample.service.CreatePersonService;
-import com.agileapes.dragonfly.sample.service.DeletePeopleService;
-import com.agileapes.dragonfly.sample.service.InstantiationService;
-import com.agileapes.dragonfly.sample.service.ListPeopleService;
+import com.agileapes.dragonfly.sample.service.SampleService;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
@@ -14,10 +11,11 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         final ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("/sample.xml");
-        context.getBean(DeletePeopleService.class).execute();
-        context.getBean(CreatePersonService.class).execute();
-        context.getBean(ListPeopleService.class).execute();
-        context.getBean(InstantiationService.class).execute();
+//        context.getBean(DeletePeopleService.class).execute();
+//        context.getBean(CreatePersonService.class).execute();
+//        context.getBean(ListPeopleService.class).execute();
+//        context.getBean(InstantiationService.class).execute();
+        context.getBean(SampleService.class).execute();
     }
 
 }

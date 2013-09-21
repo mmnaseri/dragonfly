@@ -68,6 +68,16 @@ public class DefaultEntityInitializationContext extends CachingDataDispenser<Def
     }
 
     @Override
+    public <E> void delete(Class<E> entityType, Serializable key) {
+        final EntityInstanceDescriptor descriptor = getDescriptor(entityType, key);
+        if (parent != null && !contains(descriptor)) {
+            parent.delete(entityType, key);
+            return;
+        }
+        remove(descriptor);
+    }
+
+    @Override
     public <E> void register(Class<E> entityType, Serializable key, E entity) {
         write(getDescriptor(entityType, key), entity);
     }

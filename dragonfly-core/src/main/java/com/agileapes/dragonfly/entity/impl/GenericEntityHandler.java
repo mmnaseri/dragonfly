@@ -14,7 +14,6 @@ import com.agileapes.couteau.reflection.error.PropertyTypeMismatchException;
 import com.agileapes.dragonfly.entity.EntityContext;
 import com.agileapes.dragonfly.entity.EntityHandler;
 import com.agileapes.dragonfly.entity.EntityInitializationContext;
-import com.agileapes.dragonfly.entity.InitializedEntity;
 import com.agileapes.dragonfly.error.EntityDefinitionError;
 import com.agileapes.dragonfly.error.NoPrimaryKeyDefinedError;
 import com.agileapes.dragonfly.metadata.*;
@@ -22,7 +21,10 @@ import com.agileapes.dragonfly.metadata.impl.PrimaryKeyConstraintMetadata;
 import com.agileapes.dragonfly.tools.ColumnPropertyFilter;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Map;
 
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 
@@ -138,11 +140,6 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
 
     @Override
     public void copy(E original, E copy) {
-        if (copy instanceof InitializedEntity<?>) {
-            //noinspection unchecked
-            InitializedEntity<E> entity = (InitializedEntity<E>) copy;
-            entity.freeze();
-        }
         final BeanAccessor<E> reader = new MethodBeanAccessor<E>(original);
         final BeanWrapper<E> writer = new MethodBeanWrapper<E>(copy);
         //noinspection unchecked
@@ -166,11 +163,6 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
                         }
                     }
                 });
-        if (copy instanceof InitializedEntity<?>) {
-            //noinspection unchecked
-            InitializedEntity<E> entity = (InitializedEntity<E>) copy;
-            entity.unfreeze();
-        }
     }
 
     @Override

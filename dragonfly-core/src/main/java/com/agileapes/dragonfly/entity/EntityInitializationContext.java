@@ -8,6 +8,8 @@ import java.io.Serializable;
  */
 public interface EntityInitializationContext {
 
+    <E> void delete(Class<E> entityType, Serializable key);
+
     <E> void register(Class<E> entityType, Serializable key, E entity);
 
     <E> E get(Class<E> entityType, Serializable key);
