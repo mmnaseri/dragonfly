@@ -31,7 +31,7 @@ public interface DataAccess {
      *                  {@link EntityContext#getInstance(Class)} or {@link EntityContext#getInstance(TableMetadata)}
      * @param <E>       the type of the entity
      */
-    <E> void save(E entity);
+    <E> E save(E entity);
 
     /**
      * <p>Attempts to delete the given entity. This is done by taking the given
@@ -175,5 +175,17 @@ public interface DataAccess {
      * @return the result of the call of an empty list if no result is returned
      */
     <E> List<?> call(Class<E> entityType, String procedureName, Object... parameters);
+
+    <E> long count(Class<E> entityType);
+
+    <E> long count(E sample);
+
+    <E> boolean exists(E sample);
+
+    <E, K extends Serializable> boolean exists(Class<E> entityType, K key);
+
+    <E> long count(Class<E> entityType, Map<String, Object> values);
+
+    <E> boolean exists(Class<E> entityType, Map<String, Object> values);
 
 }

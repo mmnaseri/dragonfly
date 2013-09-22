@@ -1,5 +1,6 @@
 package com.agileapes.dragonfly.data.impl;
 
+import com.agileapes.couteau.basics.api.Filter;
 import com.agileapes.couteau.context.error.RegistryException;
 import com.agileapes.couteau.reflection.beans.BeanInitializer;
 import com.agileapes.couteau.reflection.beans.impl.ConstructorBeanInitializer;
@@ -8,11 +9,10 @@ import com.agileapes.dragonfly.data.DataAccessObject;
 import com.agileapes.dragonfly.data.DataAccessSession;
 import com.agileapes.dragonfly.data.PartialDataAccess;
 import com.agileapes.dragonfly.entity.*;
+import com.agileapes.dragonfly.entity.impl.DefaultEntityInitializationContext;
+import com.agileapes.dragonfly.entity.impl.DefaultRowHandler;
 import com.agileapes.dragonfly.entity.impl.ThreadLocalEntityInitializationContext;
-import com.agileapes.dragonfly.error.InvalidStatementTypeError;
-import com.agileapes.dragonfly.error.StatementExecutionFailureError;
-import com.agileapes.dragonfly.error.UnrecognizedQueryError;
-import com.agileapes.dragonfly.error.UnsuccessfulOperationError;
+import com.agileapes.dragonfly.error.*;
 import com.agileapes.dragonfly.events.DataAccessEventHandler;
 import com.agileapes.dragonfly.events.EventHandlerContext;
 import com.agileapes.dragonfly.events.impl.CompositeDataAccessEventHandler;
@@ -27,12 +27,12 @@ import org.apache.commons.logging.LogFactory;
 
 import java.io.Serializable;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
@@ -50,11 +50,13 @@ public class CachingDataAccess implements PartialDataAccess, EventHandlerContext
         STATEMENTS.put(Statements.Manipulation.FIND_ALL, "findAll");
         STATEMENTS.put(Statements.Manipulation.FIND_LIKE, "findLike");
         STATEMENTS.put(Statements.Manipulation.FIND_ONE, "findByKey");
+        STATEMENTS.put(Statements.Manipulation.COUNT_ALL, "countAll");
+        STATEMENTS.put(Statements.Manipulation.COUNT_LIKE, "countLike");
+        STATEMENTS.put(Statements.Manipulation.COUNT_ONE, "countByKey");
         STATEMENTS.put(Statements.Manipulation.INSERT, "insert");
         STATEMENTS.put(Statements.Manipulation.TRUNCATE, "truncate");
         STATEMENTS.put(Statements.Manipulation.UPDATE, "updateBySample");
     }
-
 
     private final DataAccessSession session;
     private final DataSecurityManager securityManager;
@@ -64,6 +66,9 @@ public class CachingDataAccess implements PartialDataAccess, EventHandlerContext
     private final ColumnMappingMetadataCollector metadataCollector;
     private final CompositeDataAccessEventHandler eventHandler;
     private final EntityInitializationContext initializationContext;
+    private final RowHandler rowHandler;
+    private final ThreadLocal<Map<Object, Object>> saveQueue;
+    private final ThreadLocal<Set<Object>> deleteQueue;
 
     public CachingDataAccess(DataAccessSession session, DataSecurityManager securityManager, EntityContext entityContext, EntityHandlerContext entityHandlerContext) {
         this(session, securityManager, entityContext, entityHandlerContext, true);
@@ -78,6 +83,19 @@ public class CachingDataAccess implements PartialDataAccess, EventHandlerContext
         this.metadataCollector = new ColumnMappingMetadataCollector();
         this.eventHandler = new CompositeDataAccessEventHandler();
         this.initializationContext = new ThreadLocalEntityInitializationContext(this);
+        this.rowHandler = new DefaultRowHandler();
+        this.saveQueue = new ThreadLocal<Map<Object, Object>>() {
+            @Override
+            protected Map<Object, Object> initialValue() {
+                return new HashMap<Object, Object>();
+            }
+        };
+        this.deleteQueue = new ThreadLocal<Set<Object>>() {
+            @Override
+            protected Set<Object> initialValue() {
+                return new HashSet<Object>();
+            }
+        };
         if (autoInitialize) {
             log.info("Automatically initializing the session");
             synchronized (this.session) {
@@ -116,6 +134,83 @@ public class CachingDataAccess implements PartialDataAccess, EventHandlerContext
         } catch (SQLException e) {
             throw new StatementExecutionFailureError("Failed to execute statement", e);
         }
+    }
+
+    /**
+     * Internal query methods
+     */
+
+    private <E> List<E> internalExecuteQuery(Class<E> entityType, Statements.Manipulation statement) {
+        return internalExecuteQuery(entityType, statement, Collections.<String, Object>emptyMap());
+    }
+
+    private <E> List<E> internalExecuteQuery(Class<E> entityType, Statements.Manipulation statement, Map<String, Object> values) {
+        return internalExecuteQuery(entityType, STATEMENTS.get(statement), values);
+    }
+
+    private <E> List<E> internalExecuteQuery(Class<E> entityType, String statementName) {
+        return internalExecuteQuery(entityType, statementName, Collections.<String, Object>emptyMap());
+    }
+
+    private <E> List<E> internalExecuteQuery(Class<E> entityType, String statementName, Map<String, Object> values) {
+        final EntityHandler<E> entityHandler = entityHandlerContext.getHandler(entityType);
+        final List<Map<String, Object>> maps = internalExecuteUntypedQuery(entityType, statementName, values);
+        final ArrayList<E> result = new ArrayList<E>();
+        for (Map<String, Object> entityMap : maps) {
+            final E instance = entityContext.getInstance(entityType);
+            entityHandler.fromMap(instance, entityMap);
+            if (entityHandler.hasKey()) {
+                final Serializable key = entityHandler.getKey(instance);
+                if (initializationContext.contains(entityType, key)) {
+                    result.add(initializationContext.get(entityType, key));
+                    continue;
+                }
+            }
+            prepareEntity(instance, entityMap);
+            result.add(instance);
+        }
+        return result;
+    }
+
+    private <E> List<Map<String, Object>> internalExecuteUntypedQuery(Class<E> entityType, String statementName) {
+        return internalExecuteUntypedQuery(entityType, statementName, Collections.<String, Object>emptyMap());
+    }
+
+    private <E> List<Map<String, Object>> internalExecuteUntypedQuery(Class<E> entityType, Statements.Manipulation statement) {
+        return internalExecuteUntypedQuery(entityType, statement, Collections.<String, Object>emptyMap());
+    }
+
+    private <E> List<Map<String, Object>> internalExecuteUntypedQuery(Class<E> entityType, Statements.Manipulation statement, Map<String, Object> values) {
+        return internalExecuteUntypedQuery(entityType, STATEMENTS.get(statement), values);
+    }
+
+    private <E> List<Map<String, Object>> internalExecuteUntypedQuery(Class<E> entityType, String statementName, Map<String, Object> values) {
+        final Statement statement = getStatement(entityType, statementName, StatementType.QUERY);
+        final PreparedStatement preparedStatement = statement.prepare(session.getConnection(), null, values);
+        final EntityHandler<E> entityHandler = entityHandlerContext.getHandler(entityType);
+        final ArrayList<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
+        try {
+            final ResultSet resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                result.add(rowHandler.handleRow(resultSet));
+            }
+        } catch (SQLException e) {
+            throw new UnsuccessfulOperationError("Failed to retrieve result set from the database", e);
+        }
+        return result;
+    }
+
+    private <E> long internalCount(Class<E> entityType, Statements.Manipulation statement, Map<String, Object> values) {
+        final List<Map<String, Object>> list = internalExecuteUntypedQuery(entityType, statement, values);
+        if (list.size() != 1) {
+            throw new UnsuccessfulOperationError("Failed to execute statement");
+        }
+        return (Long) list.get(0).get(with(list.get(0).keySet()).find(new Filter<String>() {
+            @Override
+            public boolean accepts(String item) {
+                return session.getDatabaseDialect().getCountColumn().equalsIgnoreCase(item);
+            }
+        }));
     }
 
     /**
@@ -172,6 +267,26 @@ public class CachingDataAccess implements PartialDataAccess, EventHandlerContext
         return result;
     }
 
+    private <E> void prepareEntity(E entity, Map<String, Object> values) {
+        final E enhancedEntity = getEnhancedEntity(entity);
+        final InitializedEntity<E> initializedEntity = getInitializedEntity(enhancedEntity);
+        final EntityHandler<E> entityHandler = entityHandlerContext.getHandler(entity);
+        final EntityInitializationContext initializationContext;
+        if (initializedEntity.getInitializationContext() != null) {
+            initializationContext = initializedEntity.getInitializationContext();
+        } else {
+            initializationContext = new DefaultEntityInitializationContext(this, this.initializationContext);
+            final Serializable key = entityHandler.getKey(enhancedEntity);
+            if (entityHandler.hasKey() && key != null) {
+                initializationContext.register(entityHandler.getEntityType(), key, enhancedEntity);
+            }
+            initializedEntity.setInitializationContext(initializationContext);
+        }
+        initializationContext.lock();
+        entityHandler.loadRelations(enhancedEntity, values, initializationContext);
+        initializationContext.unlock();
+    }
+
     /**
      * Partial data access support
      */
@@ -206,11 +321,18 @@ public class CachingDataAccess implements PartialDataAccess, EventHandlerContext
      */
 
     @Override
-    public <E> void save(E entity) {
+    public <E> E save(E entity) {
+        final Map<Object, Object> saveQueue = this.saveQueue.get();
+        if (saveQueue.containsKey(entity)) {
+            //noinspection unchecked
+            return (E) saveQueue.get(entity);
+        }
         final EntityHandler<E> entityHandler = entityHandlerContext.getHandler(entity);
         final E enhancedEntity = getEnhancedEntity(entity);
+        saveQueue.put(entity, enhancedEntity);
         final InitializedEntity<E> initializedEntity = getInitializedEntity(enhancedEntity);
         eventHandler.beforeSave(enhancedEntity);
+        entityHandler.saveDependencyRelations(enhancedEntity, this);
         boolean shouldUpdate = entityHandler.hasKey() && entityHandler.getKey(entity) != null;
         if (!shouldUpdate) {
             eventHandler.beforeInsert(enhancedEntity);
@@ -225,13 +347,12 @@ public class CachingDataAccess implements PartialDataAccess, EventHandlerContext
             if (entityHandler.isKeyAutoGenerated()) {
                 try {
                     final Serializable key = session.getDatabaseDialect().retrieveKey(preparedStatement.getGeneratedKeys(), session.getMetadataRegistry().getTableMetadata(entityHandler.getEntityType()));
-                    entityHandler.setKey(entity, key);
+                    entityHandler.setKey(enhancedEntity, key);
                 } catch (SQLException e) {
                     throw new UnsupportedOperationException("Failed to retrieve auto-generated keys", e);
                 }
             }
             initializedEntity.setOriginalCopy(enhancedEntity);
-            eventHandler.afterInsert(enhancedEntity);
         } else {
             eventHandler.beforeUpdate(enhancedEntity);
             final Map<String, Object> current = entityHandler.toMap(enhancedEntity);
@@ -249,26 +370,42 @@ public class CachingDataAccess implements PartialDataAccess, EventHandlerContext
             if (internalExecuteUpdate(entityHandler.getEntityType(), Statements.Manipulation.UPDATE, values) <= 0) {
                 throw new UnsupportedOperationException("Failed to update object");
             }
+        }
+        if (!shouldUpdate) {
+            eventHandler.afterInsert(enhancedEntity);
+        } else {
             eventHandler.afterUpdate(enhancedEntity);
         }
+        entityHandler.saveDependentRelations(enhancedEntity, this);
         eventHandler.afterSave(enhancedEntity);
+        saveQueue.remove(entity);
+        return enhancedEntity;
     }
 
     @Override
     public <E> void delete(E entity) {
+        final Set<Object> deleteQueue = this.deleteQueue.get();
+        if (deleteQueue.contains(entity)) {
+            return;
+        }
+        deleteQueue.add(entity);
         final EntityHandler<E> entityHandler = entityHandlerContext.getHandler(entity);
         final E enhancedEntity = getEnhancedEntity(entity);
         eventHandler.beforeDelete(enhancedEntity);
-        final Map<String, Object> map = entityHandler.toMap(enhancedEntity);
-        //todo delete cascading relations
-        final Statements.Manipulation statement;
-        if (entityHandler.hasKey() && entityHandler.getKey(enhancedEntity) != null) {
-            statement = Statements.Manipulation.DELETE_ONE;
-        } else {
-            statement = Statements.Manipulation.DELETE_ALL;
+        final Map<String, Object> map = MapTools.prefixKeys(entityHandler.toMap(enhancedEntity), "value.");
+        if (exists(entityHandler.getEntityType(), map)) {
+            entityHandler.deleteDependencyRelations(enhancedEntity, this);
+            final Statements.Manipulation statement;
+            if (entityHandler.hasKey() && entityHandler.getKey(enhancedEntity) != null) {
+                statement = Statements.Manipulation.DELETE_ONE;
+            } else {
+                statement = Statements.Manipulation.DELETE_LIKE;
+            }
+            internalExecuteUpdate(entityHandler.getEntityType(), statement, map);
+            entityHandler.deleteDependentRelations(enhancedEntity, this);
         }
-        internalExecuteUpdate(entityHandler.getEntityType(), statement, map);
         eventHandler.afterDelete(enhancedEntity);
+        deleteQueue.remove(entity);
     }
 
     @Override
@@ -297,17 +434,43 @@ public class CachingDataAccess implements PartialDataAccess, EventHandlerContext
 
     @Override
     public <E> List<E> find(E sample) {
-        return null;
+        final E enhancedEntity = getEnhancedEntity(sample);
+        final EntityHandler<E> entityHandler = entityHandlerContext.getHandler(sample);
+        eventHandler.beforeFind(enhancedEntity);
+        final List<E> found = internalExecuteQuery(entityHandler.getEntityType(), Statements.Manipulation.FIND_LIKE, MapTools.prefixKeys(entityHandler.toMap(enhancedEntity), "value."));
+        eventHandler.afterFind(enhancedEntity, found);
+        return found;
     }
 
     @Override
     public <E, K extends Serializable> E find(Class<E> entityType, K key) {
-        return null;
+        if (initializationContext.contains(entityType, key)) {
+            return initializationContext.get(entityType, key);
+        }
+        final E instance = entityContext.getInstance(entityType);
+        final EntityHandler<E> entityHandler = entityHandlerContext.getHandler(entityType);
+        entityHandler.setKey(instance, key);
+        final Map<String, Object> map = MapTools.prefixKeys(entityHandler.toMap(instance), "value.");
+        final List<E> list = internalExecuteQuery(entityType, Statements.Manipulation.FIND_ONE, map);
+        final E result;
+        if (list.isEmpty()) {
+            result = null;
+        } else if (list.size() == 1) {
+            result = list.get(0);
+        } else {
+            throw new EntityDefinitionError("More than one item correspond to type " + entityType.getCanonicalName() + " and key " + key);
+        }
+        eventHandler.afterFind(entityType, key, result);
+        return result;
     }
 
     @Override
     public <E> List<E> findAll(Class<E> entityType) {
-        return null;
+        final EntityHandler<E> entityHandler = entityHandlerContext.getHandler(entityType);
+        eventHandler.beforeFindAll(entityType);
+        final List<E> found = internalExecuteQuery(entityHandler.getEntityType(), Statements.Manipulation.FIND_ALL);
+        eventHandler.afterFindAll(entityType, found);
+        return found;
     }
 
     @Override
@@ -330,17 +493,60 @@ public class CachingDataAccess implements PartialDataAccess, EventHandlerContext
 
     @Override
     public <E> List<E> executeQuery(Class<E> entityType, String queryName, Map<String, Object> values) {
-        return null;
+        eventHandler.beforeExecuteQuery(entityType, queryName, values);
+        final List<E> list = internalExecuteQuery(entityType, queryName, values);
+        eventHandler.afterExecuteQuery(entityType, queryName, values, list);
+        return list;
     }
 
     @Override
     public <E> List<E> executeQuery(E sample, String queryName) {
-        return null;
+        final E enhancedEntity = getEnhancedEntity(sample);
+        final EntityHandler<E> entityHandler = entityHandlerContext.getHandler(enhancedEntity);
+        eventHandler.beforeExecuteQuery(enhancedEntity, queryName);
+        final List<E> list = internalExecuteQuery(entityHandler.getEntityType(), queryName, MapTools.prefixKeys(entityHandler.toMap(enhancedEntity), "value."));
+        eventHandler.afterExecuteQuery(enhancedEntity, queryName, list);
+        return list;
     }
 
     @Override
     public <E> List<?> call(Class<E> entityType, String procedureName, Object... parameters) {
         return null;
+    }
+
+    @Override
+    public <E> long count(Class<E> entityType) {
+        return internalCount(entityType, Statements.Manipulation.COUNT_ALL, Collections.<String, Object>emptyMap());
+    }
+
+    @Override
+    public <E> long count(E sample) {
+        final E enhancedEntity = getEnhancedEntity(sample);
+        final EntityHandler<E> entityHandler = entityHandlerContext.getHandler(sample);
+        return internalCount(entityHandler.getEntityType(), entityHandler.hasKey() && entityHandler.getKey(enhancedEntity) != null ? Statements.Manipulation.COUNT_ONE : Statements.Manipulation.COUNT_LIKE, entityHandler.toMap(enhancedEntity));
+    }
+
+    @Override
+    public <E> boolean exists(E sample) {
+        return count(sample) != 0;
+    }
+
+    @Override
+    public <E, K extends Serializable> boolean exists(Class<E> entityType, K key) {
+        final E instance = entityContext.getInstance(entityType);
+        final EntityHandler<E> entityHandler = entityHandlerContext.getHandler(entityType);
+        entityHandler.setKey(instance, key);
+        return count(instance) != 0;
+    }
+
+    @Override
+    public <E> long count(Class<E> entityType, Map<String, Object> values) {
+        return internalCount(entityType, Statements.Manipulation.COUNT_LIKE, values);
+    }
+
+    @Override
+    public <E> boolean exists(Class<E> entityType, Map<String, Object> values) {
+        return count(entityType, values) != 0;
     }
 
     /**

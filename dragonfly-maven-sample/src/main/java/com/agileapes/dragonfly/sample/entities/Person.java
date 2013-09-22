@@ -8,6 +8,7 @@ import com.agileapes.dragonfly.annotations.StoredProcedures;
 import javax.persistence.*;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
@@ -109,12 +110,12 @@ public class Person {
     }
 
     @JoinColumn
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "owner", cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "owner", cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
     public Collection<Thing> getThings() {
         return things;
     }
 
-    public void setThings(Collection<Thing> things) {
+    public void setThings(List<Thing> things) {
         this.things = things;
     }
 

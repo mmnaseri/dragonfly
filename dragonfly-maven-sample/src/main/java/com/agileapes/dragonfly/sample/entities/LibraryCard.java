@@ -15,7 +15,7 @@ public class LibraryCard {
 
     private Person owner;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(nullable = false)
     public Person getOwner() {
         return owner;

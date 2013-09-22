@@ -1,5 +1,7 @@
 package com.agileapes.dragonfly.entity;
 
+import com.agileapes.dragonfly.data.DataAccess;
+
 import java.io.Serializable;
 
 /**
@@ -13,5 +15,13 @@ public interface EntityInitializationContext {
     <E> void register(Class<E> entityType, Serializable key, E entity);
 
     <E> E get(Class<E> entityType, Serializable key);
+
+    void lock();
+
+    void unlock();
+
+    <E> boolean contains(Class<E> entityType, Serializable key);
+
+    DataAccess getDataAccess();
 
 }

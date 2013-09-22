@@ -18,7 +18,6 @@ import com.agileapes.dragonfly.data.*;
 import com.agileapes.dragonfly.entity.*;
 import com.agileapes.dragonfly.entity.impl.DefaultEntityContext;
 import com.agileapes.dragonfly.entity.impl.DefaultEntityHandlerContext;
-import com.agileapes.dragonfly.entity.impl.DefaultEntityInitializationContext;
 import com.agileapes.dragonfly.entity.impl.DefaultRowHandler;
 import com.agileapes.dragonfly.error.*;
 import com.agileapes.dragonfly.events.DataAccessEventHandler;
@@ -99,7 +98,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     }
 
     @Override
-    public <E> void save(E entity) {
+    public <E> E save(E entity) {
         boolean needsReflection = !has(entity);
         E original = entity;
         //noinspection unchecked
@@ -112,7 +111,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         final boolean shouldUpdate;
         final EntityHandler<E> entityHandler = handlerContext.getHandler(entity);
         try {
-            shouldUpdate = (entityHandler.hasKey() && entityHandler.getKey(entity) != null) || ((InitializedEntity) object).isDirtied() && find(entity).size() == 1;
+            shouldUpdate = (entityHandler.hasKey() && entityHandler.getKey(entity) != null);
             if (shouldUpdate) {
                 log.info("Updating existing entity on the database");
                 eventHandler.beforeUpdate(entity);
@@ -138,6 +137,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
             eventHandler.afterInsert(entity);
         }
         eventHandler.afterSave(entity);
+        return entity;
     }
 
     @Override
@@ -325,7 +325,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
                 E entity = getInstance(entityType);
                 //noinspection unchecked
                 ((InitializedEntity<E>) entity).freeze();
-                entity = entityHandler.fromMap(entity, rowHandler.handleRow(resultSet), new DefaultEntityInitializationContext(this));
+                entity = entityHandler.fromMap(entity, rowHandler.handleRow(resultSet));
                 //noinspection unchecked
                 ((InitializedEntity<E>) entity).setOriginalCopy(entity);
                 //noinspection unchecked
@@ -386,13 +386,13 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
                 }
             }
         }
+        securityManager.checkAccess(new StoredProcedureSubject(procedureMetadata, parameters));
         final ProcedureCallStatement statement;
         try {
             statement = (ProcedureCallStatement) session.getStatementRegistry().get(entityType.getCanonicalName() + ".call" + StringUtil.capitalize(procedureName));
         } catch (RegistryException e) {
             throw new UnrecognizedProcedureError(entityType, procedureName);
         }
-        securityManager.checkAccess(new StoredProcedureSubject(procedureMetadata, parameters));
         final Map<String, Object> values = new HashMap<String, Object>();
         for (int i = 0; i < parameters.length; i++) {
             values.put("value.parameter" + i, parameters[i] instanceof Reference ? ((Reference<?>) parameters[i]).getValue() : parameters[i]);
@@ -422,13 +422,13 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
                     final Map<String, Object> map = rowHandler.handleRow(resultSet);
                     if (entityHandler == null) {
                         try {
-                            result.add(handlerContext.fromMap(beanInitializer.initialize(procedureMetadata.getResultType(), new Class[0]), columnMappingMetadataCollector.collectMetadata(procedureMetadata.getResultType()), map, null));
+                            result.add(handlerContext.fromMap(beanInitializer.initialize(procedureMetadata.getResultType(), new Class[0]), columnMappingMetadataCollector.collectMetadata(procedureMetadata.getResultType()), map));
                         } catch (BeanInstantiationException e) {
                             throw new EntityInitializationError(procedureMetadata.getResultType(), e);
                         }
                     } else {
                         final Object instance = entityContext.getInstance(entityHandler.getEntityType());
-                        result.add(entityHandler.fromMap(instance, map, new DefaultEntityInitializationContext(this)));
+                        result.add(entityHandler.fromMap(instance, map));
                     }
                 }
             }
@@ -443,6 +443,36 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
             throw new StatementExecutionFailureError("Failed to call procedure " + procedureName, e);
         }
         return result;
+    }
+
+    @Override
+    public <E> long count(Class<E> entityType) {
+        return 0;
+    }
+
+    @Override
+    public <E> long count(E sample) {
+        return 0;
+    }
+
+    @Override
+    public <E> boolean exists(E sample) {
+        return false;
+    }
+
+    @Override
+    public <E, K extends Serializable> boolean exists(Class<E> entityType, K key) {
+        return false;
+    }
+
+    @Override
+    public <E> long count(Class<E> entityType, Map<String, Object> values) {
+        return 0;
+    }
+
+    @Override
+    public <E> boolean exists(Class<E> entityType, Map<String, Object> values) {
+        return false;
     }
 
     @Override
@@ -480,7 +510,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
             } catch (BeanInstantiationException e) {
                 throw new EntityInitializationError(resultType, e);
             }
-            handlerContext.fromMap(entity, columnMappingMetadataCollector.collectMetadata(resultType), map, new DefaultEntityInitializationContext(this));
+            handlerContext.fromMap(entity, columnMappingMetadataCollector.collectMetadata(resultType), map);
             list.add(entity);
         }
         return list;

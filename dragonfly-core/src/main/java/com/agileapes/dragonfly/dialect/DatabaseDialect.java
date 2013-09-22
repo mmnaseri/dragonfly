@@ -76,4 +76,10 @@ public interface DatabaseDialect extends Filter<DatabaseMetaData> {
      */
     <E> boolean hasTable(DatabaseMetaData databaseMetadata, TableMetadata<E> tableMetadata);
 
+    /**
+     * @return the name of the column associated with the count of data as specified by
+     * the statements defined through the statement builder context for the dialect
+     */
+    String getCountColumn();
+
 }

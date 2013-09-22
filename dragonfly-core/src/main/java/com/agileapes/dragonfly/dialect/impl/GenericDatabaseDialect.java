@@ -37,6 +37,9 @@ public abstract class GenericDatabaseDialect implements DatabaseDialect {
         statementBuilderContext.register(Statements.Manipulation.FIND_ALL, new FreemarkerStatementBuilder(configuration, "findAll.sql.ftl", getDatabaseDialect()));
         statementBuilderContext.register(Statements.Manipulation.FIND_ONE, new FreemarkerStatementBuilder(configuration, "findByKey.sql.ftl", getDatabaseDialect()));
         statementBuilderContext.register(Statements.Manipulation.FIND_LIKE, new FreemarkerStatementBuilder(configuration, "findBySample.sql.ftl", getDatabaseDialect()));
+        statementBuilderContext.register(Statements.Manipulation.COUNT_ALL, new FreemarkerStatementBuilder(configuration, "countAll.sql.ftl", getDatabaseDialect()));
+        statementBuilderContext.register(Statements.Manipulation.COUNT_ONE, new FreemarkerStatementBuilder(configuration, "countByKey.sql.ftl", getDatabaseDialect()));
+        statementBuilderContext.register(Statements.Manipulation.COUNT_LIKE, new FreemarkerStatementBuilder(configuration, "countBySample.sql.ftl", getDatabaseDialect()));
         statementBuilderContext.register(Statements.Manipulation.INSERT, new FreemarkerStatementBuilder(configuration, "insert.sql.ftl", getDatabaseDialect()));
         statementBuilderContext.register(Statements.Manipulation.UPDATE, new FreemarkerStatementBuilder(configuration, "updateBySample.sql.ftl", getDatabaseDialect()));
         statementBuilderContext.register(Statements.Manipulation.TRUNCATE, new FreemarkerStatementBuilder(configuration, "truncate.sql.ftl", getDatabaseDialect()));
@@ -114,6 +117,11 @@ public abstract class GenericDatabaseDialect implements DatabaseDialect {
     @Override
     public StatementBuilderContext getStatementBuilderContext() {
         return statementBuilderContext;
+    }
+
+    @Override
+    public String getCountColumn() {
+        return "cnt";
     }
 
 }

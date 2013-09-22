@@ -1,6 +1,8 @@
 package com.agileapes.dragonfly.entity;
 
 import com.agileapes.couteau.basics.api.Filter;
+import com.agileapes.dragonfly.data.DataAccess;
+import com.agileapes.dragonfly.data.impl.CachingDataAccess;
 import com.agileapes.dragonfly.metadata.CascadeMetadata;
 
 import java.io.Serializable;
@@ -35,10 +37,9 @@ public interface EntityHandler<E> {
      * that here, the map's keys are column names.
      * @param entity    the entity to be populated
      * @param map       the map to read from
-     * @param initializationContext
      * @return populated entity (same instance as the input)
      */
-    E fromMap(E entity, Map<String, Object> map, EntityInitializationContext initializationContext);
+    E fromMap(E entity, Map<String, Object> map);
 
     /**
      * Returns the current value set for the key property on the given entity, or throws
@@ -86,5 +87,13 @@ public interface EntityHandler<E> {
      */
     String getKeyProperty();
 
-    Collection<?> getRelatedItems(E entity, Filter<CascadeMetadata> cascadeMetadataFilter);
+    void loadRelations(E entity, Map<String, Object> values, EntityInitializationContext initializationContext);
+
+    void deleteDependentRelations(E entity, DataAccess dataAccess);
+
+    void deleteDependencyRelations(E entity, DataAccess dataAccess);
+
+    void saveDependencyRelations(E entity, DataAccess dataAccess);
+
+    void saveDependentRelations(E entity, DataAccess dataAccess);
 }

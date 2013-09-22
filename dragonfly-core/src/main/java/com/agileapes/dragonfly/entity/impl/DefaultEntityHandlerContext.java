@@ -30,7 +30,7 @@ public class DefaultEntityHandlerContext implements EntityHandlerContext {
             final DefaultEntityContext context = (DefaultEntityContext) entityContext;
             context.setHandlerContext(this);
         }
-        defaultEntityCreator = new DefaultMapEntityCreator(this.entityContext);
+        defaultEntityCreator = new DefaultMapEntityCreator();
         defaultMapCreator = new DefaultEntityMapCreator();
         entityCreators = new ConcurrentHashMap<Class<?>, MapEntityCreator>();
         mapCreators = new ConcurrentHashMap<Class<?>, EntityMapCreator>();
@@ -71,13 +71,8 @@ public class DefaultEntityHandlerContext implements EntityHandlerContext {
     }
 
     @Override
-    public <E> E fromMap(TableMetadata<E> tableMetadata, Map<String, Object> values, EntityInitializationContext initializationContext) {
-        return getEntityCreator(tableMetadata.getEntityType()).fromMap(tableMetadata, values, initializationContext);
-    }
-
-    @Override
-    public <E> E fromMap(E entity, Collection<ColumnMetadata> columns, Map<String, Object> values, EntityInitializationContext initializationContext) {
-        return getEntityCreator(entity.getClass()).fromMap(entity, columns, values, initializationContext);
+    public <E> E fromMap(E entity, Collection<ColumnMetadata> columns, Map<String, Object> values) {
+        return getEntityCreator(entity.getClass()).fromMap(entity, columns, values);
     }
     
     @Override

@@ -46,7 +46,12 @@ public class SecuredDataAccess extends CachingDataAccess implements PartialDataA
         methodDescriptors.put(21, new ImmutableMethodDescriptor(DefaultDataAccess.class, void.class, "addInterface", new Class[]{Class.class, Class.class}, new Annotation[0]));
         methodDescriptors.put(22, new ImmutableMethodDescriptor(DefaultDataAccess.class, void.class, "addHandler", new Class[]{DataAccessEventHandler.class}, new Annotation[0]));
         methodDescriptors.put(23, new ImmutableMethodDescriptor(DefaultDataAccess.class, List.class, "executeUntypedQuery", new Class[]{Class.class, String.class, Map.class}, new Annotation[0]));
-        methodDescriptors.put(24, new ImmutableMethodDescriptor(DefaultDataAccess.class, EntityHandlerContext.class, "getHandlerContext", new Class[]{}, new Annotation[0]));
+        methodDescriptors.put(24, new ImmutableMethodDescriptor(DefaultDataAccess.class, long.class, "count", new Class[]{Class.class}, new Annotation[0]));
+        methodDescriptors.put(25, new ImmutableMethodDescriptor(DefaultDataAccess.class, long.class, "count", new Class[]{Object.class}, new Annotation[0]));
+        methodDescriptors.put(26, new ImmutableMethodDescriptor(DefaultDataAccess.class, boolean.class, "exists", new Class[]{Object.class}, new Annotation[0]));
+        methodDescriptors.put(27, new ImmutableMethodDescriptor(DefaultDataAccess.class, boolean.class, "exists", new Class[]{Class.class, Serializable.class}, new Annotation[0]));
+        methodDescriptors.put(28, new ImmutableMethodDescriptor(DefaultDataAccess.class, long.class, "count", new Class[]{Class.class, Map.class}, new Annotation[0]));
+        methodDescriptors.put(29, new ImmutableMethodDescriptor(DefaultDataAccess.class, boolean.class, "exists", new Class[]{Class.class, Map.class}, new Annotation[0]));
     }
 
     private final DataSecurityManager securityManager;
@@ -75,9 +80,9 @@ public class SecuredDataAccess extends CachingDataAccess implements PartialDataA
     }
 
     @Override
-    public void save(final Object entity) {
+    public Object save(final Object entity) {
         securityManager.checkAccess(new MethodSubject(methodDescriptors.get(5)));
-        super.save(entity);
+        return super.save(entity);
     }
 
     @Override
@@ -174,6 +179,42 @@ public class SecuredDataAccess extends CachingDataAccess implements PartialDataA
     public List executeUntypedQuery(final Class entityType, final String queryName, final Map values) {
         securityManager.checkAccess(new MethodSubject(methodDescriptors.get(23)));
         return super.executeUntypedQuery(entityType, queryName, values);
+    }
+
+    @Override
+    public long count(Class entityType) {
+        securityManager.checkAccess(new MethodSubject(methodDescriptors.get(24)));
+        return super.count(entityType);
+    }
+
+    @Override
+    public long count(Object sample) {
+        securityManager.checkAccess(new MethodSubject(methodDescriptors.get(25)));
+        return super.count(sample);
+    }
+
+    @Override
+    public boolean exists(Object sample) {
+        securityManager.checkAccess(new MethodSubject(methodDescriptors.get(26)));
+        return super.exists(sample);
+    }
+
+    @Override
+    public boolean exists(Class entityType, Serializable key) {
+        securityManager.checkAccess(new MethodSubject(methodDescriptors.get(27)));
+        return super.exists(entityType, key);
+    }
+
+    @Override
+    public long count(Class entityType, Map values) {
+        securityManager.checkAccess(new MethodSubject(methodDescriptors.get(28)));
+        return super.count(entityType, values);
+    }
+
+    @Override
+    public boolean exists(Class entityType, Map values) {
+        securityManager.checkAccess(new MethodSubject(methodDescriptors.get(29)));
+        return super.exists(entityType, values);
     }
 
     @Override

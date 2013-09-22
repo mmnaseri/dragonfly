@@ -36,7 +36,7 @@ public class Thing {
     }
 
     @JoinColumn
-    @ManyToOne()
+    @ManyToOne
     public Person getOwner() {
         return owner;
     }

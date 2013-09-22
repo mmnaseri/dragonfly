@@ -36,13 +36,6 @@ public interface InitializedEntity<E> {
     E getOriginalCopy();
 
     /**
-     * Determines whether or not the underlying entity has been changed in any way
-     * @return {@code true} means that there as at least one apparent difference between this
-     * entity and the original copy
-     */
-    boolean isDirtied();
-
-    /**
      * Freezes the entity's state. This will prevent auto-loading of lazy-load properties,
      * dirty checking, etc.
      */
@@ -54,6 +47,8 @@ public interface InitializedEntity<E> {
      */
     void unfreeze();
 
+    void setInitializationContext(EntityInitializationContext initializationContext);
 
+    EntityInitializationContext getInitializationContext();
 
 }
