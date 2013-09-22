@@ -9,30 +9,30 @@
         <relativePath>../dragonfly-parent/pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>dragonfly-maven-sample</artifactId>
+    <artifactId>dragonfly-sample</artifactId>
 
-    <!--<build>-->
-        <!--<plugins>-->
-            <!--<plugin>-->
-                <!--<groupId>com.agileapes.dragonfly</groupId>-->
-                <!--<artifactId>dragonfly-jpa-maven</artifactId>-->
-                <!--<version>1.0</version>-->
-                <!--<executions>-->
-                    <!--<execution>-->
-                        <!--<goals>-->
-                            <!--<goal>execute</goal>-->
-                        <!--</goals>-->
-                    <!--</execution>-->
-                <!--</executions>-->
-                <!--<configuration>-->
-                    <!--<packages>-->
-                        <!--<package>com.agileapes.dragonfly.sample</package>-->
-                    <!--</packages>-->
-                    <!--<dialect>com.agileapes.dragonfly.dialect.impl.Mysql5Dialect</dialect>-->
-                <!--</configuration>-->
-            <!--</plugin>-->
-        <!--</plugins>-->
-    <!--</build>-->
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>com.agileapes.dragonfly</groupId>
+                <artifactId>dragonfly-jpa-maven</artifactId>
+                <version>1.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>execute</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <packages>
+                        <package>com.agileapes.dragonfly.sample</package>
+                    </packages>
+                    <dialect>com.agileapes.dragonfly.dialect.impl.Mysql5Dialect</dialect>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
     <dependencies>
         <dependency>

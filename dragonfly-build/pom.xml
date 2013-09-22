@@ -13,9 +13,9 @@
         <module>../dragonfly-parent</module>
         <module>../dragonfly-core</module>
         <module>../dragonfly-jpa</module>
-        <module>../dragonfly-jpa-maven</module>
-        <module>../dragonfly-maven-sample</module>
         <module>../dragonfly-jpa-runtime</module>
+        <module>../dragonfly-jpa-maven</module>
+        <module>../dragonfly-sample</module>
     </modules>
     
 </project>
