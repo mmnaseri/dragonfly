@@ -9,6 +9,7 @@ import com.agileapes.dragonfly.data.DataAccessObject;
 import com.agileapes.dragonfly.data.DataAccessSession;
 import com.agileapes.dragonfly.data.PartialDataAccess;
 import com.agileapes.dragonfly.entity.*;
+import com.agileapes.dragonfly.entity.impl.DefaultEntityContext;
 import com.agileapes.dragonfly.entity.impl.DefaultEntityInitializationContext;
 import com.agileapes.dragonfly.entity.impl.DefaultRowHandler;
 import com.agileapes.dragonfly.entity.impl.ThreadLocalEntityInitializationContext;
@@ -96,6 +97,9 @@ public class CachingDataAccess implements PartialDataAccess, EventHandlerContext
                 return new HashSet<Object>();
             }
         };
+        if (entityContext instanceof DefaultEntityContext) {
+            ((DefaultEntityContext) entityContext).setDataAccess(this);
+        }
         if (autoInitialize) {
             log.info("Automatically initializing the session");
             synchronized (this.session) {

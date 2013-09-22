@@ -265,7 +265,6 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
 
     @Override
     public void deleteDependencyRelations(final E entity, final DataAccess dataAccess) {
-        final MethodBeanWrapper<E> wrapper = new MethodBeanWrapper<E>(entity);
         //noinspection unchecked
         with(tableMetadata.getForeignReferences())
                 .keep(new Filter<ReferenceMetadata<E, ?>>() {
