@@ -65,6 +65,7 @@ public class EntityProxy<E> extends SecuredInterfaceInterceptor implements DataA
 
     @Override
     public void load() {
+        invalidateCachedVersion();
         final E found;
         if (entityHandler.hasKey() && entityHandler.getKey(entity) != null) {
             found = dataAccess.find(entityHandler.getEntityType(), entityHandler.getKey(entity));
@@ -115,10 +116,16 @@ public class EntityProxy<E> extends SecuredInterfaceInterceptor implements DataA
             final String propertyName = ReflectionUtils.getPropertyName(methodDescriptor.getName());
             final ColumnMetadata columnMetadata = with(tableMetadata.getColumns()).find(new ColumnPropertyFilter(propertyName));
             if (columnMetadata != null) {
-                initializationContext.delete(entityType, entityHandler.getKey(entity));
+                invalidateCachedVersion();
             }
         }
         return methodProxy.callSuper(target, arguments);
+    }
+
+    private void invalidateCachedVersion() {
+        if (initializationContext != null) {
+            initializationContext.delete(entityType, entityHandler.getKey(entity));
+        }
     }
 
     @Override
