@@ -4,29 +4,35 @@ import com.agileapes.couteau.basics.api.Filter;
 import com.agileapes.couteau.context.error.RegistryException;
 import com.agileapes.couteau.reflection.beans.BeanInitializer;
 import com.agileapes.couteau.reflection.beans.impl.ConstructorBeanInitializer;
-import com.agileapes.dragonfly.data.DataAccess;
-import com.agileapes.dragonfly.data.DataAccessObject;
-import com.agileapes.dragonfly.data.DataAccessSession;
-import com.agileapes.dragonfly.data.PartialDataAccess;
+import com.agileapes.couteau.reflection.error.BeanInstantiationException;
+import com.agileapes.couteau.reflection.util.ReflectionUtils;
+import com.agileapes.dragonfly.annotations.ParameterMode;
+import com.agileapes.dragonfly.annotations.Partial;
+import com.agileapes.dragonfly.data.*;
 import com.agileapes.dragonfly.entity.*;
-import com.agileapes.dragonfly.entity.impl.DefaultEntityContext;
-import com.agileapes.dragonfly.entity.impl.DefaultEntityInitializationContext;
-import com.agileapes.dragonfly.entity.impl.DefaultRowHandler;
-import com.agileapes.dragonfly.entity.impl.ThreadLocalEntityInitializationContext;
+import com.agileapes.dragonfly.entity.impl.*;
 import com.agileapes.dragonfly.error.*;
 import com.agileapes.dragonfly.events.DataAccessEventHandler;
 import com.agileapes.dragonfly.events.EventHandlerContext;
 import com.agileapes.dragonfly.events.impl.CompositeDataAccessEventHandler;
+import com.agileapes.dragonfly.metadata.ColumnMetadata;
+import com.agileapes.dragonfly.metadata.ParameterMetadata;
+import com.agileapes.dragonfly.metadata.StoredProcedureMetadata;
+import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.metadata.impl.ColumnMappingMetadataCollector;
 import com.agileapes.dragonfly.security.DataSecurityManager;
+import com.agileapes.dragonfly.security.impl.StoredProcedureSubject;
 import com.agileapes.dragonfly.statement.Statement;
 import com.agileapes.dragonfly.statement.StatementType;
 import com.agileapes.dragonfly.statement.Statements;
+import com.agileapes.dragonfly.statement.impl.ProcedureCallStatement;
 import com.agileapes.dragonfly.tools.MapTools;
+import freemarker.template.utility.StringUtil;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.io.Serializable;
+import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -70,6 +76,9 @@ public class CachingDataAccess implements PartialDataAccess, EventHandlerContext
     private final RowHandler rowHandler;
     private final ThreadLocal<Map<Object, Object>> saveQueue;
     private final ThreadLocal<Set<Object>> deleteQueue;
+    private final EntityMapCreator mapCreator;
+    private final MapEntityCreator entityCreator;
+    private final Map<Class<?>, Collection<ColumnMetadata>> partialEntityColumns = new ConcurrentHashMap<Class<?>, Collection<ColumnMetadata>>();
 
     public CachingDataAccess(DataAccessSession session, DataSecurityManager securityManager, EntityContext entityContext, EntityHandlerContext entityHandlerContext) {
         this(session, securityManager, entityContext, entityHandlerContext, true);
@@ -85,6 +94,8 @@ public class CachingDataAccess implements PartialDataAccess, EventHandlerContext
         this.eventHandler = new CompositeDataAccessEventHandler();
         this.initializationContext = new ThreadLocalEntityInitializationContext(this);
         this.rowHandler = new DefaultRowHandler();
+        this.mapCreator = new DefaultEntityMapCreator();
+        this.entityCreator = new DefaultMapEntityCreator();
         this.saveQueue = new ThreadLocal<Map<Object, Object>>() {
             @Override
             protected Map<Object, Object> initialValue() {
@@ -292,32 +303,87 @@ public class CachingDataAccess implements PartialDataAccess, EventHandlerContext
     }
 
     /**
+     * Internal methods for handling partial data requests
+     */
+
+    private synchronized Collection<ColumnMetadata> getPartialEntityMetadata(Class<?> partialEntityType) {
+        if (!partialEntityColumns.containsKey(partialEntityType)) {
+            partialEntityColumns.put(partialEntityType, metadataCollector.collectMetadata(partialEntityType));
+        }
+        return partialEntityColumns.get(partialEntityType);
+    }
+
+    /**
      * Partial data access support
      */
 
     @Override
     public <O> List<O> executeQuery(O sample) {
-        return null;
+        final Class<?> partialEntity = sample.getClass();
+        //noinspection unchecked
+        return (List<O>) executeQuery(partialEntity, mapCreator.toMap(getPartialEntityMetadata(partialEntity), sample));
     }
 
     @Override
     public <O> List<O> executeQuery(Class<O> resultType) {
-        return null;
+        return executeQuery(resultType, Collections.<String, Object>emptyMap());
     }
 
     @Override
     public <O> List<O> executeQuery(Class<O> resultType, Map<String, Object> values) {
-        return null;
+        if (!resultType.isAnnotationPresent(Partial.class)) {
+            throw new PartialEntityDefinitionError("Expected to find @Partial on " + resultType.getCanonicalName());
+        }
+        final Partial annotation = resultType.getAnnotation(Partial.class);
+        final List<Map<String, Object>> maps = executeUntypedQuery(annotation.targetEntity(), annotation.query(), values);
+        final ArrayList<O> result = new ArrayList<O>();
+        for (Map<String, Object> map : maps) {
+            final O partialEntity;
+            try {
+                partialEntity = beanInitializer.initialize(resultType, new Class[0]);
+            } catch (BeanInstantiationException e) {
+                throw new EntityInitializationError(resultType, e);
+            }
+            result.add(entityCreator.fromMap(partialEntity, getPartialEntityMetadata(resultType), map));
+        }
+        return result;
     }
 
     @Override
     public <E> List<Map<String, Object>> executeUntypedQuery(Class<E> entityType, String queryName, Map<String, Object> values) {
-        return null;
+        final ArrayList<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
+        final Statement statement = getStatement(entityType, queryName, StatementType.QUERY);
+        final PreparedStatement preparedStatement = statement.prepare(session.getConnection(), null, values);
+        final ResultSet resultSet;
+        try {
+            resultSet = preparedStatement.executeQuery();
+        } catch (SQLException e) {
+            throw new UnsuccessfulOperationError("Failed to execute query " + entityType.getCanonicalName() + "." + queryName, e);
+        }
+        try {
+            while (resultSet.next()) {
+                result.add(rowHandler.handleRow(resultSet));
+            }
+        } catch (SQLException e) {
+            throw new UnsuccessfulOperationError("Failed to load result set", e);
+        }
+        return result;
     }
 
     @Override
     public <O> int executeUpdate(O sample) {
-        return 0;
+        final Class<?> resultType = sample.getClass();
+        if (!resultType.isAnnotationPresent(Partial.class)) {
+            throw new PartialEntityDefinitionError("Expected to find @Partial on " + resultType.getCanonicalName());
+        }
+        final Partial annotation = resultType.getAnnotation(Partial.class);
+        final Statement statement = getStatement(annotation.targetEntity(), annotation.query(), StatementType.INSERT, StatementType.DELETE, StatementType.UPDATE);
+        final PreparedStatement preparedStatement = statement.prepare(session.getConnection(), mapCreator, sample);
+        try {
+            return preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            throw new UnsuccessfulOperationError("Failed to execute update", e);
+        }
     }
 
     /**
@@ -514,8 +580,104 @@ public class CachingDataAccess implements PartialDataAccess, EventHandlerContext
     }
 
     @Override
-    public <E> List<?> call(Class<E> entityType, String procedureName, Object... parameters) {
-        return null;
+    public <E> List<?> call(Class<E> entityType, final String procedureName, Object... parameters) {
+        log.info("Calling to stored procedure " + entityType.getCanonicalName() + "." + procedureName);
+        final TableMetadata<E> tableMetadata = session.getMetadataRegistry().getTableMetadata(entityType);
+        //noinspection unchecked
+        final StoredProcedureMetadata procedureMetadata = with(tableMetadata.getProcedures()).keep(new Filter<StoredProcedureMetadata>() {
+            @Override
+            public boolean accepts(StoredProcedureMetadata item) {
+                return item.getName().equals(procedureName);
+            }
+        }).first();
+        if (procedureMetadata == null) {
+            throw new UnrecognizedProcedureError(entityType, procedureName);
+        }
+        if (procedureMetadata.getParameters().size() != parameters.length) {
+            throw new MismatchedParametersNumberError(entityType, procedureName, procedureMetadata.getParameters().size(), parameters.length);
+        }
+        for (int i = 0; i < procedureMetadata.getParameters().size(); i++) {
+            ParameterMetadata metadata = procedureMetadata.getParameters().get(i);
+            if (metadata.getParameterMode().equals(ParameterMode.IN)) {
+                if (parameters[i] != null && !ReflectionUtils.mapType(metadata.getParameterType()).isInstance(parameters[i])) {
+                    throw new MismatchedParameterTypeError(entityType, procedureName, i, metadata.getParameterType(), parameters[i].getClass());
+                }
+            } else {
+                if (parameters[i] == null) {
+                    throw new NullPointerException(metadata.getParameterMode() + " parameter cannot be null");
+                }
+                if (!(parameters[i] instanceof Reference<?>)) {
+                    throw new ReferenceParameterExpectedError(entityType, procedureName, i);
+                }
+            }
+        }
+        securityManager.checkAccess(new StoredProcedureSubject(procedureMetadata, parameters));
+        final ProcedureCallStatement statement;
+        try {
+            statement = (ProcedureCallStatement) session.getStatementRegistry().get(entityType.getCanonicalName() + ".call" + StringUtil.capitalize(procedureName));
+        } catch (RegistryException e) {
+            throw new UnrecognizedProcedureError(entityType, procedureName);
+        }
+        final Map<String, Object> values = new HashMap<String, Object>();
+        for (int i = 0; i < parameters.length; i++) {
+            values.put("value.parameter" + i, parameters[i] instanceof Reference ? ((Reference<?>) parameters[i]).getValue() : parameters[i]);
+        }
+        final CallableStatement callableStatement;
+        final ArrayList<Object> result = new ArrayList<Object>();
+        try {
+            callableStatement = statement.prepare(session.getConnection(), null, values);
+            for (int i = 0; i < procedureMetadata.getParameters().size(); i++) {
+                final ParameterMetadata metadata = procedureMetadata.getParameters().get(i);
+                if (!metadata.getParameterMode().equals(ParameterMode.IN)) {
+                    callableStatement.registerOutParameter(i + 1, metadata.getType());
+                }
+            }
+            if (procedureMetadata.getResultType().equals(void.class)) {
+                callableStatement.executeUpdate();
+            } else {
+                final ResultSet resultSet = callableStatement.executeQuery();
+                final EntityHandler<Object> entityHandler;
+                if (procedureMetadata.isPartial()) {
+                    entityHandler = null;
+                } else {
+                    //noinspection unchecked
+                    entityHandler = (EntityHandler<Object>) entityHandlerContext.getHandler(procedureMetadata.getResultType());
+                }
+                while (resultSet.next()) {
+                    final Map<String, Object> map = rowHandler.handleRow(resultSet);
+                    if (procedureMetadata.isPartial()) {
+                        try {
+                            result.add(entityHandlerContext.fromMap(beanInitializer.initialize(procedureMetadata.getResultType(), new Class[0]), getPartialEntityMetadata(procedureMetadata.getResultType()), map));
+                        } catch (BeanInstantiationException e) {
+                            throw new EntityInitializationError(procedureMetadata.getResultType(), e);
+                        }
+                    } else {
+                        Object instance = entityContext.getInstance(entityHandler.getEntityType());
+                        instance = entityHandler.fromMap(instance, map);
+                        if (entityHandler.hasKey() && entityHandler.getKey(instance) != null) {
+                            final Serializable key = entityHandler.getKey(instance);
+                            if (initializationContext.contains(entityHandler.getEntityType(), key)) {
+                                instance = initializationContext.get(entityHandler.getEntityType(), key);
+                                result.add(instance);
+                                continue;
+                            }
+                        }
+                        prepareEntity(instance, map);
+                        result.add(instance);
+                    }
+                }
+            }
+            for (int i = 0; i < procedureMetadata.getParameters().size(); i++) {
+                final ParameterMetadata metadata = procedureMetadata.getParameters().get(i);
+                if (!metadata.getParameterMode().equals(ParameterMode.IN)) {
+                    //noinspection unchecked
+                    ((Reference) parameters[i]).setValue(callableStatement.getObject(i + 1));
+                }
+            }
+        } catch (SQLException e) {
+            throw new StatementExecutionFailureError("Failed to call procedure " + procedureName, e);
+        }
+        return result;
     }
 
     @Override

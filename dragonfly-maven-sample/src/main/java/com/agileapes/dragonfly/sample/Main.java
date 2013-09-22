@@ -1,9 +1,6 @@
 package com.agileapes.dragonfly.sample;
 
-import com.agileapes.dragonfly.sample.service.CreatePersonService;
-import com.agileapes.dragonfly.sample.service.DeletePeopleService;
-import com.agileapes.dragonfly.sample.service.InstantiationService;
-import com.agileapes.dragonfly.sample.service.ListPeopleService;
+import com.agileapes.dragonfly.sample.service.*;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
@@ -18,6 +15,9 @@ public class Main {
         context.getBean(CreatePersonService.class).execute();
         context.getBean(ListPeopleService.class).execute();
         context.getBean(InstantiationService.class).execute();
+        context.getBean(CountPeopleService.class).execute();
+        context.getBean(CountPeopleProcedureService.class).execute();
+        context.getBean(ListPeopleProcedureService.class).execute();
     }
 
 }
