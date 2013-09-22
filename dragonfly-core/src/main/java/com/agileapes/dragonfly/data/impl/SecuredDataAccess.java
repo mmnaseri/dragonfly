@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 @SuppressWarnings("unchecked")
-public class SecuredDataAccess extends CachingDataAccess implements PartialDataAccess, EventHandlerContext {
+public class SecuredDataAccess extends DefaultDataAccess implements PartialDataAccess, EventHandlerContext {
 
     private static final Map<Integer, MethodDescriptor> methodDescriptors = new HashMap<Integer, MethodDescriptor>();
     static {

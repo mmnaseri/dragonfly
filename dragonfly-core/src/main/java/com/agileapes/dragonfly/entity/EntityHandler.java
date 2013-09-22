@@ -1,12 +1,8 @@
 package com.agileapes.dragonfly.entity;
 
-import com.agileapes.couteau.basics.api.Filter;
 import com.agileapes.dragonfly.data.DataAccess;
-import com.agileapes.dragonfly.data.impl.CachingDataAccess;
-import com.agileapes.dragonfly.metadata.CascadeMetadata;
 
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.Map;
 
 /**
