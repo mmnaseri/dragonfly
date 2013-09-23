@@ -16,6 +16,8 @@ public interface EntityInitializationContext {
 
     <E> E get(Class<E> entityType, Serializable key);
 
+    <E> E get(Class<E> entityType, Serializable key, Class<?> requestingEntityType, Serializable requesterKey);
+
     void lock();
 
     void unlock();

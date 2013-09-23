@@ -1,6 +1,7 @@
 package com.agileapes.dragonfly.entity;
 
 import com.agileapes.dragonfly.data.DataAccess;
+import com.agileapes.dragonfly.metadata.ReferenceMetadata;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -83,13 +84,43 @@ public interface EntityHandler<E> {
      */
     String getKeyProperty();
 
-    void loadRelations(E entity, Map<String, Object> values, EntityInitializationContext initializationContext);
+    /**
+     * Loads all eager relations into the entity
+     * @param entity                   the entity to be loaded
+     * @param values                   the values of the actual data retrieval
+     * @param initializationContext    the initialization context for the entity
+     */
+    void loadEagerRelations(E entity, Map<String, Object> values, EntityInitializationContext initializationContext);
 
-    void deleteDependentRelations(E entity, DataAccess dataAccess);
+    void loadLazyRelations(E entity, ReferenceMetadata<E, ?> referenceMetadata, DataAccess dataAccess);
 
+    /**
+     * Deletes all objects on the deletion of which the correct deletion of
+     * the entity relies
+     * @param entity        the entity that is to be deleted
+     * @param dataAccess    the data access for the deletion
+     */
     void deleteDependencyRelations(E entity, DataAccess dataAccess);
 
+    /**
+     * Deletes all objects that are references by the given entity
+     * @param entity        the entity that is to be deleted
+     * @param dataAccess    the data access for the deletion
+     */
+    void deleteDependentRelations(E entity, DataAccess dataAccess);
+
+    /**
+     * Saves all relations to which references exist in the given entity
+     * @param entity        the entity that is to be saved
+     * @param dataAccess    the data access for the save
+     */
     void saveDependencyRelations(E entity, DataAccess dataAccess);
 
+    /**
+     * Saves all relations which refer to the entity
+     * @param entity        the entity that is to be saved
+     * @param dataAccess    the data access for the save
+     */
     void saveDependentRelations(E entity, DataAccess dataAccess);
+
 }

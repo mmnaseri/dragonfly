@@ -150,7 +150,7 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
     }
 
     @Override
-    public void loadRelations(final E entity, final Map<String, Object> values, final EntityInitializationContext initializationContext) {
+    public void loadEagerRelations(final E entity, final Map<String, Object> values, final EntityInitializationContext initializationContext) {
         final MethodBeanWrapper<E> wrapper = new MethodBeanWrapper<E>(entity);
         //noinspection unchecked
         with(tableMetadata.getForeignReferences())
@@ -177,7 +177,12 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
                                     }
                                 });
                                 final Object foreignKey = values.get(columnName);
-                                final Object foreignEntity = initializationContext.get(reference.getForeignTable().getEntityType(), (Serializable) foreignKey);
+                                final Object foreignEntity;
+                                if (hasKey() && getKey(entity) != null) {
+                                    foreignEntity = initializationContext.get(reference.getForeignTable().getEntityType(), (Serializable) foreignKey, getEntityType(), getKey(entity));
+                                } else {
+                                    foreignEntity = initializationContext.get(reference.getForeignTable().getEntityType(), (Serializable) foreignKey);
+                                }
                                 try {
                                     wrapper.setPropertyValue(reference.getPropertyName(), foreignEntity);
                                 } catch (Exception e) {
@@ -227,6 +232,10 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
                               }
                           }
                 );
+    }
+
+    @Override
+    public void loadLazyRelations(E entity, ReferenceMetadata<E, ?> referenceMetadata, DataAccess dataAccess) {
     }
 
     @Override

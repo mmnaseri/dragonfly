@@ -46,7 +46,7 @@ public class SecuredDataAccess extends DefaultDataAccess implements PartialDataA
         methodDescriptors.put(21, new ImmutableMethodDescriptor(DefaultDataAccess.class, void.class, "addInterface", new Class[]{Class.class, Class.class}, new Annotation[0]));
         methodDescriptors.put(22, new ImmutableMethodDescriptor(DefaultDataAccess.class, void.class, "addHandler", new Class[]{DataAccessEventHandler.class}, new Annotation[0]));
         methodDescriptors.put(23, new ImmutableMethodDescriptor(DefaultDataAccess.class, List.class, "executeUntypedQuery", new Class[]{Class.class, String.class, Map.class}, new Annotation[0]));
-        methodDescriptors.put(24, new ImmutableMethodDescriptor(DefaultDataAccess.class, long.class, "count", new Class[]{Class.class}, new Annotation[0]));
+        methodDescriptors.put(24, new ImmutableMethodDescriptor(DefaultDataAccess.class, long.class, "countAll", new Class[]{Class.class}, new Annotation[0]));
         methodDescriptors.put(25, new ImmutableMethodDescriptor(DefaultDataAccess.class, long.class, "count", new Class[]{Object.class}, new Annotation[0]));
         methodDescriptors.put(26, new ImmutableMethodDescriptor(DefaultDataAccess.class, boolean.class, "exists", new Class[]{Object.class}, new Annotation[0]));
         methodDescriptors.put(27, new ImmutableMethodDescriptor(DefaultDataAccess.class, boolean.class, "exists", new Class[]{Class.class, Serializable.class}, new Annotation[0]));
@@ -182,9 +182,9 @@ public class SecuredDataAccess extends DefaultDataAccess implements PartialDataA
     }
 
     @Override
-    public long count(Class entityType) {
+    public long countAll(Class entityType) {
         securityManager.checkAccess(new MethodSubject(methodDescriptors.get(24)));
-        return super.count(entityType);
+        return super.countAll(entityType);
     }
 
     @Override

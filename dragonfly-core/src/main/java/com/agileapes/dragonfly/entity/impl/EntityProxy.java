@@ -13,6 +13,7 @@ import com.agileapes.dragonfly.entity.InitializedEntity;
 import com.agileapes.dragonfly.error.EntityDeletedError;
 import com.agileapes.dragonfly.error.NoPrimaryKeyDefinedError;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
+import com.agileapes.dragonfly.metadata.ReferenceMetadata;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.security.DataSecurityManager;
 import com.agileapes.dragonfly.tools.ColumnPropertyFilter;
@@ -40,7 +41,9 @@ public class EntityProxy<E> extends SecuredInterfaceInterceptor implements DataA
     private E originalCopy;
     private EntityInitializationContext initializationContext;
     private final Filter<MethodDescriptor> setterMethodFilter;
+    private final Filter<MethodDescriptor> getterMethodFilter;
     private boolean deleted = false;
+    private volatile boolean frozen = false;
 
     public EntityProxy(DataSecurityManager securityManager, TableMetadata<E> tableMetadata, EntityHandler<E> entityHandler, DataAccess dataAccess) {
         super(securityManager);
@@ -51,6 +54,12 @@ public class EntityProxy<E> extends SecuredInterfaceInterceptor implements DataA
             @Override
             public boolean accepts(MethodDescriptor item) {
                 return item.getName().matches("set[A-Z].*") && item.getReturnType().equals(void.class) && item.getParameterTypes().length == 1;
+            }
+        };
+        this.getterMethodFilter = new Filter<MethodDescriptor>() {
+            @Override
+            public boolean accepts(MethodDescriptor item) {
+                return item.getName().matches("get[A-Z].*") && !item.getReturnType().equals(void.class) && item.getParameterTypes().length == 0;
             }
         };
     }
@@ -80,7 +89,9 @@ public class EntityProxy<E> extends SecuredInterfaceInterceptor implements DataA
                 found = list.get(0);
             }
         }
-        this.entity = found;
+        freeze();
+        entityHandler.copy(found, entity);
+        unfreeze();
         setOriginalCopy(found);
     }
 
@@ -112,11 +123,23 @@ public class EntityProxy<E> extends SecuredInterfaceInterceptor implements DataA
 
     @Override
     protected Object call(MethodDescriptor methodDescriptor, Object target, Object[] arguments, MethodProxy methodProxy) throws Throwable {
-        if (initializationContext != null && setterMethodFilter.accepts(methodDescriptor)) {
-            final String propertyName = ReflectionUtils.getPropertyName(methodDescriptor.getName());
-            final ColumnMetadata columnMetadata = with(tableMetadata.getColumns()).find(new ColumnPropertyFilter(propertyName));
-            if (columnMetadata != null) {
-                invalidateCachedVersion();
+        if (!frozen) {
+            if (initializationContext != null && setterMethodFilter.accepts(methodDescriptor)) {
+                final String propertyName = ReflectionUtils.getPropertyName(methodDescriptor.getName());
+                final ColumnMetadata columnMetadata = with(tableMetadata.getColumns()).find(new ColumnPropertyFilter(propertyName));
+                if (columnMetadata != null) {
+                    invalidateCachedVersion();
+                }
+            }
+            if (getterMethodFilter.accepts(methodDescriptor)) {
+                final String propertyName = ReflectionUtils.getPropertyName(methodDescriptor.getName());
+                final ReferenceMetadata<E, ?> referenceMetadata = with(tableMetadata.getForeignReferences()).find(new Filter<ReferenceMetadata<E, ?>>() {
+                    @Override
+                    public boolean accepts(ReferenceMetadata<E, ?> referenceMetadata) {
+                        return propertyName.equals(referenceMetadata.getPropertyName());
+                    }
+                });
+                entityHandler.loadLazyRelations(entity, referenceMetadata, dataAccess);
             }
         }
         return methodProxy.callSuper(target, arguments);
@@ -152,10 +175,12 @@ public class EntityProxy<E> extends SecuredInterfaceInterceptor implements DataA
 
     @Override
     public void freeze() {
+        frozen = true;
     }
 
     @Override
     public void unfreeze() {
+        frozen = false;
     }
 
     @Override

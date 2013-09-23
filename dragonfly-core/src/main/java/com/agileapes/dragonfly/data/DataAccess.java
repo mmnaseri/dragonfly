@@ -176,7 +176,13 @@ public interface DataAccess {
      */
     <E> List<?> call(Class<E> entityType, String procedureName, Object... parameters);
 
-    <E> long count(Class<E> entityType);
+    /**
+     * Counts all items of the given type
+     * @param entityType       the type of the entity for which the procedure is defined
+     * @param <E>              the type of the entity over which the call is taking place
+     * @return the number of items from the given type in the database
+     */
+    <E> long countAll(Class<E> entityType);
 
     <E> long count(E sample);
 

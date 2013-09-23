@@ -6,6 +6,10 @@ import com.agileapes.dragonfly.entity.EntityInitializationContext;
 import com.agileapes.dragonfly.error.ContextLockFailureError;
 
 import java.io.Serializable;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
@@ -51,6 +55,7 @@ public abstract class AbstractLockingEntityInitializationContext extends Caching
     private final DataAccess dataAccess;
     private final EntityInitializationContext parent;
     private final Object lock = new Object();
+    private final Map<EntityInstanceDescriptor, Set<EntityInstanceDescriptor>> associations = new ConcurrentHashMap<EntityInstanceDescriptor, Set<EntityInstanceDescriptor>>();
     private Integer lockIndex = 0;
 
     public AbstractLockingEntityInitializationContext(DataAccess dataAccess, EntityInitializationContext parent) {
@@ -81,6 +86,13 @@ public abstract class AbstractLockingEntityInitializationContext extends Caching
             parent.delete(entityType, key);
             return;
         }
+        if (associations.containsKey(descriptor)) {
+            final Set<EntityInstanceDescriptor> associatedItems = associations.get(descriptor);
+            for (EntityInstanceDescriptor associatedItem : associatedItems) {
+                disassociate(entityType, key, associatedItem.getEntityType(), associatedItem.getKey());
+                delete(associatedItem.getEntityType(), associatedItem.getKey());
+            }
+        }
         remove(descriptor);
     }
 
@@ -100,16 +112,67 @@ public abstract class AbstractLockingEntityInitializationContext extends Caching
     }
 
     @Override
+    public <E> E get(Class<E> entityType, Serializable key, Class<?> requestingEntityType, Serializable requesterKey) {
+        if (requestingEntityType != null && requesterKey != null && contains(requestingEntityType, requesterKey)) {
+            associate(entityType, key, requestingEntityType, requesterKey);
+        }
+        final Object value = read(new EntityInstanceDescriptor(entityType, key));
+        return value == null ? null : entityType.cast(value);
+    }
+
+    protected synchronized void associate(Class<?> firstEntity, Serializable firstKey, Class<?> secondEntity, Serializable secondKey) {
+        if (parent != null && parent instanceof AbstractLockingEntityInitializationContext) {
+            ((AbstractLockingEntityInitializationContext) parent).associate(firstEntity, firstKey, secondEntity, secondKey);
+            return;
+        }
+        final EntityInstanceDescriptor firstDescriptor = new EntityInstanceDescriptor(firstEntity, firstKey);
+        final EntityInstanceDescriptor secondDescriptor = new EntityInstanceDescriptor(secondEntity, secondKey);
+        if (firstDescriptor.equals(secondDescriptor)) {
+            return;
+        }
+        final Set<EntityInstanceDescriptor> firstAssociations = associations.containsKey(firstDescriptor) ? associations.get(firstDescriptor) : new CopyOnWriteArraySet<EntityInstanceDescriptor>();
+        final Set<EntityInstanceDescriptor> secondAssociations = associations.containsKey(secondDescriptor) ? associations.get(secondDescriptor) : new CopyOnWriteArraySet<EntityInstanceDescriptor>();
+        firstAssociations.add(secondDescriptor);
+        secondAssociations.add(firstDescriptor);
+        associations.put(firstDescriptor, firstAssociations);
+        associations.put(secondDescriptor, secondAssociations);
+    }
+
+    protected synchronized void disassociate(Class<?> firstEntity, Serializable firstKey, Class<?> secondEntity, Serializable secondKey) {
+        if (parent != null && parent instanceof AbstractLockingEntityInitializationContext) {
+            ((AbstractLockingEntityInitializationContext) parent).disassociate(firstEntity, firstKey, secondEntity, secondKey);
+            return;
+        }
+        final EntityInstanceDescriptor firstDescriptor = new EntityInstanceDescriptor(firstEntity, firstKey);
+        final EntityInstanceDescriptor secondDescriptor = new EntityInstanceDescriptor(secondEntity, secondKey);
+        if (firstDescriptor.equals(secondDescriptor)) {
+            return;
+        }
+        final Set<EntityInstanceDescriptor> firstAssociations = associations.containsKey(firstDescriptor) ? associations.get(firstDescriptor) : new CopyOnWriteArraySet<EntityInstanceDescriptor>();
+        final Set<EntityInstanceDescriptor> secondAssociations = associations.containsKey(secondDescriptor) ? associations.get(secondDescriptor) : new CopyOnWriteArraySet<EntityInstanceDescriptor>();
+        firstAssociations.remove(secondDescriptor);
+        secondAssociations.remove(firstDescriptor);
+        associations.put(firstDescriptor, firstAssociations);
+        associations.put(secondDescriptor, secondAssociations);
+        if (firstAssociations.isEmpty()) {
+            associations.remove(firstDescriptor);
+        }
+        if (secondAssociations.isEmpty()) {
+            associations.remove(secondDescriptor);
+        }
+    }
+
+    @Override
     public void lock() {
         synchronized (lock) {
-            lockIndex ++;
+            lockIndex++;
         }
     }
 
     @Override
     public void unlock() {
         synchronized (lock) {
-            lockIndex --;
+            lockIndex--;
             if (lockIndex < 0) {
                 throw new ContextLockFailureError();
             }
@@ -118,7 +181,7 @@ public abstract class AbstractLockingEntityInitializationContext extends Caching
 
     @Override
     public <E> boolean contains(Class<E> entityType, Serializable key) {
-        return contains(new EntityInstanceDescriptor(entityType, key));
+        return contains(new EntityInstanceDescriptor(entityType, key)) || (parent != null && parent.contains(entityType, key));
     }
 
     @Override

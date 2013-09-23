@@ -275,7 +275,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
             initializedEntity.setInitializationContext(initializationContext);
         }
         initializationContext.lock();
-        entityHandler.loadRelations(enhancedEntity, values, initializationContext);
+        entityHandler.loadEagerRelations(enhancedEntity, values, initializationContext);
         initializationContext.unlock();
     }
 
@@ -658,7 +658,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     }
 
     @Override
-    public <E> long count(Class<E> entityType) {
+    public <E> long countAll(Class<E> entityType) {
         return internalCount(entityType, Statements.Manipulation.COUNT_ALL, Collections.<String, Object>emptyMap());
     }
 
