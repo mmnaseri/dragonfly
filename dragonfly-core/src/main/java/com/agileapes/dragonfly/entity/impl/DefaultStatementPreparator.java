@@ -32,6 +32,19 @@ public class DefaultStatementPreparator implements StatementPreparator {
         this.preparesCalls = preparesCalls;
     }
 
+    private PreparedStatement getPreparedStatement(Connection connection, StringWriter writer) {
+        PreparedStatement preparedStatement = null;
+        try {
+            if (!preparesCalls) {
+                preparedStatement = connection.prepareStatement(writer.toString(), Statement.RETURN_GENERATED_KEYS);
+            } else {
+                preparedStatement = connection.prepareCall(writer.toString());
+            }
+        } catch (SQLException ignored) {
+        }
+        return preparedStatement;
+    }
+
     @Override
     public PreparedStatement prepare(Connection connection, TableMetadata<?> tableMetadata, Map<String, Object> value, String sql) {
         final Configuration configuration = new Configuration();
@@ -50,16 +63,42 @@ public class DefaultStatementPreparator implements StatementPreparator {
             template.process(namespace, writer);
         } catch (Exception ignored) {
         }
-        PreparedStatement preparedStatement = null;
-        try {
-            if (!preparesCalls) {
-                preparedStatement = connection.prepareStatement(writer.toString(), Statement.RETURN_GENERATED_KEYS);
-            } else {
-                preparedStatement = connection.prepareCall(writer.toString());
+        final PreparedStatement preparedStatement = getPreparedStatement(connection, writer);
+        final List<String> parameters = namespace.getParameters();
+        for (int i = 0; i < parameters.size(); i++) {
+            final String parameter = parameters.get(i);
+            try {
+                if (value.containsKey(parameter)) {
+                    preparedStatement.setObject(i + 1, value.get(parameter));
+                } else {
+                    final String property = parameter.substring(parameter.lastIndexOf('.') + 1);
+                    final ColumnMetadata metadata = with(tableMetadata.getColumns()).keep(new ColumnPropertyFilter(property)).first();
+                    preparedStatement.setNull(i + 1, metadata.getType());
+                }
+            } catch (SQLException ignored) {
             }
-        } catch (SQLException ignored) {
         }
-        assert preparedStatement != null;
+        return preparedStatement;
+    }
+
+    @Override
+    public PreparedStatement prepare(PreparedStatement preparedStatement, TableMetadata<?> tableMetadata, Map<String, Object> value, String sql) {
+        final Configuration configuration = new Configuration();
+        final StringTemplateLoader loader = new StringTemplateLoader();
+        final ParameterPlaceholderNamespace namespace = new ParameterPlaceholderNamespace();
+        loader.putTemplate("sql", sql);
+        configuration.setTemplateLoader(loader);
+        Template template = null;
+        try {
+            template = configuration.getTemplate("sql");
+        } catch (IOException ignored) {
+        }
+        assert template != null;
+        final StringWriter writer = new StringWriter();
+        try {
+            template.process(namespace, writer);
+        } catch (Exception ignored) {
+        }
         final List<String> parameters = namespace.getParameters();
         for (int i = 0; i < parameters.size(); i++) {
             final String parameter = parameters.get(i);

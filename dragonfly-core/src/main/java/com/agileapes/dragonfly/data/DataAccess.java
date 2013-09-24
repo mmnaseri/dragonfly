@@ -194,4 +194,6 @@ public interface DataAccess {
 
     <E> boolean exists(Class<E> entityType, Map<String, Object> values);
 
+    List<Integer> update(BatchOperation batchOperation);
+
 }
