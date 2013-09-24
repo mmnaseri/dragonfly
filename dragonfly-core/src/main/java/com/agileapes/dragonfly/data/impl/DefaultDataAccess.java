@@ -477,14 +477,14 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     @Override
     public <E> void deleteAll(final Class<E> entityType) {
         eventHandler.beforeDeleteAll(entityType);
-        deleteDependencies(entityType);
-        internalExecuteUpdate(entityType, Statements.Manipulation.DELETE_ALL);
         deleteDependents(entityType);
+        internalExecuteUpdate(entityType, Statements.Manipulation.DELETE_ALL);
+        deleteDependencies(entityType);
         eventHandler.afterDeleteAll(entityType);
     }
 
     private synchronized <E> void deleteDependents(Class<E> entityType) {
-        prepareDeleteAllStatements(entityType, Statements.Manipulation.DELETE_DEPENDENCIES);
+        prepareDeleteAllStatements(entityType, Statements.Manipulation.DELETE_DEPENDENTS);
         with(deleteAllStatements.get().get(entityType).get(Statements.Manipulation.DELETE_DEPENDENTS)).each(new Processor<Statement>() {
             @Override
             public void process(Statement statement) {
@@ -494,7 +494,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     }
 
     private synchronized <E> void deleteDependencies(Class<E> entityType) {
-        prepareDeleteAllStatements(entityType, Statements.Manipulation.DELETE_DEPENDENTS);
+        prepareDeleteAllStatements(entityType, Statements.Manipulation.DELETE_DEPENDENCIES);
         with(deleteAllStatements.get().get(entityType).get(Statements.Manipulation.DELETE_DEPENDENCIES)).each(new Processor<Statement>() {
             @Override
             public void process(Statement statement) {
@@ -506,13 +506,13 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     private <E> void prepareDeleteAllStatements(Class<E> entityType, final Statements.Manipulation statementType) {
         if (!deleteAllStatements.get().containsKey(entityType) || !deleteAllStatements.get().get(entityType).containsKey(statementType)) {
             final Map<Statements.Manipulation, Set<Statement>> map = deleteAllStatements.get().containsKey(entityType) ? deleteAllStatements.get().get(entityType) : new HashMap<Statements.Manipulation, Set<Statement>>();
-            final Set<Statement> statements = map.get(statementType);
+            final Set<Statement> statements = map.containsKey(statementType) ? map.get(statementType) : new HashSet<Statement>();
             final TableMetadata<E> tableMetadata = session.getMetadataRegistry().getTableMetadata(entityType);
             with(tableMetadata.getForeignReferences())
                     .forThose(new Filter<ReferenceMetadata<E, ?>>() {
                                   @Override
                                   public boolean accepts(ReferenceMetadata<E, ?> referenceMetadata) {
-                                      return referenceMetadata.getCascadeMetadata().cascadeRemove() && referenceMetadata.isRelationOwner();
+                                      return referenceMetadata.getCascadeMetadata().cascadeRemove() && (statementType.equals(Statements.Manipulation.DELETE_DEPENDENCIES) ? referenceMetadata.isRelationOwner() : !referenceMetadata.isRelationOwner());
                                   }
                               },
                             new Processor<ReferenceMetadata<E, ?>>() {

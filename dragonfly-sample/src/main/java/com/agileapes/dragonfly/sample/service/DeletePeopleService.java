@@ -21,6 +21,8 @@ public class DeletePeopleService {
     private DataAccess dataAccess;
 
     public void execute() {
+        dataAccess.deleteAll(Person.class);
+        if (true) return;
         System.out.println("things = " + dataAccess.findAll(Thing.class).size());
         System.out.println("cards = " + dataAccess.findAll(LibraryCard.class).size());
         final List<Person> people = dataAccess.findAll(Person.class);
