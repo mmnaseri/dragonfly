@@ -27,6 +27,8 @@ public class Statements {
         DELETE_ALL,
         DELETE_ONE,
         DELETE_LIKE,
+        DELETE_DEPENDENCIES,
+        DELETE_DEPENDENTS,
         FIND_ALL,
         FIND_ONE,
         FIND_LIKE,

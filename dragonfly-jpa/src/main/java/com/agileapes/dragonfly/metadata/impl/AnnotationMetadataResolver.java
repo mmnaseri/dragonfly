@@ -374,7 +374,7 @@ public class AnnotationMetadataResolver implements MetadataResolver {
         final Class<?> entityType;
         if (method.isAnnotationPresent(OneToOne.class)) {
             final OneToOne annotation = method.getAnnotation(OneToOne.class);
-            name = annotation.mappedBy();
+            name = "";
             entityType = annotation.targetEntity().equals(void.class) ? method.getReturnType() : annotation.targetEntity();
         } else if (method.isAnnotationPresent(ManyToOne.class)) {
             final ManyToOne annotation = method.getAnnotation(ManyToOne.class);

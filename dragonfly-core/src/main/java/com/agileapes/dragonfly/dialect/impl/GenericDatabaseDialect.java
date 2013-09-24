@@ -34,6 +34,8 @@ public abstract class GenericDatabaseDialect implements DatabaseDialect {
         statementBuilderContext.register(Statements.Manipulation.DELETE_ALL, new FreemarkerStatementBuilder(configuration, "deleteAll.sql.ftl", getDatabaseDialect()));
         statementBuilderContext.register(Statements.Manipulation.DELETE_ONE, new FreemarkerStatementBuilder(configuration, "deleteByKey.sql.ftl", getDatabaseDialect()));
         statementBuilderContext.register(Statements.Manipulation.DELETE_LIKE, new FreemarkerStatementBuilder(configuration, "deleteBySample.sql.ftl", getDatabaseDialect()));
+        statementBuilderContext.register(Statements.Manipulation.DELETE_DEPENDENCIES, new FreemarkerStatementBuilder(configuration, "deleteDependencies.sql.ftl", getDatabaseDialect()));
+        statementBuilderContext.register(Statements.Manipulation.DELETE_DEPENDENTS, new FreemarkerStatementBuilder(configuration, "deleteDependents.sql.ftl", getDatabaseDialect()));
         statementBuilderContext.register(Statements.Manipulation.FIND_ALL, new FreemarkerStatementBuilder(configuration, "findAll.sql.ftl", getDatabaseDialect()));
         statementBuilderContext.register(Statements.Manipulation.FIND_ONE, new FreemarkerStatementBuilder(configuration, "findByKey.sql.ftl", getDatabaseDialect()));
         statementBuilderContext.register(Statements.Manipulation.FIND_LIKE, new FreemarkerStatementBuilder(configuration, "findBySample.sql.ftl", getDatabaseDialect()));

@@ -1,6 +1,7 @@
 package com.agileapes.dragonfly.data.impl;
 
 import com.agileapes.couteau.basics.api.Filter;
+import com.agileapes.couteau.basics.api.Processor;
 import com.agileapes.couteau.context.error.RegistryException;
 import com.agileapes.couteau.reflection.beans.BeanInitializer;
 import com.agileapes.couteau.reflection.beans.impl.ConstructorBeanInitializer;
@@ -18,14 +19,12 @@ import com.agileapes.dragonfly.error.*;
 import com.agileapes.dragonfly.events.DataAccessEventHandler;
 import com.agileapes.dragonfly.events.EventHandlerContext;
 import com.agileapes.dragonfly.events.impl.CompositeDataAccessEventHandler;
-import com.agileapes.dragonfly.metadata.ColumnMetadata;
-import com.agileapes.dragonfly.metadata.ParameterMetadata;
-import com.agileapes.dragonfly.metadata.StoredProcedureMetadata;
-import com.agileapes.dragonfly.metadata.TableMetadata;
+import com.agileapes.dragonfly.metadata.*;
 import com.agileapes.dragonfly.metadata.impl.ColumnMappingMetadataCollector;
 import com.agileapes.dragonfly.security.DataSecurityManager;
 import com.agileapes.dragonfly.security.impl.StoredProcedureSubject;
 import com.agileapes.dragonfly.statement.Statement;
+import com.agileapes.dragonfly.statement.StatementBuilder;
 import com.agileapes.dragonfly.statement.StatementType;
 import com.agileapes.dragonfly.statement.Statements;
 import com.agileapes.dragonfly.statement.impl.ProcedureCallStatement;
@@ -52,11 +51,14 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
 
     private static final Log log = LogFactory.getLog(DataAccess.class);
     private static final Map<Statements.Manipulation, String> STATEMENTS = new ConcurrentHashMap<Statements.Manipulation, String>();
+
     static {
         STATEMENTS.put(Statements.Manipulation.CALL, "call");
         STATEMENTS.put(Statements.Manipulation.DELETE_ALL, "deleteAll");
         STATEMENTS.put(Statements.Manipulation.DELETE_LIKE, "deleteLike");
         STATEMENTS.put(Statements.Manipulation.DELETE_ONE, "deleteByKey");
+        STATEMENTS.put(Statements.Manipulation.DELETE_DEPENDENCIES, "deleteDependencies");
+        STATEMENTS.put(Statements.Manipulation.DELETE_DEPENDENTS, "deleteDependents");
         STATEMENTS.put(Statements.Manipulation.FIND_ALL, "findAll");
         STATEMENTS.put(Statements.Manipulation.FIND_LIKE, "findLike");
         STATEMENTS.put(Statements.Manipulation.FIND_ONE, "findByKey");
@@ -82,6 +84,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     private final EntityMapCreator mapCreator;
     private final MapEntityCreator entityCreator;
     private final Map<Class<?>, Collection<ColumnMetadata>> partialEntityColumns = new ConcurrentHashMap<Class<?>, Collection<ColumnMetadata>>();
+    private final ThreadLocal<Map<Class<?>, Map<Statements.Manipulation, Set<Statement>>>> deleteAllStatements;
 
     public DefaultDataAccess(DataAccessSession session, DataSecurityManager securityManager, EntityContext entityContext, EntityHandlerContext entityHandlerContext) {
         this(session, securityManager, entityContext, entityHandlerContext, true);
@@ -109,6 +112,12 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
             @Override
             protected Set<Object> initialValue() {
                 return new HashSet<Object>();
+            }
+        };
+        this.deleteAllStatements = new ThreadLocal<Map<Class<?>, Map<Statements.Manipulation, Set<Statement>>>>() {
+            @Override
+            protected Map<Class<?>, Map<Statements.Manipulation, Set<Statement>>> initialValue() {
+                return new HashMap<Class<?>, Map<Statements.Manipulation, Set<Statement>>>();
             }
         };
         if (entityContext instanceof DefaultEntityContext) {
@@ -466,10 +475,57 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     }
 
     @Override
-    public <E> void deleteAll(Class<E> entityType) {
+    public <E> void deleteAll(final Class<E> entityType) {
         eventHandler.beforeDeleteAll(entityType);
+        deleteDependencies(entityType);
         internalExecuteUpdate(entityType, Statements.Manipulation.DELETE_ALL);
+        deleteDependents(entityType);
         eventHandler.afterDeleteAll(entityType);
+    }
+
+    private synchronized <E> void deleteDependents(Class<E> entityType) {
+        prepareDeleteAllStatements(entityType, Statements.Manipulation.DELETE_DEPENDENCIES);
+        with(deleteAllStatements.get().get(entityType).get(Statements.Manipulation.DELETE_DEPENDENTS)).each(new Processor<Statement>() {
+            @Override
+            public void process(Statement statement) {
+                internalExecuteUpdate(statement, Collections.<String, Object>emptyMap());
+            }
+        });
+    }
+
+    private synchronized <E> void deleteDependencies(Class<E> entityType) {
+        prepareDeleteAllStatements(entityType, Statements.Manipulation.DELETE_DEPENDENTS);
+        with(deleteAllStatements.get().get(entityType).get(Statements.Manipulation.DELETE_DEPENDENCIES)).each(new Processor<Statement>() {
+            @Override
+            public void process(Statement statement) {
+                internalExecuteUpdate(statement, Collections.<String, Object>emptyMap());
+            }
+        });
+    }
+
+    private <E> void prepareDeleteAllStatements(Class<E> entityType, final Statements.Manipulation statementType) {
+        if (!deleteAllStatements.get().containsKey(entityType) || !deleteAllStatements.get().get(entityType).containsKey(statementType)) {
+            final Map<Statements.Manipulation, Set<Statement>> map = deleteAllStatements.get().containsKey(entityType) ? deleteAllStatements.get().get(entityType) : new HashMap<Statements.Manipulation, Set<Statement>>();
+            final Set<Statement> statements = map.get(statementType);
+            final TableMetadata<E> tableMetadata = session.getMetadataRegistry().getTableMetadata(entityType);
+            with(tableMetadata.getForeignReferences())
+                    .forThose(new Filter<ReferenceMetadata<E, ?>>() {
+                                  @Override
+                                  public boolean accepts(ReferenceMetadata<E, ?> referenceMetadata) {
+                                      return referenceMetadata.getCascadeMetadata().cascadeRemove() && referenceMetadata.isRelationOwner();
+                                  }
+                              },
+                            new Processor<ReferenceMetadata<E, ?>>() {
+                                @Override
+                                public void process(ReferenceMetadata<E, ?> referenceMetadata) {
+                                    final StatementBuilder builder = session.getDatabaseDialect().getStatementBuilderContext().getManipulationStatementBuilder(statementType);
+                                    statements.add(builder.getStatement(tableMetadata, referenceMetadata));
+                                }
+                            }
+                    );
+            map.put(statementType, statements);
+            deleteAllStatements.get().put(entityType, map);
+        }
     }
 
     @Override

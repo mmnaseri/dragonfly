@@ -1,8 +1,8 @@
 package com.agileapes.dragonfly.sample.service;
 
-import com.agileapes.dragonfly.data.DataAccess;
 import com.agileapes.dragonfly.data.DataAccessObject;
 import com.agileapes.dragonfly.entity.EntityContext;
+import com.agileapes.dragonfly.sample.entities.Group;
 import com.agileapes.dragonfly.sample.entities.LibraryCard;
 import com.agileapes.dragonfly.sample.entities.Person;
 import com.agileapes.dragonfly.sample.entities.Thing;
@@ -23,14 +23,14 @@ public class CreatePersonService {
     @Autowired
     private EntityContext entityContext;
 
-    @Autowired
-    private DataAccess dataAccess;
-
     public void execute() {
         final Person person = entityContext.getInstance(Person.class);
         person.setLibraryCard(new LibraryCard());
         person.setName("Person - " + Math.abs((new Random().nextInt())));
         person.setBirthday(new Date());
+        final Group group = new Group();
+        group.setName("Normal People");
+        person.setGroup(group);
         final ArrayList<Thing> things = new ArrayList<Thing>();
         person.setThings(things);
         for (int i = 0; i < 3; i ++) {

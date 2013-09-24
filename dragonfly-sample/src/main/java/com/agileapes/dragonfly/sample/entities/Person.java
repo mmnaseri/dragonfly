@@ -59,6 +59,7 @@ public class Person {
     private Collection<Thing> things;
     private LibraryCard libraryCard;
     private Person myFriend;
+    private Group group;
 
     @Column
     public String getName() {
@@ -135,5 +136,15 @@ public class Person {
 
     public void setMyFriend(Person myFriend) {
         this.myFriend = myFriend;
+    }
+
+    @JoinColumn
+    @ManyToOne(cascade = CascadeType.ALL)
+    public Group getGroup() {
+        return group;
+    }
+
+    public void setGroup(Group group) {
+        this.group = group;
     }
 }
