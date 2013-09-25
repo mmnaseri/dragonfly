@@ -19,15 +19,18 @@ public class BatchService {
     private DataAccess dataAccess;
 
     public void execute() {
-        final Person person = new Person();
+        Person person = new Person();
         person.setName("One Person");
-        dataAccess.save(person);
+        person = dataAccess.save(person);
+        final Person finalPerson = person;
         final List<Integer> batchResult = dataAccess.update(new BatchOperation() {
             @Override
             public void execute(DataAccess dataAccess) {
-                person.setName("Another Person");
-                dataAccess.save(person);
-                dataAccess.delete(person);
+                finalPerson.setName("Another Person");
+                dataAccess.save(finalPerson);
+                dataAccess.delete(finalPerson);
+                dataAccess.delete(finalPerson);
+                dataAccess.delete(finalPerson);
             }
         });
         for (int i = 0; i < batchResult.size(); i++) {

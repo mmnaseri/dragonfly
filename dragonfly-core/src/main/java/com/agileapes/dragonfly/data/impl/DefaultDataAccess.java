@@ -157,7 +157,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     }
 
     private int internalExecuteUpdate(Statement statement, Map<String, Object> values) {
-        if (batchMode.get()) {
+        if (isInBatchMode()) {
             final PreparedStatement preparedStatement;
             if (batchStatement.get() == null) {
                 final Connection connection = session.getConnection();
@@ -196,7 +196,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     }
 
     private synchronized void startBatch() {
-        if (batchMode.get()) {
+        if (isInBatchMode()) {
             throw new BatchOperationInterruptedError("Batch operation already in progress");
         }
         batchMode.set(true);
@@ -204,11 +204,14 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     }
 
     private synchronized List<Integer> endBatch() {
-        if (!batchMode.get()) {
+        if (!isInBatchMode()) {
             throw new BatchOperationInterruptedError("No batch operation has been started");
         }
         batchMode.set(false);
         final PreparedStatement preparedStatement = batchStatement.get();
+        if (preparedStatement == null) {
+            return Collections.emptyList();
+        }
         batchStatement.remove();
         final int[] batchResult;
         try {
@@ -271,6 +274,9 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     }
 
     private <E> List<Map<String, Object>> internalExecuteUntypedQuery(Class<E> entityType, String statementName, Map<String, Object> values) {
+        if (isInBatchMode() && !statementName.startsWith("count")) {
+            throw new BatchOperationInterruptedError("Batch operation interrupted by query");
+        }
         final Statement statement = getStatement(entityType, statementName, StatementType.QUERY);
         final PreparedStatement preparedStatement = statement.prepare(session.getConnection(), null, values);
         final ArrayList<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
@@ -498,8 +504,8 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
                     values.put("value." + key, original.get(key));
                 }
             }
-            if (internalExecuteUpdate(entityHandler.getEntityType(), Statements.Manipulation.UPDATE, values) <= 0) {
-                throw new UnsupportedOperationException("Failed to update object");
+            if (internalExecuteUpdate(entityHandler.getEntityType(), Statements.Manipulation.UPDATE, values) <= 0 && !isInBatchMode()) {
+                throw new UnsuccessfulOperationError("Failed to update object");
             }
         }
         if (!shouldUpdate) {
@@ -513,6 +519,10 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         return enhancedEntity;
     }
 
+    private Boolean isInBatchMode() {
+        return batchMode.get();
+    }
+
     @Override
     public <E> void delete(E entity) {
         final Set<Object> deleteQueue = this.deleteQueue.get();
@@ -524,7 +534,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         final E enhancedEntity = getEnhancedEntity(entity);
         eventHandler.beforeDelete(enhancedEntity);
         final Map<String, Object> map = MapTools.prefixKeys(entityHandler.toMap(enhancedEntity), "value.");
-        if (exists(entityHandler.getEntityType(), map)) {
+        if ((entityHandler.hasKey() && entityHandler.getKey(enhancedEntity) != null && exists(entityHandler.getEntityType(), entityHandler.getKey(enhancedEntity))) || exists(entityHandler.getEntityType(), map)) {
             entityHandler.deleteDependencyRelations(enhancedEntity, this);
             final Statements.Manipulation statement;
             if (entityHandler.hasKey() && entityHandler.getKey(enhancedEntity) != null) {
@@ -689,7 +699,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
 
     @Override
     public <E> List<?> call(Class<E> entityType, final String procedureName, Object... parameters) {
-        if (batchMode.get()) {
+        if (isInBatchMode()) {
             throw new BatchOperationInterruptedError("Batch operation interrupted by procedure call");
         }
         log.info("Calling to stored procedure " + entityType.getCanonicalName() + "." + procedureName);
@@ -800,7 +810,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     public <E> long count(E sample) {
         final E enhancedEntity = getEnhancedEntity(sample);
         final EntityHandler<E> entityHandler = entityHandlerContext.getHandler(sample);
-        return internalCount(entityHandler.getEntityType(), entityHandler.hasKey() && entityHandler.getKey(enhancedEntity) != null ? Statements.Manipulation.COUNT_ONE : Statements.Manipulation.COUNT_LIKE, entityHandler.toMap(enhancedEntity));
+        return internalCount(entityHandler.getEntityType(), entityHandler.hasKey() && entityHandler.getKey(enhancedEntity) != null ? Statements.Manipulation.COUNT_ONE : Statements.Manipulation.COUNT_LIKE, MapTools.prefixKeys(entityHandler.toMap(enhancedEntity), "value."));
     }
 
     @Override
