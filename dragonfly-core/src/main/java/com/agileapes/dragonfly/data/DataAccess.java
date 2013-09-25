@@ -212,6 +212,6 @@ public interface DataAccess {
      */
     <E, K extends Serializable> boolean exists(Class<E> entityType, K key);
 
-    List<Integer> update(BatchOperation batchOperation);
+    List<Integer> run(BatchOperation batchOperation);
 
 }

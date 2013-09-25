@@ -8,7 +8,10 @@ import com.agileapes.dragonfly.sample.entities.Person;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
+
+import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
@@ -26,16 +29,23 @@ public class BatchService {
         person.setName("One Person");
         reference.setValue(person);
         reference.setValue(dataAccess.save(reference.getValue()));
-        final List<Integer> batchResult = dataAccess.update(new BatchOperation() {
-            @Override
-            public void execute(DataAccess dataAccess) {
-                reference.getValue().setName("Another Person");
-                dataAccess.save(reference.getValue());
-                dataAccess.delete(reference.getValue());
-                dataAccess.delete(reference.getValue());
-                dataAccess.delete(reference.getValue());
-            }
-        });
+        final List<Integer> batchResult = with(Arrays.<Integer>asList())
+                .add(dataAccess.run(new BatchOperation() {
+                    @Override
+                    public void execute(DataAccess dataAccess) {
+                        reference.getValue().setName("Another Person");
+                        dataAccess.save(reference.getValue());
+                        dataAccess.save(reference.getValue());
+                    }
+                }))
+                .add(dataAccess.run(new BatchOperation() {
+                    @Override
+                    public void execute(DataAccess dataAccess) {
+                        dataAccess.delete(reference.getValue());
+                        dataAccess.delete(reference.getValue());
+                        dataAccess.delete(reference.getValue());
+                    }
+                })).list();
         for (int i = 0; i < batchResult.size(); i++) {
             System.out.println("batch[" + i + "] = " + batchResult.get(i));
         }

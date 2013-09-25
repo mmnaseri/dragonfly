@@ -37,6 +37,7 @@ import java.io.Serializable;
 import java.sql.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 
@@ -82,10 +83,9 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     private final MapEntityCreator entityCreator;
     private final Map<Class<?>, Collection<ColumnMetadata>> partialEntityColumns = new ConcurrentHashMap<Class<?>, Collection<ColumnMetadata>>();
     private final ThreadLocal<Map<Class<?>, Map<Statements.Manipulation, Set<Statement>>>> deleteAllStatements;
-    private final ThreadLocal<Boolean> batchMode;
-    private final ThreadLocal<PreparedStatement> batchStatement;
     private final StatementPreparator statementPreparator;
-    private final ThreadLocal<List<Object>> deferredKeys;
+    private final ThreadLocal<Stack<BatchOperationDescriptor>> batchOperation;
+    private final AtomicBoolean batch;
 
     public DefaultDataAccess(DataAccessSession session, DataSecurityManager securityManager, EntityContext entityContext, EntityHandlerContext entityHandlerContext) {
         this(session, securityManager, entityContext, entityHandlerContext, true);
@@ -121,23 +121,12 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
                 return new HashMap<Class<?>, Map<Statements.Manipulation, Set<Statement>>>();
             }
         };
+        this.batchOperation = new ThreadLocal<Stack<BatchOperationDescriptor>>();
+        this.batch = new AtomicBoolean(false);
         if (entityContext instanceof DefaultEntityContext) {
             ((DefaultEntityContext) entityContext).setDataAccess(this);
         }
-        this.batchMode = new ThreadLocal<Boolean>() {
-            @Override
-            protected Boolean initialValue() {
-                return false;
-            }
-        };
-        this.batchStatement = new ThreadLocal<PreparedStatement>();
         this.statementPreparator = new DefaultStatementPreparator(false);
-        this.deferredKeys = new ThreadLocal<List<Object>>() {
-            @Override
-            protected List<Object> initialValue() {
-                return new ArrayList<Object>();
-            }
-        };
         if (autoInitialize) {
             log.info("Automatically initializing the session");
             synchronized (this.session) {
@@ -153,115 +142,83 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
      * These are helpers for the rest of the interface
      */
 
-    private int internalExecuteUpdate(Class<?> entityType, Statements.Manipulation statementName) {
+    private int getUpdateCount(PreparedStatement preparedStatement) {
+        try {
+            return preparedStatement.getUpdateCount();
+        } catch (SQLException e) {
+            throw new UnsuccessfulOperationError("Failed to retrieve the number of affected rows", e);
+        }
+    }
+
+    private PreparedStatement internalExecuteUpdate(Class<?> entityType, Statements.Manipulation statementName) {
         return internalExecuteUpdate(entityType, statementName, Collections.<String, Object>emptyMap());
     }
 
-    private int internalExecuteUpdate(Class<?> entityType, Statements.Manipulation statement, Map<String, Object> values) {
+    private PreparedStatement internalExecuteUpdate(Class<?> entityType, Statements.Manipulation statement, Map<String, Object> values) {
         return internalExecuteUpdate(getStatement(entityType, statement, StatementType.INSERT, StatementType.DELETE, StatementType.UPDATE), values);
     }
 
-    private int internalExecuteUpdate(Class<?> entityType, String statement, Map<String, Object> values) {
+    private PreparedStatement internalExecuteUpdate(Class<?> entityType, String statement, Map<String, Object> values) {
         return internalExecuteUpdate(getStatement(entityType, statement, StatementType.INSERT, StatementType.DELETE, StatementType.UPDATE), values);
     }
 
-    private int internalExecuteUpdate(Statement statement, Map<String, Object> values) {
+    private PreparedStatement internalExecuteUpdate(Statement statement, Map<String, Object> values) {
         if (isInBatchMode()) {
-            final PreparedStatement preparedStatement;
-            if (batchStatement.get() == null) {
-                final Connection connection = session.getConnection();
-                try {
-                    connection.setAutoCommit(false);
-                    if (!connection.getMetaData().supportsBatchUpdates()) {
-                        throw new UnsupportedOperationException("Batch updates are not supported by your database");
-                    }
-                } catch (SQLException e) {
-                    throw new BatchOperationInterruptedError("Failed to disable auto-commit", e);
-                }
-                preparedStatement = statement.prepare(connection, null, values);
-                batchStatement.set(preparedStatement);
-            } else {
-                preparedStatement = batchStatement.get();
+            if (batchOperation.get() == null) {
+                batchOperation.set(new Stack<BatchOperationDescriptor>());
+            }
+            final Stack<BatchOperationDescriptor> operationDescriptors = batchOperation.get();
+            boolean firstStep = operationDescriptors.isEmpty();
+            if (!firstStep) {
                 String sql = statement.getSql();
                 if (statement.isDynamic()) {
                     sql = new FreemarkerSecondPassStatementBuilder(statement, session.getDatabaseDialect(), values).getStatement(statement.getTableMetadata()).getSql();
                 }
-                statementPreparator.prepare(preparedStatement, statement.getTableMetadata(), values, sql);
+                firstStep = !sql.equals(operationDescriptors.peek().getSql());
+            }
+            final PreparedStatement preparedStatement;
+            if (!firstStep) {
+                preparedStatement = operationDescriptors.peek().getPreparedStatement();
+                statementPreparator.prepare(preparedStatement, statement.getTableMetadata(), values, operationDescriptors.peek().getSql());
+            } else {
+                final BatchOperationDescriptor operationDescriptor = getPreparedStatement(statement, values);
+                operationDescriptors.push(operationDescriptor);
+                preparedStatement = operationDescriptor.getPreparedStatement();
             }
             try {
                 preparedStatement.addBatch();
             } catch (SQLException e) {
-                throw new BatchOperationInterruptedError("Failed to add batch statement", e);
+                throw new BatchOperationInterruptedError("Failed to add batch operation", e);
             }
-            return -1;
+            return preparedStatement;
         } else {
-            final PreparedStatement preparedStatement = statement.prepare(session.getConnection(), null, values);
+            final PreparedStatement preparedStatement = getPreparedStatement(statement, values).getPreparedStatement();
             try {
-                return preparedStatement.executeUpdate();
+                preparedStatement.executeUpdate();
             } catch (SQLException e) {
-                throw new StatementExecutionFailureError("Failed to execute statement", e);
+                throw new UnsuccessfulOperationError("Failed to execute update", e);
             }
+            return preparedStatement;
         }
     }
 
-    private synchronized void startBatch() {
-        log.info("Starting batch operation");
+    private BatchOperationDescriptor getPreparedStatement(Statement statement, Map<String, Object> values) {
+        final Connection connection = session.getConnection();
         if (isInBatchMode()) {
-            throw new BatchOperationInterruptedError("Batch operation already in progress");
-        }
-        batchMode.set(true);
-        batchStatement.remove();
-    }
-
-    private synchronized List<Integer> endBatch() {
-        log.info("Concluding batch operation");
-        if (!isInBatchMode()) {
-            throw new BatchOperationInterruptedError("No batch operation has been started");
-        }
-        batchMode.set(false);
-        final PreparedStatement preparedStatement = batchStatement.get();
-        if (preparedStatement == null) {
-            return Collections.emptyList();
-        }
-        batchStatement.remove();
-        final int[] batchResult;
-        try {
-            log.info("Executing stacked operations");
-            batchResult = preparedStatement.executeBatch();
-        } catch (SQLException e) {
-            throw new BatchOperationInterruptedError("Failed to execute batch operations", e);
-        }
-        final Connection connection;
-        try {
-            connection = preparedStatement.getConnection();
-        } catch (SQLException e) {
-            throw new BatchOperationInterruptedError("Failed to obtain statement connection", e);
-        }
-        try {
-            log.info("Informing the database of the changes");
-            connection.commit();
-        } catch (SQLException e) {
-            throw new BatchOperationInterruptedError("Failed to commit batch results", e);
-        }
-        try {
-            final ResultSet generatedKeys = preparedStatement.getGeneratedKeys();
-            final List<Object> objects = new ArrayList<Object>(deferredKeys.get());
-            deferredKeys.get().clear();
-            for (Object object : objects) {
-                if (!generatedKeys.next()) {
-                    throw new BatchOperationInterruptedError("Failed to retrieve key for entity");
-                }
-                final Serializable serializable = session.getDatabaseDialect().retrieveKey(generatedKeys);
-                entityHandlerContext.getHandler(object).setKey(object, serializable);
+            try {
+                connection.setAutoCommit(false);
+            } catch (SQLException e) {
+                throw new BatchOperationInterruptedError("Failed to disable auto-commit mode for the current connection", e);
             }
-        } catch (SQLException e) {
-            throw new BatchOperationInterruptedError("Failed to load generated keys", e);
         }
-        final ArrayList<Integer> result = new ArrayList<Integer>();
-        for (int item : batchResult) {
-            result.add(item);
+        final Statement finalStatement;
+        if (statement.isDynamic()) {
+            finalStatement = new FreemarkerSecondPassStatementBuilder(statement, session.getDatabaseDialect(), values).getStatement(statement.getTableMetadata());
+        } else {
+            finalStatement = statement;
         }
-        return result;
+        final PreparedStatement preparedStatement = finalStatement.prepare(connection, null, values);
+        return new BatchOperationDescriptor(preparedStatement, finalStatement.getSql());
     }
 
     /**
@@ -408,6 +365,47 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     }
 
     /**
+     * Batch processing methods
+     */
+
+    private Boolean isInBatchMode() {
+        return batch.get();
+    }
+
+    private synchronized void startBatch() {
+        log.info("Starting batch operation");
+        if (isInBatchMode()) {
+            throw new BatchOperationInterruptedError("Batch operation already in progress");
+        }
+        batch.set(true);
+    }
+
+    private synchronized List<Integer> endBatch() {
+        if (!isInBatchMode()) {
+            throw new BatchOperationInterruptedError("No batch operation has been started");
+        }
+        final Stack<BatchOperationDescriptor> descriptors = batchOperation.get();
+        batchOperation.remove();
+        batch.set(false);
+        final ArrayList<Integer> result = new ArrayList<Integer>();
+        while (!descriptors.isEmpty()) {
+            final BatchOperationDescriptor descriptor = descriptors.pop();
+            final int[] batchResult;
+            log.info("Executing batch operation for statement: " + descriptor.getSql());
+            try {
+                batchResult = descriptor.getPreparedStatement().executeBatch();
+                descriptor.getPreparedStatement().getConnection().commit();
+            } catch (SQLException e) {
+                throw new BatchOperationInterruptedError("Failed to execute operation batch", e);
+            }
+            for (int i : batchResult) {
+                result.add(i);
+            }
+        }
+        return result;
+    }
+
+    /**
      * Partial data access support
      */
 
@@ -497,7 +495,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         final InitializedEntity<E> initializedEntity = getInitializedEntity(enhancedEntity);
         eventHandler.beforeSave(enhancedEntity);
         entityHandler.saveDependencyRelations(enhancedEntity, this);
-        boolean shouldUpdate = entityHandler.hasKey() && entityHandler.getKey(entity) != null;
+        boolean shouldUpdate = entityHandler.hasKey() && entityHandler.isKeyAutoGenerated() && entityHandler.getKey(entity) != null;
         if (!shouldUpdate) {
             insert(entityHandler, enhancedEntity, initializedEntity);
         } else {
@@ -523,59 +521,16 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
                 values.put("value." + key, original.get(key));
             }
         }
-        if (internalExecuteUpdate(entityHandler.getEntityType(), Statements.Manipulation.UPDATE, values) <= 0 && !isInBatchMode()) {
-            throw new UnsuccessfulOperationError("Failed to update object");
-        }
+        internalExecuteUpdate(entityHandler.getEntityType(), Statements.Manipulation.UPDATE, values);
         eventHandler.afterUpdate(enhancedEntity);
     }
 
     private <E> void insert(EntityHandler<E> entityHandler, E enhancedEntity, InitializedEntity<E> initializedEntity) {
         eventHandler.beforeInsert(enhancedEntity);
-        final PreparedStatement preparedStatement;
-        final Statement statement = getStatement(entityHandler.getEntityType(), Statements.Manipulation.INSERT);
-        final Map<String, Object> objectMap = MapTools.prefixKeys(entityHandler.toMap(enhancedEntity), "value.");
-        if (isInBatchMode() && batchStatement.get() != null) {
-            preparedStatement = batchStatement.get();
-            String sql = statement.getSql();
-            if (statement.isDynamic()) {
-                sql = new FreemarkerSecondPassStatementBuilder(statement, session.getDatabaseDialect(), objectMap).getStatement(statement.getTableMetadata()).getSql();
-            }
-            statementPreparator.prepare(preparedStatement, statement.getTableMetadata(), objectMap, sql);
-        } else {
-            final Connection connection = session.getConnection();
-            if (isInBatchMode()) {
-                try {
-                    connection.setAutoCommit(false);
-                    if (!connection.getMetaData().supportsBatchUpdates()) {
-                        throw new UnsupportedOperationException("Batch updates are not supported by your database");
-                    }
-                } catch (SQLException e) {
-                    throw new UnsuccessfulOperationError("Failed to disable auto-commit on connection", e);
-                }
-            }
-            preparedStatement = statement.prepare(connection, null, objectMap);
-            if (isInBatchMode()) {
-                batchStatement.set(preparedStatement);
-            }
-        }
-        if (isInBatchMode()) {
-            try {
-                preparedStatement.addBatch();
-            } catch (SQLException e) {
-                throw new BatchOperationInterruptedError("Failed to add batch operation", e);
-            }
-        } else {
-            try {
-                if (preparedStatement.executeUpdate() <= 0) {
-                    throw new UnsuccessfulOperationError("Failed to insert object");
-                }
-            } catch (SQLException e) {
-                throw new UnsupportedOperationException("Failed to insert object", e);
-            }
-        }
+        final PreparedStatement preparedStatement = internalExecuteUpdate(entityHandler.getEntityType(), Statements.Manipulation.INSERT, MapTools.prefixKeys(entityHandler.toMap(enhancedEntity), "value."));
         if (entityHandler.isKeyAutoGenerated()) {
             if (isInBatchMode()) {
-                deferredKeys.get().add(enhancedEntity);
+                System.out.print("");
             } else {
                 try {
                     entityHandler.setKey(enhancedEntity, session.getDatabaseDialect().retrieveKey(preparedStatement.getGeneratedKeys()));
@@ -586,10 +541,6 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         }
         initializedEntity.setOriginalCopy(enhancedEntity);
         eventHandler.afterInsert(enhancedEntity);
-    }
-
-    private Boolean isInBatchMode() {
-        return batchMode.get();
     }
 
     @Override
@@ -733,7 +684,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     @Override
     public <E> int executeUpdate(Class<E> entityType, String queryName, Map<String, Object> values) {
         eventHandler.beforeExecuteUpdate(entityType, queryName, values);
-        final int affectedItems = internalExecuteUpdate(entityType, queryName, values);
+        final int affectedItems = getUpdateCount(internalExecuteUpdate(entityType, queryName, values));
         eventHandler.afterExecuteUpdate(entityType, queryName, values, affectedItems);
         return affectedItems;
     }
@@ -743,7 +694,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         final EntityHandler<E> entityHandler = entityHandlerContext.getHandler(sample);
         final E enhancedEntity = getEnhancedEntity(sample);
         eventHandler.beforeExecuteUpdate(enhancedEntity, queryName);
-        final int affectedItems = internalExecuteUpdate(entityHandler.getEntityType(), queryName, entityHandler.toMap(enhancedEntity));
+        final int affectedItems = getUpdateCount(internalExecuteUpdate(entityHandler.getEntityType(), queryName, entityHandler.toMap(enhancedEntity)));
         eventHandler.afterExecuteUpdate(enhancedEntity, queryName, affectedItems);
         return affectedItems;
     }
@@ -899,7 +850,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     }
 
     @Override
-    public List<Integer> update(BatchOperation batchOperation) {
+    public List<Integer> run(BatchOperation batchOperation) {
         startBatch();
         log.info("Stacking operations for batch execution");
         batchOperation.execute(this);
