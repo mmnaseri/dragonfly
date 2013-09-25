@@ -84,7 +84,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     private final Map<Class<?>, Collection<ColumnMetadata>> partialEntityColumns = new ConcurrentHashMap<Class<?>, Collection<ColumnMetadata>>();
     private final ThreadLocal<Map<Class<?>, Map<Statements.Manipulation, Set<Statement>>>> deleteAllStatements;
     private final StatementPreparator statementPreparator;
-    private final ThreadLocal<Stack<BatchOperationDescriptor>> batchOperation;
+    private final ThreadLocal<List<BatchOperationDescriptor>> batchOperation;
     private final AtomicBoolean batch;
 
     public DefaultDataAccess(DataAccessSession session, DataSecurityManager securityManager, EntityContext entityContext, EntityHandlerContext entityHandlerContext) {
@@ -121,7 +121,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
                 return new HashMap<Class<?>, Map<Statements.Manipulation, Set<Statement>>>();
             }
         };
-        this.batchOperation = new ThreadLocal<Stack<BatchOperationDescriptor>>();
+        this.batchOperation = new ThreadLocal<List<BatchOperationDescriptor>>();
         this.batch = new AtomicBoolean(false);
         if (entityContext instanceof DefaultEntityContext) {
             ((DefaultEntityContext) entityContext).setDataAccess(this);
@@ -167,22 +167,22 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
             if (batchOperation.get() == null) {
                 batchOperation.set(new Stack<BatchOperationDescriptor>());
             }
-            final Stack<BatchOperationDescriptor> operationDescriptors = batchOperation.get();
+            final List<BatchOperationDescriptor> operationDescriptors = batchOperation.get();
             boolean firstStep = operationDescriptors.isEmpty();
             if (!firstStep) {
                 String sql = statement.getSql();
                 if (statement.isDynamic()) {
                     sql = new FreemarkerSecondPassStatementBuilder(statement, session.getDatabaseDialect(), values).getStatement(statement.getTableMetadata()).getSql();
                 }
-                firstStep = !sql.equals(operationDescriptors.peek().getSql());
+                firstStep = !sql.equals(operationDescriptors.get(operationDescriptors.size() - 1).getSql());
             }
             final PreparedStatement preparedStatement;
             if (!firstStep) {
-                preparedStatement = operationDescriptors.peek().getPreparedStatement();
-                statementPreparator.prepare(preparedStatement, statement.getTableMetadata(), values, operationDescriptors.peek().getSql());
+                preparedStatement = operationDescriptors.get(operationDescriptors.size() - 1).getPreparedStatement();
+                statementPreparator.prepare(preparedStatement, statement.getTableMetadata(), values, operationDescriptors.get(operationDescriptors.size() - 1).getSql());
             } else {
                 final BatchOperationDescriptor operationDescriptor = getPreparedStatement(statement, values);
-                operationDescriptors.push(operationDescriptor);
+                operationDescriptors.add(operationDescriptor);
                 preparedStatement = operationDescriptor.getPreparedStatement();
             }
             try {
@@ -384,17 +384,23 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         if (!isInBatchMode()) {
             throw new BatchOperationInterruptedError("No batch operation has been started");
         }
-        final Stack<BatchOperationDescriptor> descriptors = batchOperation.get();
+        final List<BatchOperationDescriptor> descriptors = batchOperation.get();
         batchOperation.remove();
         batch.set(false);
         final ArrayList<Integer> result = new ArrayList<Integer>();
+        if (descriptors == null) {
+            return result;
+        }
+        log.info("There are " + descriptors.size() + " operation stack(s) to perform");
         while (!descriptors.isEmpty()) {
-            final BatchOperationDescriptor descriptor = descriptors.pop();
+            final BatchOperationDescriptor descriptor = descriptors.get(0);
+            descriptors.remove(0);
             final int[] batchResult;
             log.info("Executing batch operation for statement: " + descriptor.getSql());
             try {
                 batchResult = descriptor.getPreparedStatement().executeBatch();
                 descriptor.getPreparedStatement().getConnection().commit();
+                log.info(batchResult.length + " operation(s) completed successfully");
             } catch (SQLException e) {
                 throw new BatchOperationInterruptedError("Failed to execute operation batch", e);
             }
