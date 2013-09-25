@@ -65,7 +65,7 @@ public class StatementRegistryPreparator {
                     statementRegistry.register(entity.getCanonicalName() + "." + namedQueryMetadata.getName(), statementBuilder.getStatement(tableMetadata));
                 }
                 for (StoredProcedureMetadata procedure : tableMetadata.getProcedures()) {
-                    statementRegistry.register(entity.getCanonicalName() + ".call" + StringUtil.capitalize(procedure.getName()), new ProcedureCallStatement(dialect.getStatementBuilderContext().getManipulationStatementBuilder(Statements.Manipulation.CALL).getStatement(tableMetadata, procedure), dialect));
+                    statementRegistry.register(entity.getCanonicalName() + ".call." + procedure.getName(), new ProcedureCallStatement(dialect.getStatementBuilderContext().getManipulationStatementBuilder(Statements.Manipulation.CALL).getStatement(tableMetadata, procedure), dialect));
                 }
             } catch (RegistryException e) {
                 throw new MetadataCollectionError("Failed to prepare statements for entity " + entity.getCanonicalName(), e);

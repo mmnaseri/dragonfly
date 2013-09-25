@@ -8,7 +8,7 @@ import com.agileapes.couteau.maven.resource.ProjectResourceTypeFilter;
 import com.agileapes.couteau.maven.task.PluginTask;
 import com.agileapes.couteau.reflection.util.assets.AssignableTypeFilter;
 import com.agileapes.dragonfly.data.DataAccessPostProcessor;
-import com.agileapes.dragonfly.data.impl.DataAccessSession;
+import com.agileapes.dragonfly.data.impl.DefaultDataAccessSession;
 import com.agileapes.dragonfly.data.impl.SecuredDataAccess;
 import com.agileapes.dragonfly.dialect.DatabaseDialect;
 import com.agileapes.dragonfly.entity.EntityContext;
@@ -90,7 +90,7 @@ public class GenerateSetupContextTask extends PluginTask<PluginExecutor> {
         statementRegistry.addConstructorArgument(new BeanPropertyModel("", DatabaseDialect.class.getCanonicalName(), databaseDialect));
         statementRegistry.addConstructorArgument(new BeanPropertyModel("", MetadataRegistry.class.getCanonicalName(), metadataContext));
 
-        final BeanDefinitionModel dataAccessSession = new BeanDefinitionModel("_dataAccessSession", DataAccessSession.class.getCanonicalName());
+        final BeanDefinitionModel dataAccessSession = new BeanDefinitionModel("_dataAccessSession", DefaultDataAccessSession.class.getCanonicalName());
         dataAccessSession.addConstructorArgument(new BeanPropertyModel("", DatabaseDialect.class.getCanonicalName(), databaseDialect));
         dataAccessSession.addConstructorArgument(new BeanPropertyModel("", StatementRegistry.class.getCanonicalName(), statementRegistry));
         dataAccessSession.addConstructorArgument(new BeanPropertyModel("", MetadataRegistry.class.getCanonicalName(), metadataContext));

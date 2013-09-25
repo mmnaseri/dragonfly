@@ -1,5 +1,6 @@
 package com.agileapes.dragonfly.data.impl;
 
+import com.agileapes.dragonfly.data.DataAccessSession;
 import com.agileapes.dragonfly.data.DataStructureHandler;
 import com.agileapes.dragonfly.dialect.DatabaseDialect;
 import com.agileapes.dragonfly.error.DataAccessSessionInitializationError;
@@ -23,9 +24,9 @@ import java.util.Collection;
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/7, 14:26)
  */
-public class DataAccessSession {
+public class DefaultDataAccessSession implements DataAccessSession {
 
-    private static final Log log = LogFactory.getLog(DataAccessSession.class);
+    private static final Log log = LogFactory.getLog(DefaultDataAccessSession.class);
     private static final String JDBC_PREFIX = "jdbc:";
     private static final String PROTOCOL_SPECIFIER = "://";
     private static final String PORT_SEPARATOR = ":";
@@ -44,35 +45,35 @@ public class DataAccessSession {
         return JDBC_PREFIX + databaseDialect.getName() + PROTOCOL_SPECIFIER + (hostName == null ? DEFAULT_HOST : hostName) + PORT_SEPARATOR + (port == null ? databaseDialect.getDefaultPort() : port) + DB_SEPARATOR + (databaseName == null ? "" : databaseName);
     }
 
-    public DataAccessSession(DatabaseDialect databaseDialect, StatementRegistry statementRegistry, MetadataRegistry metadataRegistry) {
+    public DefaultDataAccessSession(DatabaseDialect databaseDialect, StatementRegistry statementRegistry, MetadataRegistry metadataRegistry) {
         this(databaseDialect, statementRegistry, metadataRegistry, null, null);
     }
 
-    public DataAccessSession(DatabaseDialect databaseDialect, StatementRegistry statementRegistry, MetadataRegistry metadataRegistry, String hostName, String databaseName) {
+    public DefaultDataAccessSession(DatabaseDialect databaseDialect, StatementRegistry statementRegistry, MetadataRegistry metadataRegistry, String hostName, String databaseName) {
         this(databaseDialect, statementRegistry, metadataRegistry, hostName, databaseName, null, null);
     }
 
-    public DataAccessSession(DatabaseDialect databaseDialect, StatementRegistry statementRegistry, MetadataRegistry metadataRegistry, String hostName, String databaseName, String username, String password) {
+    public DefaultDataAccessSession(DatabaseDialect databaseDialect, StatementRegistry statementRegistry, MetadataRegistry metadataRegistry, String hostName, String databaseName, String username, String password) {
         this(databaseDialect, statementRegistry, metadataRegistry, hostName, null, databaseName, username, password);
     }
 
-    public DataAccessSession(DatabaseDialect databaseDialect, StatementRegistry statementRegistry, MetadataRegistry metadataRegistry, String hostName, Integer port, String databaseName, String username, String password) {
+    public DefaultDataAccessSession(DatabaseDialect databaseDialect, StatementRegistry statementRegistry, MetadataRegistry metadataRegistry, String hostName, Integer port, String databaseName, String username, String password) {
         this(databaseDialect, statementRegistry, metadataRegistry, new JdbcDataSource(getConnectionString(databaseDialect, hostName, port, databaseName)), username, password);
     }
 
-    public DataAccessSession(DatabaseDialect databaseDialect, StatementRegistry statementRegistry, MetadataRegistry metadataRegistry, String connectionString) {
+    public DefaultDataAccessSession(DatabaseDialect databaseDialect, StatementRegistry statementRegistry, MetadataRegistry metadataRegistry, String connectionString) {
         this(databaseDialect, statementRegistry, metadataRegistry, connectionString, null, null);
     }
 
-    public DataAccessSession(DatabaseDialect databaseDialect, StatementRegistry statementRegistry, MetadataRegistry metadataRegistry, String connectionString, String username, String password) {
+    public DefaultDataAccessSession(DatabaseDialect databaseDialect, StatementRegistry statementRegistry, MetadataRegistry metadataRegistry, String connectionString, String username, String password) {
         this(databaseDialect, statementRegistry, metadataRegistry, new JdbcDataSource(connectionString), username, password);
     }
 
-    public DataAccessSession(DatabaseDialect databaseDialect, StatementRegistry statementRegistry, MetadataRegistry metadataRegistry, DataSource dataSource) {
+    public DefaultDataAccessSession(DatabaseDialect databaseDialect, StatementRegistry statementRegistry, MetadataRegistry metadataRegistry, DataSource dataSource) {
         this(databaseDialect, statementRegistry, metadataRegistry, dataSource, null, null);
     }
 
-    public DataAccessSession(DatabaseDialect databaseDialect, StatementRegistry statementRegistry, MetadataRegistry metadataRegistry, DataSource dataSource, String username, String password) {
+    public DefaultDataAccessSession(DatabaseDialect databaseDialect, StatementRegistry statementRegistry, MetadataRegistry metadataRegistry, DataSource dataSource, String username, String password) {
         this.databaseDialect = databaseDialect;
         this.statementRegistry = statementRegistry;
         this.metadataRegistry = metadataRegistry;
@@ -87,6 +88,7 @@ public class DataAccessSession {
      * if necessary
      * @return the connection instance
      */
+    @Override
     public Connection getConnection() {
         log.info("Connection requested");
         try {
@@ -103,6 +105,7 @@ public class DataAccessSession {
     /**
      * @return the dialect associated with the session
      */
+    @Override
     public DatabaseDialect getDatabaseDialect() {
         return databaseDialect;
     }
@@ -110,13 +113,7 @@ public class DataAccessSession {
     /**
      * @return the statement registry associated with session
      */
-    public StatementRegistry getStatementRegistry() {
-        return statementRegistry;
-    }
-
-    /**
-     * @return the statement registry associated with session
-     */
+    @Override
     public StatementRegistry getStatementRegistry(String region) {
         return new LocalStatementRegistry(statementRegistry, region);
     }
@@ -124,6 +121,7 @@ public class DataAccessSession {
     /**
      * @return the statement registry associated with session
      */
+    @Override
     public StatementRegistry getStatementRegistry(Class<?> entityType) {
         return getStatementRegistry(entityType.getCanonicalName());
     }
@@ -131,6 +129,7 @@ public class DataAccessSession {
     /**
      * @return the metadata registry associated with the session
      */
+    @Override
     public MetadataRegistry getMetadataRegistry() {
         return metadataRegistry;
     }
@@ -138,6 +137,7 @@ public class DataAccessSession {
     /**
      * @return all entity types for which metadata is registered
      */
+    @Override
     public Collection<Class<?>> getRegisteredEntities() {
         return metadataRegistry.getEntityTypes();
     }
@@ -145,6 +145,7 @@ public class DataAccessSession {
     /**
      * Initializes the session by initializing all data structures
      */
+    @Override
     public void initialize() {
         if (initialized) {
             throw new DataAccessSessionInitializationError("Session is already initialized");
@@ -157,6 +158,7 @@ public class DataAccessSession {
     /**
      * @return {@code true} if the session has already been initialized
      */
+    @Override
     public boolean isInitialized() {
         return initialized;
     }

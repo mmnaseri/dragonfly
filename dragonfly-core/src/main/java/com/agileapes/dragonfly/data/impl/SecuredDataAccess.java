@@ -3,6 +3,7 @@ package com.agileapes.dragonfly.data.impl;
 import com.agileapes.couteau.enhancer.api.MethodDescriptor;
 import com.agileapes.couteau.enhancer.impl.ImmutableMethodDescriptor;
 import com.agileapes.dragonfly.data.DataAccess;
+import com.agileapes.dragonfly.data.DataAccessSession;
 import com.agileapes.dragonfly.data.PartialDataAccess;
 import com.agileapes.dragonfly.entity.EntityContext;
 import com.agileapes.dragonfly.entity.EntityHandlerContext;

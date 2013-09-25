@@ -11,6 +11,7 @@ import com.agileapes.dragonfly.annotations.ParameterMode;
 import com.agileapes.dragonfly.annotations.Partial;
 import com.agileapes.dragonfly.data.BatchOperation;
 import com.agileapes.dragonfly.data.DataAccess;
+import com.agileapes.dragonfly.data.DataAccessSession;
 import com.agileapes.dragonfly.data.PartialDataAccess;
 import com.agileapes.dragonfly.entity.*;
 import com.agileapes.dragonfly.entity.impl.*;
@@ -29,7 +30,6 @@ import com.agileapes.dragonfly.statement.Statements;
 import com.agileapes.dragonfly.statement.impl.FreemarkerSecondPassStatementBuilder;
 import com.agileapes.dragonfly.statement.impl.ProcedureCallStatement;
 import com.agileapes.dragonfly.tools.MapTools;
-import freemarker.template.utility.StringUtil;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -802,12 +802,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
             }
         }
         securityManager.checkAccess(new StoredProcedureSubject(procedureMetadata, parameters));
-        final ProcedureCallStatement statement;
-        try {
-            statement = (ProcedureCallStatement) session.getStatementRegistry().get(entityType.getCanonicalName() + ".call" + StringUtil.capitalize(procedureName));
-        } catch (RegistryException e) {
-            throw new UnrecognizedProcedureError(entityType, procedureName);
-        }
+        final ProcedureCallStatement statement = (ProcedureCallStatement) getStatement(entityType, "call." + procedureName, StatementType.CALL);
         final Map<String, Object> values = new HashMap<String, Object>();
         for (int i = 0; i < parameters.length; i++) {
             values.put("value.parameter" + i, parameters[i] instanceof Reference ? ((Reference<?>) parameters[i]).getValue() : parameters[i]);
