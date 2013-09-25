@@ -1,4 +1,4 @@
-package com.agileapes.dragonfly.data;
+package com.agileapes.dragonfly.data.impl;
 
 import javax.sql.DataSource;
 import java.io.PrintWriter;

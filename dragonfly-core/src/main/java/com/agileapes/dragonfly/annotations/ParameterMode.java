@@ -15,13 +15,13 @@ public enum ParameterMode {
     /**
      * The procedure will write, as part of its output, into the specified
      * variable. The argument passed for this parameter must be of type
-     * {@link com.agileapes.dragonfly.data.Reference}
+     * {@link com.agileapes.dragonfly.data.impl.Reference}
      */
     OUT,
     /**
      * The procedure will read the argument value and pass output data into
      * the parameter. The argument passed for this parameter must be of type
-     * {@link com.agileapes.dragonfly.data.Reference}
+     * {@link com.agileapes.dragonfly.data.impl.Reference}
      */
     IN_OUT
 

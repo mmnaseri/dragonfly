@@ -1,6 +1,6 @@
-package com.agileapes.dragonfly.data;
+package com.agileapes.dragonfly.data.impl;
 
-import com.agileapes.dragonfly.data.impl.DefaultDataStructureHandler;
+import com.agileapes.dragonfly.data.DataStructureHandler;
 import com.agileapes.dragonfly.dialect.DatabaseDialect;
 import com.agileapes.dragonfly.error.DataAccessSessionInitializationError;
 import com.agileapes.dragonfly.error.DatabaseConnectionError;

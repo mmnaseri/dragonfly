@@ -3,7 +3,7 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
-    <bean id="dataAccessSession" class="com.agileapes.dragonfly.data.DataAccessSession">
+    <bean id="dataAccessSession" class="com.agileapes.dragonfly.data.impl.DataAccessSession">
         <constructor-arg index="0" type="com.agileapes.dragonfly.dialect.DatabaseDialect" ref="databaseDialect"/>
         <constructor-arg index="1" type="com.agileapes.dragonfly.statement.impl.StatementRegistry"
                          ref="statementRegistry"/>
@@ -37,7 +37,7 @@
     <bean id="auditInterceptor" class="com.agileapes.dragonfly.sample.audit.AuditInterceptor"/>
 
     <bean id="dataAccess" class="com.agileapes.dragonfly.data.impl.SecuredDataAccess">
-        <constructor-arg index="0" type="com.agileapes.dragonfly.data.DataAccessSession" ref="dataAccessSession"/>
+        <constructor-arg index="0" type="com.agileapes.dragonfly.data.impl.DataAccessSession" ref="dataAccessSession"/>
         <constructor-arg index="1" type="com.agileapes.dragonfly.security.DataSecurityManager"
                          ref="dataSecurityManager"/>
         <constructor-arg index="2" type="com.agileapes.dragonfly.entity.EntityContext"

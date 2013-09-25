@@ -50,12 +50,12 @@ public interface DatabaseDialect extends Filter<DatabaseMetaData> {
 
     /**
      * Retrieves generated key data for the given table from the given result set
+     *
      * @param generatedKeys    the result set containing generated keys
-     * @param tableMetadata    the table metadata
      * @return the generated key
      * @throws SQLException
      */
-    Serializable retrieveKey(ResultSet generatedKeys, TableMetadata<?> tableMetadata) throws SQLException;
+    Serializable retrieveKey(ResultSet generatedKeys) throws SQLException;
 
     /**
      * @return the name of the dialect

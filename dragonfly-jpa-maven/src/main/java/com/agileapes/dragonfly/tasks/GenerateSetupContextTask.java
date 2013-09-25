@@ -8,7 +8,7 @@ import com.agileapes.couteau.maven.resource.ProjectResourceTypeFilter;
 import com.agileapes.couteau.maven.task.PluginTask;
 import com.agileapes.couteau.reflection.util.assets.AssignableTypeFilter;
 import com.agileapes.dragonfly.data.DataAccessPostProcessor;
-import com.agileapes.dragonfly.data.DataAccessSession;
+import com.agileapes.dragonfly.data.impl.DataAccessSession;
 import com.agileapes.dragonfly.data.impl.SecuredDataAccess;
 import com.agileapes.dragonfly.dialect.DatabaseDialect;
 import com.agileapes.dragonfly.entity.EntityContext;

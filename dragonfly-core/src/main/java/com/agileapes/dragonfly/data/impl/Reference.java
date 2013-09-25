@@ -1,4 +1,4 @@
-package com.agileapes.dragonfly.data;
+package com.agileapes.dragonfly.data.impl;
 
 /**
  * This class holds references to an underlying value that must be held until retrieved later

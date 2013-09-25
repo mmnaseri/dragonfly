@@ -1,7 +1,7 @@
 package com.agileapes.dragonfly.sample.service;
 
 import com.agileapes.dragonfly.data.DataAccess;
-import com.agileapes.dragonfly.data.Reference;
+import com.agileapes.dragonfly.data.impl.Reference;
 import com.agileapes.dragonfly.sample.entities.Person;
 import com.agileapes.dragonfly.sample.entities.Thing;
 import org.springframework.beans.factory.annotation.Autowired;

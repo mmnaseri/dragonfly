@@ -6,7 +6,7 @@
 
     <import resource="data/runtime.xml"/>
 
-    <bean id="jdbcDataSource" class="com.agileapes.dragonfly.data.JdbcDataSource">
+    <bean id="jdbcDataSource" class="com.agileapes.dragonfly.data.impl.JdbcDataSource">
         <constructor-arg value="jdbc:mysql://localhost"/>
     </bean>
 

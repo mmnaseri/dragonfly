@@ -9,7 +9,9 @@ import com.agileapes.couteau.reflection.error.BeanInstantiationException;
 import com.agileapes.couteau.reflection.util.ReflectionUtils;
 import com.agileapes.dragonfly.annotations.ParameterMode;
 import com.agileapes.dragonfly.annotations.Partial;
-import com.agileapes.dragonfly.data.*;
+import com.agileapes.dragonfly.data.BatchOperation;
+import com.agileapes.dragonfly.data.DataAccess;
+import com.agileapes.dragonfly.data.PartialDataAccess;
 import com.agileapes.dragonfly.entity.*;
 import com.agileapes.dragonfly.entity.impl.*;
 import com.agileapes.dragonfly.error.*;
@@ -83,6 +85,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     private final ThreadLocal<Boolean> batchMode;
     private final ThreadLocal<PreparedStatement> batchStatement;
     private final StatementPreparator statementPreparator;
+    private final ThreadLocal<List<Object>> deferredKeys;
 
     public DefaultDataAccess(DataAccessSession session, DataSecurityManager securityManager, EntityContext entityContext, EntityHandlerContext entityHandlerContext) {
         this(session, securityManager, entityContext, entityHandlerContext, true);
@@ -129,6 +132,12 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         };
         this.batchStatement = new ThreadLocal<PreparedStatement>();
         this.statementPreparator = new DefaultStatementPreparator(false);
+        this.deferredKeys = new ThreadLocal<List<Object>>() {
+            @Override
+            protected List<Object> initialValue() {
+                return new ArrayList<Object>();
+            }
+        };
         if (autoInitialize) {
             log.info("Automatically initializing the session");
             synchronized (this.session) {
@@ -196,6 +205,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     }
 
     private synchronized void startBatch() {
+        log.info("Starting batch operation");
         if (isInBatchMode()) {
             throw new BatchOperationInterruptedError("Batch operation already in progress");
         }
@@ -204,6 +214,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     }
 
     private synchronized List<Integer> endBatch() {
+        log.info("Concluding batch operation");
         if (!isInBatchMode()) {
             throw new BatchOperationInterruptedError("No batch operation has been started");
         }
@@ -215,6 +226,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         batchStatement.remove();
         final int[] batchResult;
         try {
+            log.info("Executing stacked operations");
             batchResult = preparedStatement.executeBatch();
         } catch (SQLException e) {
             throw new BatchOperationInterruptedError("Failed to execute batch operations", e);
@@ -226,9 +238,24 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
             throw new BatchOperationInterruptedError("Failed to obtain statement connection", e);
         }
         try {
+            log.info("Informing the database of the changes");
             connection.commit();
         } catch (SQLException e) {
             throw new BatchOperationInterruptedError("Failed to commit batch results", e);
+        }
+        try {
+            final ResultSet generatedKeys = preparedStatement.getGeneratedKeys();
+            final List<Object> objects = new ArrayList<Object>(deferredKeys.get());
+            deferredKeys.get().clear();
+            for (Object object : objects) {
+                if (!generatedKeys.next()) {
+                    throw new BatchOperationInterruptedError("Failed to retrieve key for entity");
+                }
+                final Serializable serializable = session.getDatabaseDialect().retrieveKey(generatedKeys);
+                entityHandlerContext.getHandler(object).setKey(object, serializable);
+            }
+        } catch (SQLException e) {
+            throw new BatchOperationInterruptedError("Failed to load generated keys", e);
         }
         final ArrayList<Integer> result = new ArrayList<Integer>();
         for (int item : batchResult) {
@@ -472,8 +499,72 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         entityHandler.saveDependencyRelations(enhancedEntity, this);
         boolean shouldUpdate = entityHandler.hasKey() && entityHandler.getKey(entity) != null;
         if (!shouldUpdate) {
-            eventHandler.beforeInsert(enhancedEntity);
-            final PreparedStatement preparedStatement = getStatement(entityHandler.getEntityType(), Statements.Manipulation.INSERT).prepare(session.getConnection(), null, MapTools.prefixKeys(entityHandler.toMap(enhancedEntity), "value."));
+            insert(entityHandler, enhancedEntity, initializedEntity);
+        } else {
+            update(entityHandler, enhancedEntity, initializedEntity);
+        }
+        entityHandler.saveDependentRelations(enhancedEntity, this);
+        eventHandler.afterSave(enhancedEntity);
+        saveQueue.remove(entity);
+        return enhancedEntity;
+    }
+
+    private <E> void update(EntityHandler<E> entityHandler, E enhancedEntity, InitializedEntity<E> initializedEntity) {
+        eventHandler.beforeUpdate(enhancedEntity);
+        final Map<String, Object> current = entityHandler.toMap(enhancedEntity);
+        final Map<String, Object> values = new HashMap<String, Object>();
+        values.putAll(MapTools.prefixKeys(current, "value."));
+        values.putAll(MapTools.prefixKeys(current, "new."));
+        final E originalCopy = initializedEntity.getOriginalCopy();
+        final Map<String, Object> original = entityHandler.toMap(originalCopy);
+        values.putAll(MapTools.prefixKeys(original, "old."));
+        for (String key : original.keySet()) {
+            if (!values.containsKey("value." + key)) {
+                values.put("value." + key, original.get(key));
+            }
+        }
+        if (internalExecuteUpdate(entityHandler.getEntityType(), Statements.Manipulation.UPDATE, values) <= 0 && !isInBatchMode()) {
+            throw new UnsuccessfulOperationError("Failed to update object");
+        }
+        eventHandler.afterUpdate(enhancedEntity);
+    }
+
+    private <E> void insert(EntityHandler<E> entityHandler, E enhancedEntity, InitializedEntity<E> initializedEntity) {
+        eventHandler.beforeInsert(enhancedEntity);
+        final PreparedStatement preparedStatement;
+        final Statement statement = getStatement(entityHandler.getEntityType(), Statements.Manipulation.INSERT);
+        final Map<String, Object> objectMap = MapTools.prefixKeys(entityHandler.toMap(enhancedEntity), "value.");
+        if (isInBatchMode() && batchStatement.get() != null) {
+            preparedStatement = batchStatement.get();
+            String sql = statement.getSql();
+            if (statement.isDynamic()) {
+                sql = new FreemarkerSecondPassStatementBuilder(statement, session.getDatabaseDialect(), objectMap).getStatement(statement.getTableMetadata()).getSql();
+            }
+            statementPreparator.prepare(preparedStatement, statement.getTableMetadata(), objectMap, sql);
+        } else {
+            final Connection connection = session.getConnection();
+            if (isInBatchMode()) {
+                try {
+                    connection.setAutoCommit(false);
+                    if (!connection.getMetaData().supportsBatchUpdates()) {
+                        throw new UnsupportedOperationException("Batch updates are not supported by your database");
+                    }
+                } catch (SQLException e) {
+                    throw new UnsuccessfulOperationError("Failed to disable auto-commit on connection", e);
+                }
+            }
+            preparedStatement = statement.prepare(connection, null, objectMap);
+            if (isInBatchMode()) {
+                batchStatement.set(preparedStatement);
+            }
+        }
+        if (isInBatchMode()) {
+            try {
+                preparedStatement.addBatch();
+            } catch (SQLException e) {
+                throw new BatchOperationInterruptedError("Failed to add batch operation", e);
+            }
+        } else {
             try {
                 if (preparedStatement.executeUpdate() <= 0) {
                     throw new UnsuccessfulOperationError("Failed to insert object");
@@ -481,42 +572,20 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
             } catch (SQLException e) {
                 throw new UnsupportedOperationException("Failed to insert object", e);
             }
-            if (entityHandler.isKeyAutoGenerated()) {
+        }
+        if (entityHandler.isKeyAutoGenerated()) {
+            if (isInBatchMode()) {
+                deferredKeys.get().add(enhancedEntity);
+            } else {
                 try {
-                    final Serializable key = session.getDatabaseDialect().retrieveKey(preparedStatement.getGeneratedKeys(), session.getMetadataRegistry().getTableMetadata(entityHandler.getEntityType()));
-                    entityHandler.setKey(enhancedEntity, key);
+                    entityHandler.setKey(enhancedEntity, session.getDatabaseDialect().retrieveKey(preparedStatement.getGeneratedKeys()));
                 } catch (SQLException e) {
                     throw new UnsupportedOperationException("Failed to retrieve auto-generated keys", e);
                 }
             }
-            initializedEntity.setOriginalCopy(enhancedEntity);
-        } else {
-            eventHandler.beforeUpdate(enhancedEntity);
-            final Map<String, Object> current = entityHandler.toMap(enhancedEntity);
-            final Map<String, Object> values = new HashMap<String, Object>();
-            values.putAll(MapTools.prefixKeys(current, "value."));
-            values.putAll(MapTools.prefixKeys(current, "new."));
-            final E originalCopy = initializedEntity.getOriginalCopy();
-            final Map<String, Object> original = entityHandler.toMap(originalCopy);
-            values.putAll(MapTools.prefixKeys(original, "old."));
-            for (String key : original.keySet()) {
-                if (!values.containsKey("value." + key)) {
-                    values.put("value." + key, original.get(key));
-                }
-            }
-            if (internalExecuteUpdate(entityHandler.getEntityType(), Statements.Manipulation.UPDATE, values) <= 0 && !isInBatchMode()) {
-                throw new UnsuccessfulOperationError("Failed to update object");
-            }
         }
-        if (!shouldUpdate) {
-            eventHandler.afterInsert(enhancedEntity);
-        } else {
-            eventHandler.afterUpdate(enhancedEntity);
-        }
-        entityHandler.saveDependentRelations(enhancedEntity, this);
-        eventHandler.afterSave(enhancedEntity);
-        saveQueue.remove(entity);
-        return enhancedEntity;
+        initializedEntity.setOriginalCopy(enhancedEntity);
+        eventHandler.afterInsert(enhancedEntity);
     }
 
     private Boolean isInBatchMode() {
@@ -826,19 +895,18 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         return count(instance) != 0;
     }
 
-    @Override
-    public <E> long count(Class<E> entityType, Map<String, Object> values) {
+    private <E> long count(Class<E> entityType, Map<String, Object> values) {
         return internalCount(entityType, Statements.Manipulation.COUNT_LIKE, values);
     }
 
-    @Override
-    public <E> boolean exists(Class<E> entityType, Map<String, Object> values) {
+    private <E> boolean exists(Class<E> entityType, Map<String, Object> values) {
         return count(entityType, values) != 0;
     }
 
     @Override
     public List<Integer> update(BatchOperation batchOperation) {
         startBatch();
+        log.info("Stacking operations for batch execution");
         batchOperation.execute(this);
         return endBatch();
     }
