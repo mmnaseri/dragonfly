@@ -208,10 +208,17 @@ public interface DataAccess {
      * @param key           the key to the item
      * @param <E>           the type of the items to be controlled
      * @param <K>           the type of the key
-     * @return
+     * @return boolean value specifying whether or not the entity specified exists
      */
     <E, K extends Serializable> boolean exists(Class<E> entityType, K key);
 
+    /**
+     * Runs the operations specified through the callback in batches so that
+     * all similar operations are executed sequentially and through the same
+     * batch operation
+     * @param batchOperation    the stack of operations to be executed
+     * @return the result of the update operations
+     */
     List<Integer> run(BatchOperation batchOperation);
 
 }
