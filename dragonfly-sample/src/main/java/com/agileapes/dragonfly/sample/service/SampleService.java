@@ -61,56 +61,43 @@ public class SampleService {
         dataAccess.addCallback(new DataCallback<DataOperation>() {
             @Override
             public Object execute(DataOperation operation) {
-                if (OperationType.SAVE.equals(operation.getOperationType())) {
-                    final Object sample = ((SampledDataOperation) operation).getSample();
-                    if (sample instanceof Memorable) {
-                        final Memorable memorable = (Memorable) sample;
-                        if (memorable.getId() != null) {
-                            memory.put(memorable.getId(), memorable);
-                        } else {
-                            memorable.setId((long) memory.size());
-                            memory.put(memorable.getId(), memorable);
-                        }
-                        return memorable;
+                if (OperationType.SAVE.equals(operation.getOperationType()) && operation instanceof SampledDataOperation && ((SampledDataOperation) operation).getSample() instanceof Memorable) {
+                    SampledDataOperation dataOperation = (SampledDataOperation) operation;
+                    final Object sample = dataOperation.getSample();
+                    final Memorable memorable = (Memorable) sample;
+                    if (memorable.getId() != null) {
+                        memory.put(memorable.getId(), memorable);
+                    } else {
+                        memorable.setId((long) memory.size());
+                        memory.put(memorable.getId(), memorable);
                     }
-                } else if (OperationType.DELETE.equals(operation.getOperationType())) {
-                    if (operation instanceof SampledDataOperation) {
-                        SampledDataOperation dataOperation = (SampledDataOperation) operation;
-                        if (dataOperation.getSample() instanceof Memorable) {
-                            Memorable memorable = (Memorable) dataOperation.getSample();
-                            if (memorable.getId() != null) {
-                                memory.remove(memorable.getId());
-                            } else {
-                                Long key = null;
-                                for (Map.Entry<Long, Memorable> entry : memory.entrySet()) {
-                                    if (entry.getValue().getName().equals(memorable.getName())) {
-                                        key = entry.getKey();
-                                    }
-                                }
-                                if (key != null) {
-                                    memory.remove(key);
-                                }
+                    return memorable;
+                } else if (OperationType.DELETE.equals(operation.getOperationType()) && operation instanceof SampledDataOperation && ((SampledDataOperation) operation).getSample() instanceof  Memorable) {
+                    SampledDataOperation dataOperation = (SampledDataOperation) operation;
+                    Memorable memorable = (Memorable) dataOperation.getSample();
+                    if (memorable.getId() != null) {
+                        memory.remove(memorable.getId());
+                    } else {
+                        Long key = null;
+                        for (Map.Entry<Long, Memorable> entry : memory.entrySet()) {
+                            if (entry.getValue().getName().equals(memorable.getName())) {
+                                key = entry.getKey();
                             }
-                            return null;
+                        }
+                        if (key != null) {
+                            memory.remove(key);
                         }
                     }
-                } else if (OperationType.FIND.equals(operation.getOperationType())) {
-                    if (operation instanceof IdentifiableDataOperation) {
-                        IdentifiableDataOperation dataOperation = (IdentifiableDataOperation) operation;
-                        if (Memorable.class.isAssignableFrom(dataOperation.getEntityType())) {
-                            //noinspection SuspiciousMethodCalls
-                            return memory.get(dataOperation.getKey());
-                        }
-                    }
-                } else if (OperationType.COUNT.equals(operation.getOperationType())) {
-                    if (operation instanceof TypedDataOperation) {
-                        TypedDataOperation dataOperation = (TypedDataOperation) operation;
-                        if (Memorable.class.isAssignableFrom(dataOperation.getEntityType())) {
-                            return (long) memory.size();
-                        }
-                    }
+                    return null;
+                } else if (OperationType.FIND.equals(operation.getOperationType()) && operation instanceof IdentifiableDataOperation && Memorable.class.isAssignableFrom(((IdentifiableDataOperation) operation).getEntityType())) {
+                    IdentifiableDataOperation dataOperation = (IdentifiableDataOperation) operation;
+                    //noinspection SuspiciousMethodCalls
+                    return memory.get(dataOperation.getKey());
+                } else if (OperationType.COUNT.equals(operation.getOperationType()) && operation instanceof TypedDataOperation && Memorable.class.isAssignableFrom(((TypedDataOperation) operation).getEntityType())) {
+                    return (long) memory.size();
+                } else {
+                    return operation.proceed();
                 }
-                return operation.proceed();
             }
 
             @Override
@@ -121,10 +108,12 @@ public class SampleService {
         System.out.println("first        : " + dataAccess.save(new Memorable("First")).getId());
         System.out.println("second       : " + dataAccess.save(new Memorable("Second")).getId());
         System.out.println("id (1)       : " + dataAccess.find(Memorable.class, 0L).getName());
+        dataAccess.save(new Memorable(0L, "The First"));
+        System.out.println("id (1)       : " + dataAccess.find(Memorable.class, 0L).getName());
         System.out.println("id (2)       : " + dataAccess.find(Memorable.class, 1L).getName());
         System.out.println("count all    : " + dataAccess.countAll(Memorable.class));
         System.out.println("delete (1)");
-        dataAccess.delete(new Memorable("First"));
+        dataAccess.delete(new Memorable("Second"));
         System.out.println("count all    : " + dataAccess.countAll(Memorable.class));
     }
 

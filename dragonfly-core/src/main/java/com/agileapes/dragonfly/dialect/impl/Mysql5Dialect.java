@@ -57,10 +57,7 @@ public class Mysql5Dialect extends GenericDatabaseDialect {
 
     @Override
     public Serializable retrieveKey(ResultSet generatedKeys) throws SQLException{
-        if (generatedKeys.next()) {
-            return generatedKeys.getLong(1);
-        }
-        return null;
+        return generatedKeys.getLong(1);
     }
 
     @Override

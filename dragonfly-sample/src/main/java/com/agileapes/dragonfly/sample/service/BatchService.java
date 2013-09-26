@@ -2,16 +2,10 @@ package com.agileapes.dragonfly.sample.service;
 
 import com.agileapes.dragonfly.data.BatchOperation;
 import com.agileapes.dragonfly.data.DataAccess;
-import com.agileapes.dragonfly.data.impl.Reference;
-import com.agileapes.dragonfly.sample.audit.Identifiable;
 import com.agileapes.dragonfly.sample.entities.Group;
-import com.agileapes.dragonfly.sample.entities.Person;
-import com.agileapes.dragonfly.sample.entities.Thing;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.Arrays;
-import java.util.List;
+import org.springframework.util.StopWatch;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
@@ -20,56 +14,37 @@ import java.util.List;
 @Service
 public class BatchService {
 
+    public static final int BENCHMARK_SIZE = 10000;
+
     @Autowired
     private DataAccess dataAccess;
 
     public void execute() {
-        final Reference<Person> reference = new Reference<Person>();
-        final Person person = new Person();
-        person.setName("One Person");
-        person.setThings(Arrays.asList(new Thing(), new Thing(), new Thing(), new Thing(), new Thing()));
-        final Group group = new Group();
-        group.setName("My Group");
-        person.setGroup(group);
-        reference.setValue(person);
-        reference.setValue(dataAccess.save(reference.getValue()));
+        final StopWatch stopWatch = new StopWatch("Batch Benchmark, size: " + BENCHMARK_SIZE);
+        stopWatch.start("batch");
         dataAccess.run(new BatchOperation() {
             @Override
             public void execute(DataAccess dataAccess) {
-                final Group group = new Group();
-                group.setName("This Group");
-                dataAccess.save(group);
-                dataAccess.save(group);
-                dataAccess.save(group);
-                dataAccess.save(group);
-                dataAccess.save(group);
-                dataAccess.save(group);
-                dataAccess.save(group);
-                dataAccess.save(group);
-                dataAccess.save(group);
-                dataAccess.save(group);
+                final Group group = getGroup();
+                for (int i = 0; i < BENCHMARK_SIZE; i++) {
+                    dataAccess.save(group);
+                }
             }
         });
-        final List<Integer> batchResult = dataAccess.run(new BatchOperation() {
-            @Override
-            public void execute(DataAccess dataAccess) {
-                reference.getValue().setName("Another Person");
-                dataAccess.save(reference.getValue());
-                dataAccess.save(reference.getValue());
-                dataAccess.save(reference.getValue());
-                dataAccess.save(reference.getValue());
-                dataAccess.save(reference.getValue());
-                dataAccess.save(reference.getValue());
-                dataAccess.delete(reference.getValue());
-                dataAccess.delete(reference.getValue());
-                dataAccess.delete(reference.getValue());
-                dataAccess.delete(reference.getValue());
-            }
-        });
-        for (int i = 0; i < batchResult.size(); i++) {
-            System.out.println("batch[" + i + "] = " + batchResult.get(i));
+        stopWatch.stop();
+        stopWatch.start("normal");
+        dataAccess.delete(getGroup());
+        for (int i = 0; i < BENCHMARK_SIZE; i ++) {
+            dataAccess.save(getGroup());
         }
-        System.out.println("Batch key: " + ((Identifiable) reference.getValue()).getUniqueKey());
+        stopWatch.stop();
+        System.out.println(stopWatch.prettyPrint());
+    }
+
+    private Group getGroup() {
+        final Group group = new Group();
+        group.setName("This Group");
+        return group;
     }
 
 }
