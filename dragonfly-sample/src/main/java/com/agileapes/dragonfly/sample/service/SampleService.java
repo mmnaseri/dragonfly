@@ -1,14 +1,18 @@
 package com.agileapes.dragonfly.sample.service;
 
 import com.agileapes.dragonfly.data.DataAccess;
-import com.agileapes.dragonfly.sample.audit.Identifiable;
-import com.agileapes.dragonfly.sample.entities.Group;
-import com.agileapes.dragonfly.sample.entities.Person;
-import com.agileapes.dragonfly.sample.entities.Thing;
+import com.agileapes.dragonfly.data.DataCallback;
+import com.agileapes.dragonfly.data.DataOperation;
+import com.agileapes.dragonfly.data.OperationType;
+import com.agileapes.dragonfly.data.impl.DelegatingDataAccess;
+import com.agileapes.dragonfly.data.impl.op.IdentifiableDataOperation;
+import com.agileapes.dragonfly.data.impl.op.SampledDataOperation;
+import com.agileapes.dragonfly.data.impl.op.TypedDataOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
@@ -17,26 +21,111 @@ import java.util.List;
 @Service
 public class SampleService {
 
+    public class Memorable {
+
+        private Long id;
+        private String name;
+
+        public Memorable(Long id, String name) {
+            this.id = id;
+            this.name = name;
+        }
+
+        public Memorable(String name) {
+            this.name = name;
+        }
+
+        public Long getId() {
+            return id;
+        }
+
+        public void setId(Long id) {
+            this.id = id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+    }
+
     @Autowired
     private DataAccess dataAccess;
 
     public void execute() {
-        final String[] names = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"};
-        for (String name : names) {
-            final Group group = new Group();
-            group.setName(name);
-            dataAccess.save(group);
-        }
-        final List<Thing> things = dataAccess.findAll(Thing.class);
-        for (Thing thing : things) {
-            System.out.println(thing + ": " + ((Identifiable) thing).getUniqueKey());
-            thing.setOwner(null);
-        }
-        final Person person = dataAccess.find(Person.class, 1L);
-        for (Thing thing : person.getThings()) {
-            System.out.println(thing + ": " + ((Identifiable) thing).getUniqueKey());
-        }
-        System.out.println((((Identifiable) person.getGroup()).getUniqueKey()) + " - " + person.getGroup().getName());
+        final Map<Long, Memorable> memory = new HashMap<Long, Memorable>();
+        final DelegatingDataAccess dataAccess = new DelegatingDataAccess(this.dataAccess);
+        dataAccess.addCallback(new DataCallback<DataOperation>() {
+            @Override
+            public Object execute(DataOperation operation) {
+                if (OperationType.SAVE.equals(operation.getOperationType())) {
+                    final Object sample = ((SampledDataOperation) operation).getSample();
+                    if (sample instanceof Memorable) {
+                        final Memorable memorable = (Memorable) sample;
+                        if (memorable.getId() != null) {
+                            memory.put(memorable.getId(), memorable);
+                        } else {
+                            memorable.setId((long) memory.size());
+                            memory.put(memorable.getId(), memorable);
+                        }
+                        return memorable;
+                    }
+                } else if (OperationType.DELETE.equals(operation.getOperationType())) {
+                    if (operation instanceof SampledDataOperation) {
+                        SampledDataOperation dataOperation = (SampledDataOperation) operation;
+                        if (dataOperation.getSample() instanceof Memorable) {
+                            Memorable memorable = (Memorable) dataOperation.getSample();
+                            if (memorable.getId() != null) {
+                                memory.remove(memorable.getId());
+                            } else {
+                                Long key = null;
+                                for (Map.Entry<Long, Memorable> entry : memory.entrySet()) {
+                                    if (entry.getValue().getName().equals(memorable.getName())) {
+                                        key = entry.getKey();
+                                    }
+                                }
+                                if (key != null) {
+                                    memory.remove(key);
+                                }
+                            }
+                            return null;
+                        }
+                    }
+                } else if (OperationType.FIND.equals(operation.getOperationType())) {
+                    if (operation instanceof IdentifiableDataOperation) {
+                        IdentifiableDataOperation dataOperation = (IdentifiableDataOperation) operation;
+                        if (Memorable.class.isAssignableFrom(dataOperation.getEntityType())) {
+                            //noinspection SuspiciousMethodCalls
+                            return memory.get(dataOperation.getKey());
+                        }
+                    }
+                } else if (OperationType.COUNT.equals(operation.getOperationType())) {
+                    if (operation instanceof TypedDataOperation) {
+                        TypedDataOperation dataOperation = (TypedDataOperation) operation;
+                        if (Memorable.class.isAssignableFrom(dataOperation.getEntityType())) {
+                            return (long) memory.size();
+                        }
+                    }
+                }
+                return operation.proceed();
+            }
+
+            @Override
+            public boolean accepts(DataOperation dataOperation) {
+                return true;
+            }
+        });
+        System.out.println("first        : " + dataAccess.save(new Memorable("First")).getId());
+        System.out.println("second       : " + dataAccess.save(new Memorable("Second")).getId());
+        System.out.println("id (1)       : " + dataAccess.find(Memorable.class, 0L).getName());
+        System.out.println("id (2)       : " + dataAccess.find(Memorable.class, 1L).getName());
+        System.out.println("count all    : " + dataAccess.countAll(Memorable.class));
+        System.out.println("delete (1)");
+        dataAccess.delete(new Memorable("First"));
+        System.out.println("count all    : " + dataAccess.countAll(Memorable.class));
     }
 
 }

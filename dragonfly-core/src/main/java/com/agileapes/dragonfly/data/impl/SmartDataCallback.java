@@ -20,8 +20,8 @@ public class SmartDataCallback<E extends DataOperation> implements DataCallback<
     }
 
     @Override
-    public void execute(E operation) {
-        callback.execute(operation);
+    public Object execute(E operation) {
+        return callback.execute(operation);
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.agileapes.dragonfly.data.impl.op;
 
 import com.agileapes.dragonfly.data.DataAccess;
+import com.agileapes.dragonfly.data.DataCallback;
 import com.agileapes.dragonfly.data.DataOperation;
 import com.agileapes.dragonfly.data.OperationType;
 
@@ -12,15 +13,23 @@ public abstract class AbstractDataOperation implements DataOperation {
 
     private final OperationType operationType;
     private final DataAccess dataAccess;
+    private final DataCallback callback;
 
-    public AbstractDataOperation(DataAccess dataAccess, OperationType operationType) {
+    public AbstractDataOperation(DataAccess dataAccess, OperationType operationType, DataCallback callback) {
         this.dataAccess = dataAccess;
         this.operationType = operationType;
+        this.callback = callback;
     }
 
     @Override
     public DataAccess getDataAccess() {
         return dataAccess;
+    }
+
+    @Override
+    public Object proceed() {
+        //noinspection unchecked
+        return callback.execute(this);
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.agileapes.dragonfly.data.impl.op;
 
 import com.agileapes.dragonfly.data.DataAccess;
+import com.agileapes.dragonfly.data.DataCallback;
 import com.agileapes.dragonfly.data.OperationType;
 
 import java.io.Serializable;
@@ -14,8 +15,8 @@ public class IdentifiableDataOperation extends AbstractDataOperation {
     private final Class<?> entityType;
     private final Serializable key;
 
-    public IdentifiableDataOperation(DataAccess dataAccess, OperationType operationType, Class<?> entityType, Serializable key) {
-        super(dataAccess, operationType);
+    public IdentifiableDataOperation(DataAccess dataAccess, OperationType operationType, Class<?> entityType, Serializable key, DataCallback callback) {
+        super(dataAccess, operationType, callback);
         this.entityType = entityType;
         this.key = key;
     }

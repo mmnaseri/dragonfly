@@ -1,6 +1,7 @@
 package com.agileapes.dragonfly.data.impl.op;
 
 import com.agileapes.dragonfly.data.DataAccess;
+import com.agileapes.dragonfly.data.DataCallback;
 import com.agileapes.dragonfly.data.OperationType;
 
 import java.util.Map;
@@ -14,8 +15,8 @@ public class TypedQueryDataOperation extends TypedDataOperation {
     private final String queryName;
     private final Map<String, Object> map;
 
-    public TypedQueryDataOperation(DataAccess dataAccess, OperationType operationType, Class<?> entityType, String queryName, Map<String, Object> map) {
-        super(dataAccess, operationType, entityType);
+    public TypedQueryDataOperation(DataAccess dataAccess, OperationType operationType, Class<?> entityType, String queryName, Map<String, Object> map, DataCallback callback) {
+        super(dataAccess, operationType, entityType, callback);
         this.queryName = queryName;
         this.map = map;
     }

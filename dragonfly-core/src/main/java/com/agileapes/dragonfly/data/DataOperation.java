@@ -12,4 +12,6 @@ public interface DataOperation {
 
     DataAccess getDataAccess();
 
+    Object proceed();
+
 }

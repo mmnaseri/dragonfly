@@ -1,6 +1,7 @@
 package com.agileapes.dragonfly.data.impl.op;
 
 import com.agileapes.dragonfly.data.DataAccess;
+import com.agileapes.dragonfly.data.DataCallback;
 import com.agileapes.dragonfly.data.OperationType;
 
 /**
@@ -11,8 +12,8 @@ public class SampledQueryDataOperation extends SampledDataOperation {
 
     private final String queryName;
 
-    public SampledQueryDataOperation(DataAccess dataAccess, OperationType operationType, Object sample, String queryName) {
-        super(dataAccess, operationType, sample);
+    public SampledQueryDataOperation(DataAccess dataAccess, OperationType operationType, Object sample, String queryName, DataCallback callback) {
+        super(dataAccess, operationType, sample, callback);
         this.queryName = queryName;
     }
 

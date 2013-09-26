@@ -1,6 +1,7 @@
 package com.agileapes.dragonfly.data.impl.op;
 
 import com.agileapes.dragonfly.data.DataAccess;
+import com.agileapes.dragonfly.data.DataCallback;
 import com.agileapes.dragonfly.data.OperationType;
 
 /**
@@ -11,8 +12,8 @@ public class SampledDataOperation extends AbstractDataOperation {
 
     private final Object sample;
 
-    public SampledDataOperation(DataAccess dataAccess, OperationType operationType, Object sample) {
-        super(dataAccess, operationType);
+    public SampledDataOperation(DataAccess dataAccess, OperationType operationType, Object sample, DataCallback callback) {
+        super(dataAccess, operationType, callback);
         this.sample = sample;
     }
 

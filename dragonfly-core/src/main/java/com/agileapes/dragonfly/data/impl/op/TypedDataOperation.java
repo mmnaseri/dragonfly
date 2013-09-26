@@ -1,6 +1,7 @@
 package com.agileapes.dragonfly.data.impl.op;
 
 import com.agileapes.dragonfly.data.DataAccess;
+import com.agileapes.dragonfly.data.DataCallback;
 import com.agileapes.dragonfly.data.OperationType;
 
 /**
@@ -11,8 +12,8 @@ public class TypedDataOperation extends AbstractDataOperation {
 
     private final Class<?> entityType;
 
-    public TypedDataOperation(DataAccess dataAccess, OperationType operationType, Class<?> entityType) {
-        super(dataAccess, operationType);
+    public TypedDataOperation(DataAccess dataAccess, OperationType operationType, Class<?> entityType, DataCallback callback) {
+        super(dataAccess, operationType, callback);
         this.entityType = entityType;
     }
 

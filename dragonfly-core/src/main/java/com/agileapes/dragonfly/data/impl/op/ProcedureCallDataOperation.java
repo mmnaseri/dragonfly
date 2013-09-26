@@ -1,6 +1,7 @@
 package com.agileapes.dragonfly.data.impl.op;
 
 import com.agileapes.dragonfly.data.DataAccess;
+import com.agileapes.dragonfly.data.DataCallback;
 import com.agileapes.dragonfly.data.OperationType;
 
 /**
@@ -12,8 +13,8 @@ public class ProcedureCallDataOperation extends TypedDataOperation {
     private final String procedureName;
     private final Object[] parameters;
 
-    public ProcedureCallDataOperation(DataAccess dataAccess, OperationType operationType, Class<?> entityType, String procedureName, Object[] parameters) {
-        super(dataAccess, operationType, entityType);
+    public ProcedureCallDataOperation(DataAccess dataAccess, OperationType operationType, Class<?> entityType, String procedureName, Object[] parameters, DataCallback callback) {
+        super(dataAccess, operationType, entityType, callback);
         this.procedureName = procedureName;
         this.parameters = parameters;
     }
