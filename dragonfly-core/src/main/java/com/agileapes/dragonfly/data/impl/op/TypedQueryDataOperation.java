@@ -28,4 +28,9 @@ public class TypedQueryDataOperation extends TypedDataOperation {
     public Map<String, Object> getMap() {
         return map;
     }
+
+    @Override
+    protected String getAsString() {
+        return getEntityType().getSimpleName() + "." + getQueryName() + "{}";
+    }
 }

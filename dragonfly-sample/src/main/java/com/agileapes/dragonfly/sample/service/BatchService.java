@@ -22,6 +22,7 @@ public class BatchService {
     public void execute() {
         final StopWatch stopWatch = new StopWatch("Batch Benchmark, size: " + BENCHMARK_SIZE);
         stopWatch.start("batch");
+        //0.00025
         dataAccess.run(new BatchOperation() {
             @Override
             public void execute(DataAccess dataAccess) {
@@ -32,12 +33,14 @@ public class BatchService {
             }
         });
         stopWatch.stop();
-        stopWatch.start("normal");
         dataAccess.delete(getGroup());
+        stopWatch.start("normal");
+        //0.0084862 (x33)
         for (int i = 0; i < BENCHMARK_SIZE; i ++) {
             dataAccess.save(getGroup());
         }
         stopWatch.stop();
+        dataAccess.delete(getGroup());
         System.out.println(stopWatch.prettyPrint());
     }
 

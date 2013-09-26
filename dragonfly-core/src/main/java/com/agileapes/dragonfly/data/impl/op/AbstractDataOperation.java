@@ -13,7 +13,7 @@ public abstract class AbstractDataOperation implements DataOperation {
 
     private final OperationType operationType;
     private final DataAccess dataAccess;
-    private final DataCallback callback;
+    private DataCallback callback;
 
     public AbstractDataOperation(DataAccess dataAccess, OperationType operationType, DataCallback callback) {
         this.dataAccess = dataAccess;
@@ -37,4 +37,14 @@ public abstract class AbstractDataOperation implements DataOperation {
         return operationType;
     }
 
+    public void setCallback(DataCallback callback) {
+        this.callback = callback;
+    }
+
+    protected abstract String getAsString();
+
+    @Override
+    public String toString() {
+        return operationType + " " + getAsString();
+    }
 }

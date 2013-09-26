@@ -1,10 +1,10 @@
 package com.agileapes.dragonfly.data.impl;
 
 import com.agileapes.couteau.basics.api.impl.MirrorFilter;
+import com.agileapes.couteau.basics.collections.CollectionWrapper;
 import com.agileapes.couteau.context.impl.OrderedBeanComparator;
 import com.agileapes.dragonfly.data.*;
 import com.agileapes.dragonfly.data.impl.op.*;
-import com.agileapes.dragonfly.error.AmbiguousCallbackError;
 
 import java.io.Serializable;
 import java.util.List;
@@ -20,14 +20,40 @@ import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 @SuppressWarnings("unchecked")
 public class DelegatingDataAccess implements DataAccess {
 
+    public static final NoOpCallback DEFAULT_CALLBACK = new NoOpCallback();
+
+    private static class NestedCallback implements DataCallback<DataOperation> {
+
+        private final List<DataCallback<DataOperation>> callbacks;
+
+        private NestedCallback(List<DataCallback<DataOperation>> callbacks) {
+            this.callbacks = callbacks;
+        }
+
+        @Override
+        public Object execute(DataOperation operation) {
+            final CollectionWrapper<DataCallback<DataOperation>> wrapper = with(callbacks);
+            if (wrapper.isEmpty()) {
+                return operation.proceed();
+            }
+            ((AbstractDataOperation) operation).setCallback(new NestedCallback(wrapper.rest().list()));
+            return wrapper.first().execute(operation);
+        }
+
+        @Override
+        public boolean accepts(DataOperation dataOperation) {
+            return true;
+        }
+    }
+
     private static class Executable<E extends DataOperation> {
 
         private final E dataOperation;
-        private final DataCallback<E> callback;
+        private final DataCallback<DataOperation> callback;
 
-        private Executable(E dataOperation, DataCallback<E> callback) {
+        private Executable(E dataOperation, List<DataCallback<DataOperation>> callbacks) {
             this.dataOperation = dataOperation;
-            this.callback = callback;
+            this.callback = new NestedCallback(callbacks);
         }
 
         private Object execute() {
@@ -48,16 +74,11 @@ public class DelegatingDataAccess implements DataAccess {
     }
 
     private <E extends DataOperation> Executable<E> given(E operation) {
-        final DataCallback<E> callback;
-        final List<DataCallback<DataOperation>> candidates = with(callbacks).keep(new MirrorFilter<DataOperation>(operation)).sort(new OrderedBeanComparator()).list();
-        if (candidates.size() == 1) {
-            callback = (DataCallback<E>) candidates.get(0);
-        } else if (!candidates.isEmpty()) {
-            throw new AmbiguousCallbackError(operation);
-        } else {
-            callback = new NoOpCallback();
+        final List<DataCallback<DataOperation>> callbacks = with(this.callbacks).keep(new MirrorFilter<DataOperation>(operation)).sort(new OrderedBeanComparator()).list();
+        if (callbacks.isEmpty()) {
+            callbacks.add(DEFAULT_CALLBACK);
         }
-        return new Executable<E>(operation, callback);
+        return new Executable<E>(operation, callbacks);
     }
 
     @Override

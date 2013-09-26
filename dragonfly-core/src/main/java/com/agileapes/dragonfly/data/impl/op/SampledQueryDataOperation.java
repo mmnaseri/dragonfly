@@ -20,4 +20,9 @@ public class SampledQueryDataOperation extends SampledDataOperation {
     public String getQueryName() {
         return queryName;
     }
+
+    @Override
+    public String getAsString() {
+        return getSample().getClass().getSimpleName() + "." + queryName + "[like " + getSample().getClass().getSimpleName() + "]";
+    }
 }

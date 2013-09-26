@@ -63,7 +63,7 @@ public class SessionPreparator implements BeanFactoryPostProcessor {
 
     public SessionPreparator(String[] basePackages) {
         this.basePackages = basePackages;
-        extensionManager = new DefaultExtensionManager(new DefaultExtensionExpressionParser(), new AnnotationMetadataResolver(false));
+        extensionManager = new DefaultExtensionManager(new DefaultExtensionExpressionParser(), new AnnotationMetadataResolver());
         resolverContext = new DefaultMetadataResolverContext(MetadataResolveStrategy.UNAMBIGUOUS, Arrays.<TableMetadataInterceptor>asList(extensionManager));
         definitionContext = new DefaultEntityDefinitionContext();
         definitionContext.addInterceptor(extensionManager);

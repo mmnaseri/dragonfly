@@ -21,4 +21,8 @@ public class SampledDataOperation extends AbstractDataOperation {
         return sample;
     }
 
+    @Override
+    public String getAsString() {
+        return "a " + sample.getClass().getSimpleName();
+    }
 }

@@ -21,4 +21,9 @@ public class TypedDataOperation extends AbstractDataOperation {
         return entityType;
     }
 
+    @Override
+    protected String getAsString() {
+        return "all " + entityType.getSimpleName();
+    }
+
 }

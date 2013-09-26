@@ -5,13 +5,17 @@ import com.agileapes.dragonfly.data.DataCallback;
 import com.agileapes.dragonfly.data.DataOperation;
 import com.agileapes.dragonfly.data.OperationType;
 import com.agileapes.dragonfly.data.impl.DelegatingDataAccess;
+import com.agileapes.dragonfly.data.impl.TypedDataCallback;
 import com.agileapes.dragonfly.data.impl.op.IdentifiableDataOperation;
 import com.agileapes.dragonfly.data.impl.op.SampledDataOperation;
 import com.agileapes.dragonfly.data.impl.op.TypedDataOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StopWatch;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -27,12 +31,12 @@ public class SampleService {
         private String name;
 
         public Memorable(Long id, String name) {
-            this.id = id;
-            this.name = name;
+            setId(id);
+            setName(name);
         }
 
         public Memorable(String name) {
-            this.name = name;
+            this(null, name);
         }
 
         public Long getId() {
@@ -52,16 +56,30 @@ public class SampleService {
         }
     }
 
+    private static interface LogEntry {
+
+        long getTime();
+
+        DataOperation getOperation();
+
+    }
+
     @Autowired
     private DataAccess dataAccess;
 
     public void execute() {
+        final ThreadLocal<List<LogEntry>> threadLocalLog = new ThreadLocal<List<LogEntry>>() {
+            @Override
+            protected List<LogEntry> initialValue() {
+                return new ArrayList<LogEntry>();
+            }
+        };
         final Map<Long, Memorable> memory = new HashMap<Long, Memorable>();
         final DelegatingDataAccess dataAccess = new DelegatingDataAccess(this.dataAccess);
-        dataAccess.addCallback(new DataCallback<DataOperation>() {
+        dataAccess.addCallback(new TypedDataCallback<DataOperation>(Memorable.class) {
             @Override
             public Object execute(DataOperation operation) {
-                if (OperationType.SAVE.equals(operation.getOperationType()) && operation instanceof SampledDataOperation && ((SampledDataOperation) operation).getSample() instanceof Memorable) {
+                if (OperationType.SAVE.equals(operation.getOperationType()) && operation instanceof SampledDataOperation) {
                     SampledDataOperation dataOperation = (SampledDataOperation) operation;
                     final Object sample = dataOperation.getSample();
                     final Memorable memorable = (Memorable) sample;
@@ -72,7 +90,7 @@ public class SampleService {
                         memory.put(memorable.getId(), memorable);
                     }
                     return memorable;
-                } else if (OperationType.DELETE.equals(operation.getOperationType()) && operation instanceof SampledDataOperation && ((SampledDataOperation) operation).getSample() instanceof  Memorable) {
+                } else if (OperationType.DELETE.equals(operation.getOperationType()) && operation instanceof SampledDataOperation) {
                     SampledDataOperation dataOperation = (SampledDataOperation) operation;
                     Memorable memorable = (Memorable) dataOperation.getSample();
                     if (memorable.getId() != null) {
@@ -89,15 +107,49 @@ public class SampleService {
                         }
                     }
                     return null;
-                } else if (OperationType.FIND.equals(operation.getOperationType()) && operation instanceof IdentifiableDataOperation && Memorable.class.isAssignableFrom(((IdentifiableDataOperation) operation).getEntityType())) {
+                } else if (OperationType.FIND.equals(operation.getOperationType()) && operation instanceof IdentifiableDataOperation) {
                     IdentifiableDataOperation dataOperation = (IdentifiableDataOperation) operation;
                     //noinspection SuspiciousMethodCalls
-                    return memory.get(dataOperation.getKey());
-                } else if (OperationType.COUNT.equals(operation.getOperationType()) && operation instanceof TypedDataOperation && Memorable.class.isAssignableFrom(((TypedDataOperation) operation).getEntityType())) {
+                    final Memorable memorable = memory.get(dataOperation.getKey());
+                    return new Memorable(memorable.getId(), memorable.getName());
+                } else if (OperationType.COUNT.equals(operation.getOperationType()) && operation instanceof TypedDataOperation) {
                     return (long) memory.size();
                 } else {
                     return operation.proceed();
                 }
+            }
+
+            @Override
+            public boolean accepts(DataOperation dataOperation) {
+                return true;
+            }
+        });
+        dataAccess.addCallback(new DataCallback<DataOperation>() {
+            @Override
+            public Object execute(final DataOperation operation) {
+                final StopWatch stopWatch = new StopWatch();
+                stopWatch.start();
+                final Object proceed = operation.proceed();
+                stopWatch.stop();
+                threadLocalLog.get().add(new LogEntry() {
+
+                    @Override
+                    public long getTime() {
+                        return stopWatch.getTotalTimeMillis();
+                    }
+
+                    @Override
+                    public DataOperation getOperation() {
+                        return operation;
+                    }
+
+                    @Override
+                    public String toString() {
+                        return String.format("[%5dms] %s", getTime(), getOperation());
+                    }
+
+                });
+                return proceed;
             }
 
             @Override
@@ -115,6 +167,10 @@ public class SampleService {
         System.out.println("delete (1)");
         dataAccess.delete(new Memorable("Second"));
         System.out.println("count all    : " + dataAccess.countAll(Memorable.class));
+        final List<LogEntry> logEntries = threadLocalLog.get();
+        for (LogEntry logEntry : logEntries) {
+            System.out.println(logEntry);
+        }
     }
 
 }

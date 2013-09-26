@@ -18,8 +18,8 @@ public class Main {
 //        context.getBean(CountPeopleService.class).execute();
 //        context.getBean(CountPeopleProcedureService.class).execute();
 //        context.getBean(ListPeopleProcedureService.class).execute();
-//        context.getBean(SampleService.class).execute();
-        context.getBean(BatchService.class).execute();
+        context.getBean(SampleService.class).execute();
+//        context.getBean(BatchService.class).execute();
     }
 
 }

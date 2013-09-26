@@ -37,22 +37,10 @@ public class AnnotationMetadataResolver implements MetadataResolver {
 
     private static final Log log = LogFactory.getLog(MetadataResolver.class);
     private static final String NO_SCHEMA = "";
-    private final boolean standard;
-
-    public AnnotationMetadataResolver() {
-        this(true);
-    }
-
-    public AnnotationMetadataResolver(boolean standard) {
-        this.standard = standard;
-    }
 
     @Override
     public <E> TableMetadata<E> resolve(final Class<E> entityType) {
         log.info("Resolving metadata for " + entityType.getCanonicalName());
-        if (standard && !entityType.isAnnotationPresent(Entity.class)) {
-            throw new EntityDefinitionError("Entity is not annotated with @Entity: " + entityType.getCanonicalName());
-        }
         final String tableName;
         final String schema;
         final Set<Set<String>> uniqueColumns = new HashSet<Set<String>>();

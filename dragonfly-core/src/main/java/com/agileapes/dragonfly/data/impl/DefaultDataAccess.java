@@ -405,9 +405,10 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
             final int[] batchResult;
             log.info("Executing batch operation for statement: " + descriptor.getSql());
             try {
+                long time = System.nanoTime();
                 batchResult = descriptor.getPreparedStatement().executeBatch();
                 descriptor.getPreparedStatement().getConnection().commit();
-                log.info(batchResult.length + " operation(s) completed successfully");
+                log.info(batchResult.length + " operation(s) completed successfully in " + (System.nanoTime() - time) + "ns");
             } catch (SQLException e) {
                 throw new BatchOperationInterruptedError("Failed to execute operation batch", e);
             }
