@@ -253,8 +253,13 @@ public class DelegatingDataAccess implements DataAccess {
     }
 
     @Override
-    public List<Integer> run(BatchOperation batchOperation) {
-        return dataAccess.run(batchOperation);
+    public List<Integer> run(final BatchOperation batchOperation) {
+        return dataAccess.run(new BatchOperation() {
+            @Override
+            public void execute(DataAccess dataAccess) {
+                batchOperation.execute(DelegatingDataAccess.this);
+            }
+        });
     }
 
 }
