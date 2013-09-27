@@ -8,7 +8,6 @@ import com.agileapes.dragonfly.statement.StatementBuilder;
 import com.agileapes.dragonfly.statement.Statements;
 import freemarker.cache.StringTemplateLoader;
 import freemarker.template.Configuration;
-import freemarker.template.utility.StringUtil;
 
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -43,7 +42,9 @@ public class StatementRegistryPreparator {
 
     public void prepare(StatementRegistry statementRegistry) {
         for (Class<?> entity : entities) {
-            registry.addTableMetadata(resolver.resolve(entity));
+            if (!registry.contains(entity)) {
+                registry.addTableMetadata(resolver.resolve(entity));
+            }
         }
         for (Class<?> entity : entities) {
             final TableMetadata<?> tableMetadata = registry.getTableMetadata(entity);

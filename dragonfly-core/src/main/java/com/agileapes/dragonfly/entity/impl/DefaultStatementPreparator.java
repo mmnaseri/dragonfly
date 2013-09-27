@@ -106,7 +106,7 @@ public class DefaultStatementPreparator implements StatementPreparator {
                 if (value.containsKey(parameter)) {
                     preparedStatement.setObject(i + 1, value.get(parameter));
                 } else {
-                    final String property = parameter.substring(parameter.lastIndexOf('.') + 1);
+                    final String property = parameter.contains(".") ? parameter.substring(parameter.lastIndexOf('.') + 1) : parameter;
                     final ColumnMetadata metadata = with(tableMetadata.getColumns()).keep(new ColumnPropertyFilter(property)).first();
                     preparedStatement.setNull(i + 1, metadata.getType());
                 }

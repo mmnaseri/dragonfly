@@ -9,6 +9,7 @@ import com.agileapes.dragonfly.data.impl.TypedDataCallback;
 import com.agileapes.dragonfly.data.impl.op.IdentifiableDataOperation;
 import com.agileapes.dragonfly.data.impl.op.SampledDataOperation;
 import com.agileapes.dragonfly.data.impl.op.TypedDataOperation;
+import com.agileapes.dragonfly.metadata.impl.TableKeyGeneratorEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
@@ -76,6 +77,39 @@ public class SampleService {
         };
         final Map<Long, Memorable> memory = new HashMap<Long, Memorable>();
         final DelegatingDataAccess dataAccess = new DelegatingDataAccess(this.dataAccess);
+        dataAccess.addCallback(new DataCallback<DataOperation>() {
+            @Override
+            public Object execute(final DataOperation operation) {
+                final StopWatch stopWatch = new StopWatch();
+                stopWatch.start();
+                final Object proceed = operation.proceed();
+                stopWatch.stop();
+                threadLocalLog.get().add(new LogEntry() {
+
+                    @Override
+                    public long getTime() {
+                        return stopWatch.getTotalTimeMillis();
+                    }
+
+                    @Override
+                    public DataOperation getOperation() {
+                        return operation;
+                    }
+
+                    @Override
+                    public String toString() {
+                        return String.format("[%5dms] %s", getTime(), getOperation());
+                    }
+
+                });
+                return proceed;
+            }
+
+            @Override
+            public boolean accepts(DataOperation dataOperation) {
+                return true;
+            }
+        });
         dataAccess.addCallback(new TypedDataCallback<DataOperation>(Memorable.class) {
             @Override
             public Object execute(DataOperation operation) {
@@ -119,43 +153,6 @@ public class SampleService {
                 }
             }
 
-            @Override
-            public boolean accepts(DataOperation dataOperation) {
-                return true;
-            }
-        });
-        dataAccess.addCallback(new DataCallback<DataOperation>() {
-            @Override
-            public Object execute(final DataOperation operation) {
-                final StopWatch stopWatch = new StopWatch();
-                stopWatch.start();
-                final Object proceed = operation.proceed();
-                stopWatch.stop();
-                threadLocalLog.get().add(new LogEntry() {
-
-                    @Override
-                    public long getTime() {
-                        return stopWatch.getTotalTimeMillis();
-                    }
-
-                    @Override
-                    public DataOperation getOperation() {
-                        return operation;
-                    }
-
-                    @Override
-                    public String toString() {
-                        return String.format("[%5dms] %s", getTime(), getOperation());
-                    }
-
-                });
-                return proceed;
-            }
-
-            @Override
-            public boolean accepts(DataOperation dataOperation) {
-                return true;
-            }
         });
         System.out.println("first        : " + dataAccess.save(new Memorable("First")).getId());
         System.out.println("second       : " + dataAccess.save(new Memorable("Second")).getId());
@@ -167,6 +164,16 @@ public class SampleService {
         System.out.println("delete (1)");
         dataAccess.delete(new Memorable("Second"));
         System.out.println("count all    : " + dataAccess.countAll(Memorable.class));
+        final TableKeyGeneratorEntity keyGeneratorEntity = new TableKeyGeneratorEntity();
+        keyGeneratorEntity.setName("people");
+//        dataAccess.delete(keyGeneratorEntity);
+//        keyGeneratorEntity.setValue(10L);
+//        dataAccess.save(keyGeneratorEntity);
+        dataAccess.executeUpdate(keyGeneratorEntity, "increment");
+        final List<TableKeyGeneratorEntity> entities = dataAccess.find(keyGeneratorEntity);
+        for (TableKeyGeneratorEntity entity : entities) {
+            System.out.println(entity.getValue());
+        }
         final List<LogEntry> logEntries = threadLocalLog.get();
         for (LogEntry logEntry : logEntries) {
             System.out.println(logEntry);

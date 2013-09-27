@@ -47,4 +47,8 @@ public abstract class AbstractDataOperation implements DataOperation {
     public String toString() {
         return operationType + " " + getAsString();
     }
+
+    public DataCallback getCallback() {
+        return callback;
+    }
 }

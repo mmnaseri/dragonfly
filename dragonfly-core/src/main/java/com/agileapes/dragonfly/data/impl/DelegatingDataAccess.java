@@ -25,18 +25,21 @@ public class DelegatingDataAccess implements DataAccess {
     private static class NestedCallback implements DataCallback<DataOperation> {
 
         private final List<DataCallback<DataOperation>> callbacks;
+        private final DataCallback<DataOperation> originalCallback;
 
-        private NestedCallback(List<DataCallback<DataOperation>> callbacks) {
+        private NestedCallback(List<DataCallback<DataOperation>> callbacks, DataCallback<DataOperation> originalCallback) {
             this.callbacks = callbacks;
+            this.originalCallback = originalCallback;
         }
 
         @Override
         public Object execute(DataOperation operation) {
             final CollectionWrapper<DataCallback<DataOperation>> wrapper = with(callbacks);
             if (wrapper.isEmpty()) {
+                ((AbstractDataOperation) operation).setCallback(originalCallback);
                 return operation.proceed();
             }
-            ((AbstractDataOperation) operation).setCallback(new NestedCallback(wrapper.rest().list()));
+            ((AbstractDataOperation) operation).setCallback(new NestedCallback(wrapper.rest().list(), originalCallback));
             return wrapper.first().execute(operation);
         }
 
@@ -53,7 +56,7 @@ public class DelegatingDataAccess implements DataAccess {
 
         private Executable(E dataOperation, List<DataCallback<DataOperation>> callbacks) {
             this.dataOperation = dataOperation;
-            this.callback = new NestedCallback(callbacks);
+            this.callback = new NestedCallback(callbacks, ((AbstractDataOperation) dataOperation).getCallback());
         }
 
         private Object execute() {
