@@ -178,6 +178,7 @@ public class SampleService {
         for (LogEntry logEntry : logEntries) {
             System.out.println(logEntry);
         }
+
     }
 
 }

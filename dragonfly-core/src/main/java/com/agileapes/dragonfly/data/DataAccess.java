@@ -33,6 +33,10 @@ public interface DataAccess {
      */
     <E> E save(E entity);
 
+    <E> E insert(E entity);
+
+    <E> E update(E entity);
+
     /**
      * <p>Attempts to delete the given entity. This is done by taking the given
      * entity as a sample. If it can be properly identified with a primary key,

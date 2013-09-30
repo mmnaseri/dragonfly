@@ -94,6 +94,26 @@ public class DelegatingDataAccess implements DataAccess {
         })).execute();
     }
 
+    @Override
+    public <E> E insert(E entity) {
+        return (E) given(new SampledDataOperation(dataAccess, OperationType.INSERT, entity, new AbstractDefaultDataCallback<SampledDataOperation>() {
+            @Override
+            public Object execute(SampledDataOperation operation) {
+                return dataAccess.insert(operation.getSample());
+            }
+        })).execute();
+    }
+
+    @Override
+    public <E> E update(E entity) {
+        return (E) given(new SampledDataOperation(dataAccess, OperationType.UPDATE, entity, new AbstractDefaultDataCallback() {
+            @Override
+            public Object execute(DataOperation operation) {
+                return dataAccess.update(operation);
+            }
+        })).execute();
+    }
+
 
     @Override
     public <E> void delete(E entity) {
