@@ -9,7 +9,6 @@ import com.agileapes.dragonfly.data.impl.TypedDataCallback;
 import com.agileapes.dragonfly.data.impl.op.IdentifiableDataOperation;
 import com.agileapes.dragonfly.data.impl.op.SampledDataOperation;
 import com.agileapes.dragonfly.data.impl.op.TypedDataOperation;
-import com.agileapes.dragonfly.metadata.impl.TableKeyGeneratorEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
@@ -24,7 +23,7 @@ import java.util.Map;
  * @since 1.0 (2013/9/23, 12:55)
  */
 @Service
-public class SampleService {
+public class DelegationService {
 
     public class Memorable {
 
@@ -164,16 +163,6 @@ public class SampleService {
         System.out.println("delete (1)");
         dataAccess.delete(new Memorable("Second"));
         System.out.println("count all    : " + dataAccess.countAll(Memorable.class));
-        final TableKeyGeneratorEntity keyGeneratorEntity = new TableKeyGeneratorEntity();
-        keyGeneratorEntity.setName("people");
-//        dataAccess.delete(keyGeneratorEntity);
-//        keyGeneratorEntity.setValue(10L);
-//        dataAccess.save(keyGeneratorEntity);
-        dataAccess.executeUpdate(keyGeneratorEntity, "increment");
-        final List<TableKeyGeneratorEntity> entities = dataAccess.find(keyGeneratorEntity);
-        for (TableKeyGeneratorEntity entity : entities) {
-            System.out.println(entity.getValue());
-        }
         final List<LogEntry> logEntries = threadLocalLog.get();
         for (LogEntry logEntry : logEntries) {
             System.out.println(logEntry);

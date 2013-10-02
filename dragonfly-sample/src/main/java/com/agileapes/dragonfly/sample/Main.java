@@ -11,14 +11,16 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         final ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("/sample.xml");
-        context.getBean(DeletePeopleService.class).execute();
-        context.getBean(ListPeopleService.class).execute();
-        context.getBean(InstantiationService.class).execute();
-        context.getBean(CountPeopleService.class).execute();
-        context.getBean(CountPeopleProcedureService.class).execute();
-        context.getBean(ListPeopleProcedureService.class).execute();
-        context.getBean(SampleService.class).execute();
-        context.getBean(BatchService.class).execute();
+        context.getBean(BookPublishingService.class).execute();
+//        context.getBean(DeletePeopleService.class).execute();
+//        context.getBean(CreatePersonService.class).execute();
+//        context.getBean(ListPeopleService.class).execute();
+//        context.getBean(InstantiationService.class).execute();
+//        context.getBean(CountPeopleService.class).execute();
+//        context.getBean(CountPeopleProcedureService.class).execute();
+//        context.getBean(ListPeopleProcedureService.class).execute();
+//        context.getBean(DelegationService.class).execute();
+//        context.getBean(BatchService.class).execute();
     }
 
 }

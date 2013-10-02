@@ -1,5 +1,6 @@
 package com.agileapes.dragonfly.metadata.impl;
 
+import com.agileapes.couteau.basics.api.Filter;
 import com.agileapes.couteau.basics.api.Processor;
 import com.agileapes.couteau.basics.api.Transformer;
 import com.agileapes.couteau.reflection.util.ReflectionUtils;
@@ -118,6 +119,7 @@ public class AnnotationMetadataResolver implements MetadataResolver {
                 return columnMetadata;
             }
         }).list();
+        //handling one-to-many relations
         //noinspection unchecked
         withMethods(entityType)
         .keep(new GetterMethodFilter())
@@ -160,6 +162,7 @@ public class AnnotationMetadataResolver implements MetadataResolver {
                 foreignReferences.add(reference);
             }
         });
+        //Handling one-to-one's where the entity is not the owner of the relationship
         //noinspection unchecked
         withMethods(entityType)
         .keep(new GetterMethodFilter())
@@ -247,6 +250,40 @@ public class AnnotationMetadataResolver implements MetadataResolver {
                 return new ForeignKeyConstraintMetadata(tableMetadata, columnMetadata);
             }
         }).list());
+        //going after many-to-many relations
+        //noinspection unchecked
+        withMethods(entityType)
+                .drop(new AnnotatedElementFilter(Column.class, JoinColumn.class))
+                .keep(new GetterMethodFilter())
+                .forThose(
+                        new Filter<Method>() {
+                            @Override
+                            public boolean accepts(Method item) {
+                                return item.isAnnotationPresent(ManyToMany.class);
+                            }
+                        },
+                        new Processor<Method>() {
+                            @Override
+                            public void process(Method method) {
+                                final ManyToMany annotation = method.getAnnotation(ManyToMany.class);
+                                Class<?> foreignEntity = annotation.targetEntity().equals(void.class) ? ((Class) ((ParameterizedType) method.getGenericReturnType()).getActualTypeArguments()[0]) : annotation.targetEntity();
+                                String foreignProperty = annotation.mappedBy();
+                                if (foreignProperty.isEmpty()) {
+                                    //noinspection unchecked
+                                    final List<Method> methods = withMethods(foreignEntity).keep(new GetterMethodFilter()).keep(new AnnotatedElementFilter(ManyToMany.class)).list();
+                                    if (methods.isEmpty()) {
+                                        throw new EntityDefinitionError("Failed to locate corresponding many-to-many relation on " + foreignEntity.getCanonicalName());
+                                    }
+                                    if (methods.size() == 1) {
+                                        throw new EntityDefinitionError("Ambiguous many-to-many relationship defined");
+                                    }
+                                    foreignProperty = ReflectionUtils.getPropertyName(methods.get(0).getName());
+                                }
+                                //noinspection unchecked
+                                foreignReferences.add(new ImmutableReferenceMetadata<E, Object>(ReflectionUtils.getDeclaringClass(method), ReflectionUtils.getPropertyName(method.getName()), false, tableMetadata, null, new UnresolvedColumnMetadata(foreignProperty, new UnresolvedTableMetadata<Object>((Class<Object>) foreignEntity)), RelationType.MANY_TO_MANY, getCascadeMetadata(method), determineLaziness(method)));
+                            }
+                        }
+                );
         return tableMetadata;
     }
 

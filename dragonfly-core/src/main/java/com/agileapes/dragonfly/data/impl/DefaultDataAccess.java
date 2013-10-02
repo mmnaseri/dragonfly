@@ -21,7 +21,6 @@ import com.agileapes.dragonfly.events.EventHandlerContext;
 import com.agileapes.dragonfly.events.impl.CompositeDataAccessEventHandler;
 import com.agileapes.dragonfly.metadata.*;
 import com.agileapes.dragonfly.metadata.impl.ColumnMappingMetadataCollector;
-import com.agileapes.dragonfly.metadata.impl.TableKeyGeneratorEntity;
 import com.agileapes.dragonfly.security.DataSecurityManager;
 import com.agileapes.dragonfly.security.impl.StoredProcedureSubject;
 import com.agileapes.dragonfly.statement.Statement;

@@ -1,6 +1,10 @@
-package com.agileapes.dragonfly.metadata.impl;
+package com.agileapes.dragonfly.data.impl;
 
 import com.agileapes.dragonfly.metadata.*;
+import com.agileapes.dragonfly.metadata.impl.ImmutableNamedQueryMetadata;
+import com.agileapes.dragonfly.metadata.impl.ResolvedColumnMetadata;
+import com.agileapes.dragonfly.metadata.impl.ResolvedTableMetadata;
+import com.agileapes.dragonfly.metadata.impl.UniqueConstraintMetadata;
 
 import java.sql.Types;
 import java.util.*;
