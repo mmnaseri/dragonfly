@@ -60,6 +60,7 @@ public class Person {
     private LibraryCard libraryCard;
     private Person myFriend;
     private Group group;
+    private Long key;
 
     @Column
     public String getName() {
@@ -146,5 +147,15 @@ public class Person {
 
     public void setGroup(Group group) {
         this.group = group;
+    }
+
+    @Column
+    @GeneratedValue(strategy = GenerationType.TABLE)
+    public Long getKey() {
+        return key;
+    }
+
+    public void setKey(Long key) {
+        this.key = key;
     }
 }

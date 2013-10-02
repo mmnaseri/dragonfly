@@ -2,6 +2,8 @@ package com.agileapes.dragonfly.statement.impl;
 
 import com.agileapes.couteau.basics.api.Filter;
 import com.agileapes.couteau.basics.api.Processor;
+import com.agileapes.couteau.context.error.InvalidBeanTypeException;
+import com.agileapes.couteau.context.error.NoSuchItemException;
 import com.agileapes.couteau.context.error.RegistryException;
 import com.agileapes.dragonfly.statement.Statement;
 
@@ -49,7 +51,10 @@ public class LocalStatementRegistry implements StatementRegistry {
 
     @Override
     public Statement get(String name) throws RegistryException {
-        return parent.get(getName(name));
+        if (!localBeans.containsKey(name)) {
+            throw new NoSuchItemException(name);
+        }
+        return localBeans.get(name);
     }
 
     @Override
@@ -70,7 +75,7 @@ public class LocalStatementRegistry implements StatementRegistry {
                     @Override
                     public void process(String input) {
                         try {
-                            localBeans.put(input, parent.get(input));
+                            localBeans.put(input.substring(prefix.length()), parent.get(input));
                         } catch (RegistryException e) {
                             throw new Error(e);
                         }
@@ -85,7 +90,14 @@ public class LocalStatementRegistry implements StatementRegistry {
 
     @Override
     public <T extends Statement> T get(String name, Class<T> type) throws RegistryException {
-        return parent.get(getName(name), type);
+        if (!localBeans.containsKey(name)) {
+            throw new NoSuchItemException(name);
+        }
+        final Statement value = localBeans.get(name);
+        if (value == null || type.isInstance(value)) {
+            return type.cast(value);
+        }
+        throw new InvalidBeanTypeException(name, type, value.getClass());
     }
 
 }

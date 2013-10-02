@@ -19,7 +19,6 @@ import com.agileapes.dragonfly.metadata.MetadataResolverContext;
 import com.agileapes.dragonfly.metadata.TableMetadataInterceptor;
 import com.agileapes.dragonfly.metadata.impl.AnnotationMetadataResolver;
 import com.agileapes.dragonfly.metadata.impl.DefaultMetadataResolverContext;
-import com.agileapes.dragonfly.metadata.impl.TableKeyGeneratorEntity;
 import com.agileapes.dragonfly.statement.impl.StatementRegistry;
 import com.agileapes.dragonfly.statement.impl.StatementRegistryPreparator;
 import org.apache.commons.logging.Log;
@@ -113,9 +112,7 @@ public class SessionPreparator implements BeanFactoryPostProcessor {
         }
         resolverContext.addMetadataResolver(new AnnotationMetadataResolver());
         log.info("Preparing entity statements for later use");
-        metadataRegistry.addTableMetadata(TableKeyGeneratorEntity.getTableMetadata("test"));
         final StatementRegistryPreparator preparator = new StatementRegistryPreparator(databaseDialect, resolverContext, metadataRegistry);
-        preparator.addEntity(TableKeyGeneratorEntity.class);
         for (Class<?> entity : definitionContext.getEntities()) {
             preparator.addEntity(entity);
         }

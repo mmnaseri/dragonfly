@@ -69,13 +69,24 @@ public class DefaultMetadataContext extends DefaultMetadataRegistry implements M
     private synchronized void rebuildCache() {
         //we first clear the cache
         metadataCache.invalidate();
+        String schema = null;
         //then we fill a map from entity-type to table metadata from each registry
         final Map<Class<?>, TableMetadata<?>> map = new HashMap<Class<?>, TableMetadata<?>>();
         for (MetadataRegistry registry : registries) {
             final Collection<Class<?>> entityTypes = registry == this ? super.getEntityTypes() : registry.getEntityTypes();
             for (Class<?> entityType : entityTypes) {
                 map.put(entityType, registry == this ? super.getTableMetadata(entityType) : registry.getTableMetadata(entityType));
+                if (schema == null && map.get(entityType).getSchema() != null && !map.get(entityType).getSchema().isEmpty()) {
+                    schema = map.get(entityType).getSchema();
+                }
             }
+        }
+        //adding table metadata for the key generator table so that we can later
+        //rely on the table being there before calculating generated keys
+        if (schema != null) {
+            final TableMetadata<TableKeyGeneratorEntity> tableMetadata = TableKeyGeneratorEntity.getTableMetadata(schema);
+            map.put(tableMetadata.getEntityType(), tableMetadata);
+            addInternalMetadata(tableMetadata);
         }
         //we then resolve all unresolved foreign references
         for (Map.Entry<Class<?>, TableMetadata<?>> entry : map.entrySet()) {
@@ -103,6 +114,7 @@ public class DefaultMetadataContext extends DefaultMetadataRegistry implements M
         for (Map.Entry<Class<?>, TableMetadata<?>> entry : map.entrySet()) {
             metadataCache.write(entry.getKey(), entry.getValue());
         }
+        ready = true;
     }
 
     private static ColumnMetadata resolveColumn(Map<Class<?>, TableMetadata<?>> map, TableMetadata<?> localTable, ColumnMetadata foreignColumn) {

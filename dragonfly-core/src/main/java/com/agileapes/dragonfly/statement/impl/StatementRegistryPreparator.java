@@ -46,6 +46,8 @@ public class StatementRegistryPreparator {
                 registry.addTableMetadata(resolver.resolve(entity));
             }
         }
+        entities.clear();
+        entities.addAll(registry.getEntityTypes());
         for (Class<?> entity : entities) {
             final TableMetadata<?> tableMetadata = registry.getTableMetadata(entity);
             try {

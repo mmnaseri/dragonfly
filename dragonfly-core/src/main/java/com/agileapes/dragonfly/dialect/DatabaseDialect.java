@@ -9,6 +9,7 @@ import java.io.Serializable;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Map;
 
 /**
  * This interface holds all vendor-specific and dialectal information needed throughout the
@@ -81,5 +82,7 @@ public interface DatabaseDialect extends Filter<DatabaseMetaData> {
      * the statements defined through the statement builder context for the dialect
      */
     String getCountColumn();
+
+    <E> Map<String,Object> loadSequenceValues(TableMetadata<E> tableMetadata);
 
 }

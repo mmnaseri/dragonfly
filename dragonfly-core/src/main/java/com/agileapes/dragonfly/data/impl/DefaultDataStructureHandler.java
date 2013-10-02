@@ -1,13 +1,11 @@
 package com.agileapes.dragonfly.data.impl;
 
+import com.agileapes.couteau.basics.api.Filter;
 import com.agileapes.couteau.basics.api.Processor;
 import com.agileapes.dragonfly.data.DataAccessSession;
 import com.agileapes.dragonfly.data.DataStructureHandler;
 import com.agileapes.dragonfly.error.UnknownTableSchemaError;
-import com.agileapes.dragonfly.metadata.ColumnMetadata;
-import com.agileapes.dragonfly.metadata.Metadata;
-import com.agileapes.dragonfly.metadata.SequenceMetadata;
-import com.agileapes.dragonfly.metadata.TableMetadata;
+import com.agileapes.dragonfly.metadata.*;
 import com.agileapes.dragonfly.metadata.impl.ForeignKeyConstraintMetadata;
 import com.agileapes.dragonfly.metadata.impl.UniqueConstraintMetadata;
 import com.agileapes.dragonfly.statement.Statement;
@@ -19,6 +17,7 @@ import org.apache.commons.logging.LogFactory;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -102,6 +101,20 @@ public class DefaultDataStructureHandler implements DataStructureHandler {
                 executeStatement(tableMetadata, CREATE_UNIQUE_CONSTRAINT, uniqueConstraintMetadata);
             }
         });
+        with(tableMetadata.getColumns()).forThose(
+                new Filter<ColumnMetadata>() {
+                    @Override
+                    public boolean accepts(ColumnMetadata item) {
+                        return ValueGenerationType.TABLE.equals(item.getGenerationType());
+                    }
+                },
+                new Processor<ColumnMetadata>() {
+                    @Override
+                    public void process(ColumnMetadata input) {
+                        executeStatement(tableMetadata, CREATE_UNIQUE_CONSTRAINT, new UniqueConstraintMetadata(tableMetadata, Arrays.asList(input)));
+                    }
+                }
+        );
     }
 
     @Override

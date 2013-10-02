@@ -1,7 +1,6 @@
 package com.agileapes.dragonfly.tools;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
@@ -15,6 +14,30 @@ public abstract class MapTools {
             result.put(prefix + entry.getKey(), entry.getValue());
         }
         return result;
+    }
+
+    public static <K, V> MapBuilder<K, V> map(Class<K> keyType, Class<V> valueType) {
+        return new MapBuilder<K, V>();
+    }
+
+    public static class MapBuilder<K, V> {
+
+        private final List<K> keys = new ArrayList<K>();
+
+        public MapBuilder<K, V> keys(K... keys) {
+            Collections.addAll(this.keys, keys);
+            return this;
+        }
+
+        public Map<K, V> values(V... values) {
+            final HashMap<K, V> map = new HashMap<K, V>();
+            for (int i = 0; i < keys.size(); i++) {
+                K key = keys.get(i);
+                map.put(key, values[i]);
+            }
+            return map;
+        }
+
     }
 
 }

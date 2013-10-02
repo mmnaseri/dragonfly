@@ -8,10 +8,9 @@ import com.agileapes.dragonfly.sample.entities.Person;
 import com.agileapes.dragonfly.sample.entities.Thing;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StopWatch;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Random;
+import java.util.*;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
@@ -23,22 +22,45 @@ public class CreatePersonService {
     @Autowired
     private EntityContext entityContext;
 
-    public void execute() {
-        final Person person = entityContext.getInstance(Person.class);
-        person.setLibraryCard(new LibraryCard());
-        person.setName("Person - " + Math.abs((new Random().nextInt())));
-        person.setBirthday(new Date());
-        final Group group = new Group();
-        group.setName("Normal People");
-        person.setGroup(group);
-        final ArrayList<Thing> things = new ArrayList<Thing>();
-        person.setThings(things);
-        for (int i = 0; i < 3; i ++) {
-            final Thing thing = entityContext.getInstance(Thing.class);
-            thing.setName("Thing - " + Math.abs((new Random().nextInt())));
-            things.add(thing);
+    private final class Tester implements Runnable {
+        @Override
+        public void run() {
+            final Person person = entityContext.getInstance(Person.class);
+            person.setLibraryCard(new LibraryCard());
+            person.setName("Person - " + Math.abs((new Random().nextInt())));
+            person.setBirthday(new Date());
+            final Group group = new Group();
+            group.setName("Normal People");
+            person.setGroup(group);
+            final ArrayList<Thing> things = new ArrayList<Thing>();
+            person.setThings(things);
+            for (int i = 0; i < 3; i ++) {
+                final Thing thing = entityContext.getInstance(Thing.class);
+                thing.setName("Thing - " + Math.abs((new Random().nextInt())));
+                things.add(thing);
+            }
+            ((DataAccessObject) person).save();
         }
-        ((DataAccessObject) person).save();
+    }
+
+    public void execute() {
+        final Collection<Thread> threads = new HashSet<Thread>();
+        for (int i = 0; i < 100; i ++) {
+            threads.add(new Thread(new Tester()));
+        }
+        final StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
+        for (Thread thread : threads) {
+            thread.start();
+        }
+        for (Thread thread : threads) {
+            try {
+                thread.join();
+            } catch (InterruptedException ignored) {
+            }
+        }
+        stopWatch.stop();
+        System.out.println(stopWatch.prettyPrint());
     }
 
 }

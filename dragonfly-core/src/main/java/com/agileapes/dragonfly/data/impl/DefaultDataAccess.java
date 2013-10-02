@@ -21,6 +21,7 @@ import com.agileapes.dragonfly.events.EventHandlerContext;
 import com.agileapes.dragonfly.events.impl.CompositeDataAccessEventHandler;
 import com.agileapes.dragonfly.metadata.*;
 import com.agileapes.dragonfly.metadata.impl.ColumnMappingMetadataCollector;
+import com.agileapes.dragonfly.metadata.impl.TableKeyGeneratorEntity;
 import com.agileapes.dragonfly.security.DataSecurityManager;
 import com.agileapes.dragonfly.security.impl.StoredProcedureSubject;
 import com.agileapes.dragonfly.statement.Statement;
@@ -29,6 +30,7 @@ import com.agileapes.dragonfly.statement.StatementType;
 import com.agileapes.dragonfly.statement.Statements;
 import com.agileapes.dragonfly.statement.impl.FreemarkerSecondPassStatementBuilder;
 import com.agileapes.dragonfly.statement.impl.ProcedureCallStatement;
+import com.agileapes.dragonfly.statement.impl.StatementRegistry;
 import com.agileapes.dragonfly.tools.MapTools;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -40,6 +42,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
+import static com.agileapes.dragonfly.tools.MapTools.map;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
@@ -269,13 +272,17 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
             throw new BatchOperationInterruptedError("Batch operation interrupted by query");
         }
         final Statement statement = getStatement(entityType, statementName, StatementType.QUERY);
-        final PreparedStatement preparedStatement = statement.prepare(session.getConnection(), null, values);
+        final Connection connection = session.getConnection();
+        final PreparedStatement preparedStatement = statement.prepare(connection, null, values);
         final ArrayList<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
         try {
             final ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
                 result.add(rowHandler.handleRow(resultSet));
             }
+            resultSet.close();
+            preparedStatement.close();
+            connection.close();
         } catch (SQLException e) {
             throw new UnsuccessfulOperationError("Failed to retrieve result set from the database", e);
         }
@@ -404,10 +411,13 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
             descriptors.remove(0);
             final int[] batchResult;
             log.info("Executing batch operation for statement: " + descriptor.getSql());
+            final PreparedStatement preparedStatement = descriptor.getPreparedStatement();
+            final Connection connection;
             try {
+                connection = preparedStatement.getConnection();
                 long time = System.nanoTime();
-                batchResult = descriptor.getPreparedStatement().executeBatch();
-                descriptor.getPreparedStatement().getConnection().commit();
+                batchResult = preparedStatement.executeBatch();
+                connection.commit();
                 log.info(batchResult.length + " operation(s) completed successfully in " + (System.nanoTime() - time) + "ns");
             } catch (SQLException e) {
                 throw new BatchOperationInterruptedError("Failed to execute operation batch", e);
@@ -415,7 +425,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
             if (StatementType.getStatementType(descriptor.getSql()).equals(StatementType.INSERT)) {
                 try {
                     final List<Object> deferredEntities = deferredKeys.get();
-                    final ResultSet generatedKeys = descriptor.getPreparedStatement().getGeneratedKeys();
+                    final ResultSet generatedKeys = preparedStatement.getGeneratedKeys();
                     while (generatedKeys.next()) {
                         final Object entity = deferredEntities.get(0);
                         deferredEntities.remove(0);
@@ -429,6 +439,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
             for (int i : batchResult) {
                 result.add(i);
             }
+            cleanUpStatement(preparedStatement);
         }
         return result;
     }
@@ -473,7 +484,8 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     public <E> List<Map<String, Object>> executeUntypedQuery(Class<E> entityType, String queryName, Map<String, Object> values) {
         final ArrayList<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
         final Statement statement = getStatement(entityType, queryName, StatementType.QUERY);
-        final PreparedStatement preparedStatement = statement.prepare(session.getConnection(), null, values);
+        final Connection connection = session.getConnection();
+        final PreparedStatement preparedStatement = statement.prepare(connection, null, values);
         final ResultSet resultSet;
         try {
             resultSet = preparedStatement.executeQuery();
@@ -484,6 +496,9 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
             while (resultSet.next()) {
                 result.add(rowHandler.handleRow(resultSet));
             }
+            resultSet.close();
+            preparedStatement.close();
+            connection.close();
         } catch (SQLException e) {
             throw new UnsuccessfulOperationError("Failed to load result set", e);
         }
@@ -500,7 +515,9 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         final Statement statement = getStatement(annotation.targetEntity(), annotation.query(), StatementType.INSERT, StatementType.DELETE, StatementType.UPDATE);
         final PreparedStatement preparedStatement = statement.prepare(session.getConnection(), mapCreator, sample);
         try {
-            return preparedStatement.executeUpdate();
+            final int affectedRows = preparedStatement.executeUpdate();
+            cleanUpStatement(preparedStatement);
+            return affectedRows;
         } catch (SQLException e) {
             throw new UnsuccessfulOperationError("Failed to execute update", e);
         }
@@ -515,8 +532,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         final EntityHandler<E> entityHandler = entityHandlerContext.getHandler(entity);
         final E enhancedEntity = getEnhancedEntity(entity);
         eventHandler.beforeSave(enhancedEntity);
-        boolean shouldUpdate = entityHandler.hasKey() && entityHandler.isKeyAutoGenerated() && entityHandler.getKey(entity) != null
-                || count(entity) == 1;
+        boolean shouldUpdate = entityHandler.hasKey() && entityHandler.isKeyAutoGenerated() && entityHandler.getKey(enhancedEntity) != null;
         if (!shouldUpdate) {
             insert(enhancedEntity);
         } else {
@@ -537,6 +553,10 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         final E enhancedEntity = getEnhancedEntity(entity);
         saveQueue.put(entity, enhancedEntity);
         final InitializedEntity<E> initializedEntity = getInitializedEntity(enhancedEntity);
+        final Map<String, Object> sequenceValues = new HashMap<String, Object>();
+        sequenceValues.putAll(loadTableGeneratedValues(session.getMetadataRegistry().getTableMetadata(entityHandler.getEntityType())));
+        sequenceValues.putAll(session.getDatabaseDialect().loadSequenceValues(session.getMetadataRegistry().getTableMetadata(entityHandler.getEntityType())));
+        entityHandler.fromMap(enhancedEntity, sequenceValues);
         entityHandler.saveDependencyRelations(enhancedEntity, this);
         eventHandler.beforeInsert(enhancedEntity);
         final PreparedStatement preparedStatement = internalExecuteUpdate(entityHandler.getEntityType(), Statements.Manipulation.INSERT, MapTools.prefixKeys(entityHandler.toMap(enhancedEntity), "value."));
@@ -554,11 +574,75 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
                 }
             }
         }
+        if (!isInBatchMode()) {
+            cleanUpStatement(preparedStatement);
+        }
         initializedEntity.setOriginalCopy(enhancedEntity);
         eventHandler.afterInsert(enhancedEntity);
         entityHandler.saveDependentRelations(enhancedEntity, this);
         saveQueue.remove(entity);
         return enhancedEntity;
+    }
+
+    private void cleanUpStatement(PreparedStatement preparedStatement) {
+        try {
+            final Connection connection = preparedStatement.getConnection();
+            preparedStatement.close();
+            connection.close();
+        } catch (SQLException e) {
+            throw new UnsuccessfulOperationError("Failed to clean up", e);
+        }
+    }
+
+    private <E> Map<String, Object> loadTableGeneratedValues(TableMetadata<E> tableMetadata) {
+        final HashMap<String, Object> result = new HashMap<String, Object>();
+        with(tableMetadata.getColumns())
+                .forThose(
+                        new Filter<ColumnMetadata>() {
+                            @Override
+                            public boolean accepts(ColumnMetadata item) {
+                                return ValueGenerationType.TABLE.equals(item.getGenerationType());
+                            }
+                        },
+                        new Processor<ColumnMetadata>() {
+                            @Override
+                            public void process(ColumnMetadata column) {
+                                final String valueGenerator;
+                                if (column.getValueGenerator() == null || column.getValueGenerator().isEmpty()) {
+                                    valueGenerator = column.getTable().getEntityType().getCanonicalName() + "." + column.getPropertyName();
+                                } else {
+                                    valueGenerator = column.getValueGenerator();
+                                }
+                                final Connection connection = session.getConnection();
+                                try {
+                                    connection.setAutoCommit(false);
+                                    connection.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+                                    final StatementRegistry statementRegistry = session.getStatementRegistry(TableKeyGeneratorEntity.class);
+                                    final PreparedStatement increment = statementRegistry.get("increment").prepare(connection, null, map(String.class, Object.class).keys("value.name").values(valueGenerator));
+                                    if (increment.executeUpdate() <= 0) {
+                                        final PreparedStatement insert = statementRegistry.get("insert").prepare(connection, null, map(String.class, Object.class).keys("value.name", "value.value").values(valueGenerator, 0));
+                                        if (insert.executeUpdate() <= 0) {
+                                            throw new UnsuccessfulOperationError("Failed to add table generated sequence " + valueGenerator);
+                                        }
+                                        insert.close();
+                                    }
+                                    increment.close();
+                                    final PreparedStatement findLike = statementRegistry.get("findLike").prepare(connection, null, map(String.class, Object.class).keys("value.name").values(valueGenerator));
+                                    final ResultSet resultSet = findLike.executeQuery();
+                                    while (resultSet.next()) {
+                                        final Map<String, Object> map = rowHandler.handleRow(resultSet);
+                                        result.put(column.getName(), map.get("value"));
+                                    }
+                                    findLike.close();
+                                    connection.commit();
+                                    connection.close();
+                                } catch (Exception e) {
+                                    throw new UnsuccessfulOperationError("Failed to load generated key for " + column.getName(), e);
+                                }
+                            }
+                        }
+                );
+        return result;
     }
 
     @Override
@@ -589,7 +673,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
                 values.put("value." + key, original.get(key));
             }
         }
-        internalExecuteUpdate(entityHandler.getEntityType(), Statements.Manipulation.UPDATE, values);
+        cleanUpStatement(internalExecuteUpdate(entityHandler.getEntityType(), Statements.Manipulation.UPDATE, values));
         eventHandler.afterUpdate(enhancedEntity);
         entityHandler.saveDependentRelations(enhancedEntity, this);
         saveQueue.remove(entity);
@@ -615,7 +699,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
             } else {
                 statement = Statements.Manipulation.DELETE_LIKE;
             }
-            internalExecuteUpdate(entityHandler.getEntityType(), statement, map);
+            cleanUpStatement(internalExecuteUpdate(entityHandler.getEntityType(), statement, map));
             entityHandler.deleteDependentRelations(enhancedEntity, this);
         }
         eventHandler.afterDelete(enhancedEntity);
@@ -636,7 +720,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     public <E> void deleteAll(final Class<E> entityType) {
         eventHandler.beforeDeleteAll(entityType);
         deleteDependents(entityType);
-        internalExecuteUpdate(entityType, Statements.Manipulation.DELETE_ALL);
+        cleanUpStatement(internalExecuteUpdate(entityType, Statements.Manipulation.DELETE_ALL));
         deleteDependencies(entityType);
         eventHandler.afterDeleteAll(entityType);
     }
@@ -646,7 +730,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         with(deleteAllStatements.get().get(entityType).get(Statements.Manipulation.DELETE_DEPENDENTS)).each(new Processor<Statement>() {
             @Override
             public void process(Statement statement) {
-                internalExecuteUpdate(statement, Collections.<String, Object>emptyMap());
+                cleanUpStatement(internalExecuteUpdate(statement, Collections.<String, Object>emptyMap()));
             }
         });
     }
@@ -855,6 +939,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
                         result.add(instance);
                     }
                 }
+                resultSet.close();
             }
             for (int i = 0; i < procedureMetadata.getParameters().size(); i++) {
                 final ParameterMetadata metadata = procedureMetadata.getParameters().get(i);
@@ -863,6 +948,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
                     ((Reference) parameters[i]).setValue(callableStatement.getObject(i + 1));
                 }
             }
+            cleanUpStatement(callableStatement);
         } catch (SQLException e) {
             throw new StatementExecutionFailureError("Failed to call procedure " + procedureName, e);
         }

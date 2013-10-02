@@ -4,6 +4,7 @@ import com.agileapes.couteau.freemarker.utils.FreemarkerUtils;
 import com.agileapes.dragonfly.dialect.DatabaseDialect;
 import com.agileapes.dragonfly.error.UnknownColumnTypeError;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
+import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.statement.StatementBuilderContext;
 import com.agileapes.dragonfly.statement.Statements;
 import com.agileapes.dragonfly.statement.impl.FreemarkerStatementBuilder;
@@ -11,6 +12,8 @@ import com.agileapes.dragonfly.statement.impl.FreemarkerStatementBuilderContext;
 import freemarker.template.Configuration;
 
 import java.sql.Types;
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
@@ -124,6 +127,11 @@ public abstract class GenericDatabaseDialect implements DatabaseDialect {
     @Override
     public String getCountColumn() {
         return "cnt";
+    }
+
+    @Override
+    public <E> Map<String, Object> loadSequenceValues(TableMetadata<E> tableMetadata) {
+        return Collections.emptyMap();
     }
 
 }

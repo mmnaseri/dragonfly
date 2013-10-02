@@ -65,7 +65,7 @@ public class DefaultEntityContext implements ModifiableEntityContext {
         return entity;
     }
 
-    private <E> E enhanceObject(Class<E> type, EntityProxy<E> entityProxy) {
+    private synchronized <E> E enhanceObject(Class<E> type, EntityProxy<E> entityProxy) {
         final EntityFactory<E> factory = getFactory(type, entityProxy);
         return factory.getInstance(entityProxy);
     }

@@ -70,4 +70,12 @@ public class DefaultMetadataRegistry implements MetadataRegistry {
         this.registryProcessor = registryProcessor;
     }
 
+    protected void addInternalMetadata(TableMetadata<?> tableMetadata) {
+        try {
+            registry.register(mapper.map(tableMetadata.getEntityType()), tableMetadata);
+        } catch (RegistryException e) {
+            throw new IllegalStateException("More than one internal table has been registered for the given type: " + tableMetadata.getEntityType());
+        }
+    }
+
 }
