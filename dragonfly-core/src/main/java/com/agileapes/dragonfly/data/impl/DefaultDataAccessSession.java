@@ -90,16 +90,17 @@ public class DefaultDataAccessSession implements DataAccessSession {
      */
     @Override
     public Connection getConnection() {
-        log.info("Connection requested");
+        final Connection connection;
         try {
             if (username != null && password != null) {
-                return dataSource.getConnection(username, password);
+                connection = dataSource.getConnection(username, password);
             } else {
-                return dataSource.getConnection();
+                connection = dataSource.getConnection();
             }
         } catch (SQLException e) {
             throw new DatabaseConnectionError(e);
         }
+        return new DelegatingConnection(connection);
     }
 
     /**

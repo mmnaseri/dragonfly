@@ -45,8 +45,11 @@ public class DefaultDataStructureHandler implements DataStructureHandler {
     private <E> void executeStatement(TableMetadata<E> tableMetadata, Statements.Definition statementType, Metadata constraintMetadata) {
         try {
             final Statement statement = session.getDatabaseDialect().getStatementBuilderContext().getDefinitionStatementBuilder(statementType).getStatement(tableMetadata, constraintMetadata);
-            final PreparedStatement preparedStatement = statement.prepare(session.getConnection());
+            final Connection connection = session.getConnection();
+            final PreparedStatement preparedStatement = statement.prepare(connection);
             preparedStatement.executeUpdate();
+            preparedStatement.close();
+            connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -201,7 +204,9 @@ public class DefaultDataStructureHandler implements DataStructureHandler {
             if (schema == null || schema.isEmpty()) {
                 throw new UnknownTableSchemaError(entityType);
             }
-            return session.getDatabaseDialect().hasTable(connection.getMetaData(), tableMetadata);
+            final boolean result = session.getDatabaseDialect().hasTable(connection.getMetaData(), tableMetadata);
+            connection.close();
+            return result;
         } catch (SQLException e) {
             e.printStackTrace();
         }

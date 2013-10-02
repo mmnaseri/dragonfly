@@ -58,4 +58,6 @@
         <constructor-arg value="${dragonfly.basePackages}"/>
     </bean>
 
+    <bean class="com.agileapes.dragonfly.BeanDisposer"/>
+
 </beans>

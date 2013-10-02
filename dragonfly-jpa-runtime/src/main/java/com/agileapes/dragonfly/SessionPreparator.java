@@ -40,7 +40,7 @@ import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/18, 17:56)
  */
-public class SessionPreparator implements BeanFactoryPostProcessor {
+public class SessionPreparator implements BeanFactoryPostProcessor, Disposable {
 
     private final static Log log = LogFactory.getLog(SessionPreparator.class);
     
@@ -129,5 +129,4 @@ public class SessionPreparator implements BeanFactoryPostProcessor {
         time = System.nanoTime() - time;
         log.info("Session preparation took " + Math.round((double) time / 1000000d) / 1000d + " second(s)");
     }
-
 }
