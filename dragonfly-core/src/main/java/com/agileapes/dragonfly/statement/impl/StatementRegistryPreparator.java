@@ -23,16 +23,14 @@ public class StatementRegistryPreparator {
     private final MetadataRegistry registry;
     private final Set<Class<?>> entities;
     private final StatementBuilder statementBuilder;
-    private final StringTemplateLoader loader;
+    private final Configuration configuration;
 
     public StatementRegistryPreparator(DatabaseDialect dialect, MetadataResolver resolver, MetadataRegistry registry) {
         this.dialect = dialect;
         this.resolver = resolver;
         this.registry = registry;
         this.entities = new CopyOnWriteArraySet<Class<?>>();
-        this.loader = new StringTemplateLoader();
-        final Configuration configuration = new Configuration();
-        configuration.setTemplateLoader(loader);
+        this.configuration = new Configuration();
         this.statementBuilder = new FreemarkerStatementBuilder(configuration, "sql", this.dialect);
     }
 
@@ -64,7 +62,9 @@ public class StatementRegistryPreparator {
                 statementRegistry.register(entity.getCanonicalName() + ".updateBySample", dialect.getStatementBuilderContext().getManipulationStatementBuilder(Statements.Manipulation.UPDATE).getStatement(tableMetadata));
                 statementRegistry.register(entity.getCanonicalName() + ".truncate", dialect.getStatementBuilderContext().getManipulationStatementBuilder(Statements.Manipulation.TRUNCATE).getStatement(tableMetadata));
                 for (NamedQueryMetadata namedQueryMetadata : tableMetadata.getNamedQueries()) {
+                    final StringTemplateLoader loader = new StringTemplateLoader();
                     loader.putTemplate("sql", namedQueryMetadata.getQuery());
+                    configuration.setTemplateLoader(loader);
                     statementRegistry.register(entity.getCanonicalName() + "." + namedQueryMetadata.getName(), statementBuilder.getStatement(tableMetadata));
                 }
                 for (StoredProcedureMetadata procedure : tableMetadata.getProcedures()) {
