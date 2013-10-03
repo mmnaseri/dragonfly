@@ -1,10 +1,13 @@
 package com.agileapes.dragonfly.entity;
 
 import com.agileapes.dragonfly.data.DataAccess;
+import com.agileapes.dragonfly.data.impl.ManyToManyMiddleEntity;
 import com.agileapes.dragonfly.metadata.ReferenceMetadata;
+import com.agileapes.dragonfly.metadata.TableMetadata;
 
 import java.io.Serializable;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * This interface encapsulates all the information about an entity that can be known
@@ -122,5 +125,7 @@ public interface EntityHandler<E> {
      * @param dataAccess    the data access for the save
      */
     void saveDependentRelations(E entity, DataAccess dataAccess);
+
+    Map<TableMetadata<?>, Set<ManyToManyMiddleEntity>> getManyToManyRelatedObjects(E entity);
 
 }

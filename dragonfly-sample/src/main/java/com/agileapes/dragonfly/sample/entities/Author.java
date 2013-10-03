@@ -1,9 +1,6 @@
 package com.agileapes.dragonfly.sample.entities;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.ManyToMany;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.util.Collection;
 
 /**
@@ -30,7 +27,7 @@ public class Author {
         this.name = name;
     }
 
-    @ManyToMany(mappedBy = "authors")
+    @ManyToMany(mappedBy = "authors", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     public Collection<Book> getBooks() {
         return books;
     }
@@ -39,7 +36,7 @@ public class Author {
         this.books = books;
     }
 
-    @ManyToMany(mappedBy = "editors")
+    @ManyToMany(mappedBy = "editors", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     public Collection<Book> getEditedBooks() {
         return editedBooks;
     }

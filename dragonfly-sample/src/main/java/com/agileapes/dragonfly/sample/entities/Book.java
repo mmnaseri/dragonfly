@@ -1,9 +1,8 @@
 package com.agileapes.dragonfly.sample.entities;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.ManyToMany;
-import javax.persistence.Table;
+import com.agileapes.dragonfly.annotations.StoredProcedure;
+
+import javax.persistence.*;
 import java.util.Collection;
 
 /**
@@ -14,6 +13,9 @@ import java.util.Collection;
 @Table(
         name = "books",
         schema = "test"
+)
+@StoredProcedure(
+        name = "refresh"
 )
 public class Book {
 
@@ -30,7 +32,7 @@ public class Book {
         this.title = title;
     }
 
-    @ManyToMany(mappedBy = "books")
+    @ManyToMany(mappedBy = "books", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     public Collection<Author> getAuthors() {
         return authors;
     }
@@ -39,7 +41,7 @@ public class Book {
         this.authors = authors;
     }
 
-    @ManyToMany(mappedBy = "editedBooks")
+    @ManyToMany(mappedBy = "editedBooks", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     public Collection<Author> getEditors() {
         return editors;
     }

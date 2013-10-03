@@ -280,7 +280,7 @@ public class DefaultDataStructureHandler implements DataStructureHandler {
         }
         if (session.getMetadataRegistry() instanceof DefaultMetadataContext) {
             DefaultMetadataContext context = (DefaultMetadataContext) session.getMetadataRegistry();
-            final Set<TableMetadata<?>> tables = context.getManyToManyTables();
+            final Set<TableMetadata<?>> tables = context.getVirtualTables();
             final Set<TableMetadata<?>> undefinedTables = new HashSet<TableMetadata<?>>();
             for (TableMetadata<?> table : tables) {
                 if (!isDefined(table)) {

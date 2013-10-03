@@ -1,5 +1,6 @@
 package com.agileapes.dragonfly.sample.service;
 
+import com.agileapes.couteau.basics.api.Filter;
 import com.agileapes.dragonfly.data.DataAccess;
 import com.agileapes.dragonfly.metadata.MetadataRegistry;
 import com.agileapes.dragonfly.metadata.ReferenceMetadata;
@@ -11,6 +12,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
+
+import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
@@ -33,21 +37,41 @@ public class BookPublishingService {
         }
         final Book bookA = getBook("Book A");
         final Book bookB = getBook("Book B");
-        final Author authorA = getAuthor("Author A");
-        final Author authorB = getAuthor("Author B");
-        final Author authorC = getAuthor("Author C");
+        Author authorA = getAuthor("Author A");
+        Author authorB = getAuthor("Author B");
+        Author authorC = getAuthor("Author C");
         bookA.setAuthors(Arrays.asList(authorA, authorB));
         bookA.setEditors(Arrays.asList(authorB, authorC));
+        dataAccess.save(bookA);
+        authorA = with(bookA.getAuthors()).find(new Filter<Author>() {
+            @Override
+            public boolean accepts(Author item) {
+                return item.getName().equals("Author A");
+            }
+        });
+        authorB = with(bookA.getAuthors()).find(new Filter<Author>() {
+            @Override
+            public boolean accepts(Author item) {
+                return item.getName().equals("Author B");
+            }
+        });
+        authorC = with(bookA.getEditors()).find(new Filter<Author>() {
+            @Override
+            public boolean accepts(Author item) {
+                return item.getName().equals("Author C");
+            }
+        });
         bookB.setAuthors(Arrays.asList(authorB, authorC));
         bookB.setEditors(Arrays.asList(authorA, authorC));
-        dataAccess.save(bookA);
         dataAccess.save(bookB);
-        dataAccess.find(authorB);
-        for (Book book : authorB.getBooks()) {
-            System.out.println(book.getTitle());
-        }
-        for (Book book : authorB.getEditedBooks()) {
-            System.out.println(book.getTitle());
+        final List<Author> authors = dataAccess.find(authorB);
+        for (Author author : authors) {
+            for (Book book : author.getBooks()) {
+                System.out.println(book.getTitle());
+            }
+            for (Book book : author.getEditedBooks()) {
+                System.out.println(book.getTitle());
+            }
         }
     }
 

@@ -11,6 +11,7 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         final ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("/sample.xml");
+        context.getBean(CleanUpService.class).execute();
         context.getBean(BookPublishingService.class).execute();
 //        context.getBean(DeletePeopleService.class).execute();
 //        context.getBean(CreatePersonService.class).execute();

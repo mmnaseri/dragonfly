@@ -2,9 +2,13 @@ package com.agileapes.dragonfly.data.impl;
 
 import com.agileapes.couteau.basics.api.Filter;
 import com.agileapes.couteau.basics.api.Processor;
+import com.agileapes.couteau.basics.api.Transformer;
+import com.agileapes.couteau.basics.api.impl.NegatingFilter;
 import com.agileapes.couteau.context.error.RegistryException;
 import com.agileapes.couteau.reflection.beans.BeanInitializer;
+import com.agileapes.couteau.reflection.beans.BeanWrapper;
 import com.agileapes.couteau.reflection.beans.impl.ConstructorBeanInitializer;
+import com.agileapes.couteau.reflection.beans.impl.MethodBeanWrapper;
 import com.agileapes.couteau.reflection.error.BeanInstantiationException;
 import com.agileapes.couteau.reflection.util.ReflectionUtils;
 import com.agileapes.dragonfly.annotations.ParameterMode;
@@ -30,6 +34,7 @@ import com.agileapes.dragonfly.statement.Statements;
 import com.agileapes.dragonfly.statement.impl.FreemarkerSecondPassStatementBuilder;
 import com.agileapes.dragonfly.statement.impl.ProcedureCallStatement;
 import com.agileapes.dragonfly.statement.impl.StatementRegistry;
+import com.agileapes.dragonfly.tools.ColumnNameFilter;
 import com.agileapes.dragonfly.tools.MapTools;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -80,6 +85,8 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     private final EntityInitializationContext initializationContext;
     private final RowHandler rowHandler;
     private final ThreadLocal<Map<Object, Object>> saveQueue;
+    private final ThreadLocal<Set<Object>> deferredSaveQueue;
+    private final ThreadLocal<Long> saveQueueLock;
     private final ThreadLocal<Set<Object>> deleteQueue;
     private final EntityMapCreator mapCreator;
     private final MapEntityCreator entityCreator;
@@ -134,6 +141,18 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
             @Override
             protected List<Object> initialValue() {
                 return new ArrayList<Object>();
+            }
+        };
+        this.deferredSaveQueue = new ThreadLocal<Set<Object>>() {
+            @Override
+            protected Set<Object> initialValue() {
+                return new HashSet<Object>();
+            }
+        };
+        this.saveQueueLock = new ThreadLocal<Long>() {
+            @Override
+            protected Long initialValue() {
+                return 0L;
             }
         };
         if (autoInitialize) {
@@ -363,6 +382,45 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         }
         initializationContext.lock();
         entityHandler.loadEagerRelations(enhancedEntity, values, initializationContext);
+        final TableMetadata<E> tableMetadata = session.getMetadataRegistry().getTableMetadata(entityHandler.getEntityType());
+        final Connection connection = session.getConnection();
+        final BeanWrapper<E> wrapper = new MethodBeanWrapper<E>(enhancedEntity);
+        with(tableMetadata.getForeignReferences())
+                .forThose(
+                        new Filter<ReferenceMetadata<E, ?>>() {
+                            @Override
+                            public boolean accepts(ReferenceMetadata<E, ?> item) {
+                                return !item.isLazy() && item.getRelationType().equals(RelationType.MANY_TO_MANY);
+                            }
+                        },
+                        new Processor<ReferenceMetadata<E, ?>>() {
+                            @Override
+                            public void process(ReferenceMetadata<E, ?> reference) {
+                                final TableMetadata<?> middleTable = reference.getForeignTable();
+                                final ManyToManyActionHelper helper = new ManyToManyActionHelper(statementPreparator, connection, session.getDatabaseDialect().getStatementBuilderContext(), middleTable, tableMetadata);
+                                final ManyToManyMiddleEntity middleEntity = new ManyToManyMiddleEntity();
+                                final BeanWrapper<ManyToManyMiddleEntity> middleEntityWrapper = new MethodBeanWrapper<ManyToManyMiddleEntity>(middleEntity);
+                                try {
+                                    middleEntityWrapper.setPropertyValue(with(middleTable.getColumns()).find(new ColumnNameFilter(tableMetadata.getName())).getPropertyName(), enhancedEntity);
+                                    final Collection<Object> collection = ReflectionUtils.getCollection(wrapper.getPropertyType(reference.getPropertyName()));
+                                    collection.addAll(with(helper.find(middleEntity)).transform(new Transformer<Serializable, Object>() {
+                                        @Override
+                                        public Object map(Serializable input) {
+                                            return find(with(middleTable.getColumns()).find(new NegatingFilter<ColumnMetadata>(new ColumnNameFilter(tableMetadata.getName()))).getForeignReference().getTable().getEntityType(), input);
+                                        }
+                                    }).list());
+                                    wrapper.setPropertyValue(reference.getPropertyName(), collection);
+                                } catch (Exception e) {
+                                    throw new EntityInitializationError(entityHandler.getEntityType(), e);
+                                }
+                            }
+                        }
+                );
+        try {
+            connection.close();
+        } catch (SQLException e) {
+            throw new EntityInitializationError(entityHandler.getEntityType(), e);
+        }
         initializationContext.unlock();
     }
 
@@ -528,8 +586,15 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
 
     @Override
     public <E> E save(E entity) {
+        final Map<Object, Object> saveQueue = this.saveQueue.get();
+        if (saveQueue.containsKey(entity)) {
+            //noinspection unchecked
+            return (E) saveQueue.get(entity);
+        }
         final EntityHandler<E> entityHandler = entityHandlerContext.getHandler(entity);
         final E enhancedEntity = getEnhancedEntity(entity);
+        saveQueueLock.set(saveQueueLock.get() + 1);
+        saveQueue.put(entity, enhancedEntity);
         eventHandler.beforeSave(enhancedEntity);
         boolean shouldUpdate = entityHandler.hasKey() && entityHandler.isKeyAutoGenerated() && entityHandler.getKey(enhancedEntity) != null;
         if (!shouldUpdate) {
@@ -538,6 +603,17 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
             update(enhancedEntity);
         }
         eventHandler.afterSave(enhancedEntity);
+        entityHandler.copy(enhancedEntity, entity);
+        saveQueueLock.set(saveQueueLock.get() - 1);
+        if (saveQueueLock.get() == 0) {
+            saveQueue.remove(entity);
+            for (Object object : deferredSaveQueue.get()) {
+                saveQueue.remove(object);
+            }
+            deferredSaveQueue.get().clear();
+        } else {
+            deferredSaveQueue.get().add(entity);
+        }
         return enhancedEntity;
     }
 
@@ -548,6 +624,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
             //noinspection unchecked
             return (E) saveQueue.get(entity);
         }
+        saveQueueLock.set(saveQueueLock.get() + 1);
         final EntityHandler<E> entityHandler = entityHandlerContext.getHandler(entity);
         final E enhancedEntity = getEnhancedEntity(entity);
         saveQueue.put(entity, enhancedEntity);
@@ -578,9 +655,59 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         }
         initializedEntity.setOriginalCopy(enhancedEntity);
         eventHandler.afterInsert(enhancedEntity);
-        entityHandler.saveDependentRelations(enhancedEntity, this);
-        saveQueue.remove(entity);
+        saveDependents(entityHandler, enhancedEntity);
+        saveQueueLock.set(saveQueueLock.get() - 1);
+        if (saveQueueLock.get() == 0) {
+            saveQueue.remove(entity);
+            for (Object object : deferredSaveQueue.get()) {
+                saveQueue.remove(object);
+            }
+            deferredSaveQueue.get().clear();
+        } else {
+            deferredSaveQueue.get().add(entity);
+        }
+        entityHandler.copy(enhancedEntity, entity);
         return enhancedEntity;
+    }
+
+    private <E> void saveDependents(EntityHandler<E> entityHandler, E entity) {
+        entityHandler.saveDependentRelations(entity, this);
+        final Map<TableMetadata<?>, Set<ManyToManyMiddleEntity>> relatedObjects = entityHandler.getManyToManyRelatedObjects(entity);
+        boolean hasRelations = false;
+        for (Set<ManyToManyMiddleEntity> entities : relatedObjects.values()) {
+            if (!entities.isEmpty()) {
+                hasRelations = true;
+                break;
+            }
+        }
+        if (!hasRelations) {
+            return;
+        }
+        final Connection connection = session.getConnection();
+        try {
+            connection.setAutoCommit(false);
+            connection.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+            final Map<TableMetadata<?>, ManyToManyActionHelper> helpers = new HashMap<TableMetadata<?>, ManyToManyActionHelper>();
+            for (TableMetadata<?> tableMetadata : relatedObjects.keySet()) {
+                helpers.put(tableMetadata, new ManyToManyActionHelper(statementPreparator, connection, session.getDatabaseDialect().getStatementBuilderContext(), tableMetadata, session.getMetadataRegistry().getTableMetadata(entityHandler.getEntityType())));
+            }
+            for (Map.Entry<TableMetadata<?>, Set<ManyToManyMiddleEntity>> entry : relatedObjects.entrySet()) {
+                if (entry.getValue().isEmpty()) {
+                    continue;
+                }
+                final ManyToManyMiddleEntity someRelation = entry.getValue().iterator().next();
+                final ManyToManyActionHelper helper = helpers.get(entry.getKey());
+                helper.delete(someRelation);
+                for (ManyToManyMiddleEntity middleEntity : entry.getValue()) {
+                    helper.insert(middleEntity);
+                }
+                helper.close();
+            }
+            connection.commit();
+            connection.close();
+        } catch (Exception e) {
+            throw new UnsuccessfulOperationError("Failed to save dependent many-to-many objects", e);
+        }
     }
 
     private void cleanUpStatement(PreparedStatement preparedStatement) {
@@ -651,6 +778,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
             //noinspection unchecked
             return (E) saveQueue.get(entity);
         }
+        saveQueueLock.set(saveQueueLock.get() + 1);
         final EntityHandler<E> entityHandler = entityHandlerContext.getHandler(entity);
         final E enhancedEntity = getEnhancedEntity(entity);
         saveQueue.put(entity, enhancedEntity);
@@ -675,7 +803,17 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         cleanUpStatement(internalExecuteUpdate(entityHandler.getEntityType(), Statements.Manipulation.UPDATE, values));
         eventHandler.afterUpdate(enhancedEntity);
         entityHandler.saveDependentRelations(enhancedEntity, this);
-        saveQueue.remove(entity);
+        saveQueueLock.set(saveQueueLock.get() - 1);
+        if (saveQueueLock.get() == 0) {
+            saveQueue.remove(entity);
+            for (Object object : deferredSaveQueue.get()) {
+                saveQueue.remove(object);
+            }
+            deferredSaveQueue.get().clear();
+        } else {
+            deferredSaveQueue.get().add(entity);
+        }
+        entityHandler.copy(enhancedEntity, entity);
         return enhancedEntity;
     }
 
@@ -691,7 +829,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         eventHandler.beforeDelete(enhancedEntity);
         final Map<String, Object> map = MapTools.prefixKeys(entityHandler.toMap(enhancedEntity), "value.");
         if ((entityHandler.hasKey() && entityHandler.getKey(enhancedEntity) != null && exists(entityHandler.getEntityType(), entityHandler.getKey(enhancedEntity))) || exists(entityHandler.getEntityType(), map)) {
-            entityHandler.deleteDependencyRelations(enhancedEntity, this);
+            deleteDependencies(entityHandler, enhancedEntity);
             final Statements.Manipulation statement;
             if (entityHandler.hasKey() && entityHandler.getKey(enhancedEntity) != null) {
                 statement = Statements.Manipulation.DELETE_ONE;
@@ -703,6 +841,46 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         }
         eventHandler.afterDelete(enhancedEntity);
         deleteQueue.remove(entity);
+    }
+
+    private <E> void deleteDependencies(final EntityHandler<E> entityHandler, final E enhancedEntity) {
+        entityHandler.deleteDependencyRelations(enhancedEntity, this);
+        final TableMetadata<E> tableMetadata = session.getMetadataRegistry().getTableMetadata(entityHandler.getEntityType());
+        final Connection connection = session.getConnection();
+        with(tableMetadata.getForeignReferences())
+                .forThose(
+                        new Filter<ReferenceMetadata<E, ?>>() {
+                            @Override
+                            public boolean accepts(ReferenceMetadata<E, ?> item) {
+                                return item.getCascadeMetadata().cascadeRemove() && RelationType.MANY_TO_MANY.equals(item.getRelationType());
+                            }
+                        },
+                        new Processor<ReferenceMetadata<E, ?>>() {
+                            @Override
+                            public void process(ReferenceMetadata<E, ?> reference) {
+                                final TableMetadata<?> middleTable = reference.getForeignTable();
+                                final ManyToManyActionHelper helper = new ManyToManyActionHelper(statementPreparator, connection, session.getDatabaseDialect().getStatementBuilderContext(), middleTable, tableMetadata);
+                                final ManyToManyMiddleEntity middleEntity = new ManyToManyMiddleEntity();
+                                final BeanWrapper<ManyToManyMiddleEntity> middleEntityWrapper = new MethodBeanWrapper<ManyToManyMiddleEntity>(middleEntity);
+                                try {
+                                    middleEntityWrapper.setPropertyValue(with(middleTable.getColumns()).find(new ColumnNameFilter(tableMetadata.getName())).getPropertyName(), enhancedEntity);
+                                } catch (Exception e) {
+                                    throw new EntityInitializationError(entityHandler.getEntityType(), e);
+                                }
+                                final List<Serializable> found = helper.find(middleEntity);
+                                helper.delete(middleEntity);
+                                for (Serializable key : found) {
+                                    final Class<?> foreignEntityType = with(middleTable.getColumns()).find(new NegatingFilter<ColumnMetadata>(new ColumnNameFilter(tableMetadata.getName()))).getForeignReference().getTable().getEntityType();
+                                    delete(foreignEntityType, key);
+                                }
+                            }
+                        }
+                );
+        try {
+            connection.close();
+        } catch (SQLException e) {
+            throw new EntityInitializationError(entityHandler.getEntityType(), e);
+        }
     }
 
     @Override

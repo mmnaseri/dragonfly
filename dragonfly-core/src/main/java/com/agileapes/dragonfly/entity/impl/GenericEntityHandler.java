@@ -2,29 +2,30 @@ package com.agileapes.dragonfly.entity.impl;
 
 import com.agileapes.couteau.basics.api.Filter;
 import com.agileapes.couteau.basics.api.Processor;
+import com.agileapes.couteau.basics.api.impl.NegatingFilter;
 import com.agileapes.couteau.reflection.beans.BeanAccessor;
 import com.agileapes.couteau.reflection.beans.BeanWrapper;
 import com.agileapes.couteau.reflection.beans.impl.MethodBeanAccessor;
 import com.agileapes.couteau.reflection.beans.impl.MethodBeanWrapper;
 import com.agileapes.couteau.reflection.error.NoSuchPropertyException;
 import com.agileapes.couteau.reflection.property.WritePropertyAccessor;
+import com.agileapes.couteau.reflection.util.ReflectionUtils;
 import com.agileapes.dragonfly.data.DataAccess;
+import com.agileapes.dragonfly.data.impl.ManyToManyMiddleEntity;
 import com.agileapes.dragonfly.entity.EntityContext;
 import com.agileapes.dragonfly.entity.EntityHandler;
 import com.agileapes.dragonfly.entity.EntityInitializationContext;
 import com.agileapes.dragonfly.error.EntityDefinitionError;
 import com.agileapes.dragonfly.error.EntityPreparationError;
 import com.agileapes.dragonfly.error.NoPrimaryKeyDefinedError;
-import com.agileapes.dragonfly.metadata.ColumnMetadata;
-import com.agileapes.dragonfly.metadata.ReferenceMetadata;
-import com.agileapes.dragonfly.metadata.TableMetadata;
-import com.agileapes.dragonfly.metadata.ValueGenerationType;
+import com.agileapes.dragonfly.error.UnsuccessfulOperationError;
+import com.agileapes.dragonfly.metadata.*;
 import com.agileapes.dragonfly.metadata.impl.PrimaryKeyConstraintMetadata;
+import com.agileapes.dragonfly.tools.ColumnNameFilter;
 import com.agileapes.dragonfly.tools.ColumnPropertyFilter;
 
 import java.io.Serializable;
 import java.util.*;
-import java.util.concurrent.*;
 
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 
@@ -217,7 +218,7 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
                                       propertyValue = objects.get(0);
                                   } else {
                                       try {
-                                          propertyValue = getCollection(wrapper.getPropertyType(reference.getPropertyName()));
+                                          propertyValue = ReflectionUtils.getCollection(wrapper.getPropertyType(reference.getPropertyName()));
                                       } catch (NoSuchPropertyException e) {
                                           throw new EntityDefinitionError("Failed to get property type " + reference.getLocalTable().getEntityType().getCanonicalName() + "." + reference.getPropertyName());
                                       }
@@ -353,18 +354,12 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
                         return item.getCascadeMetadata().cascadePersist() && !item.isRelationOwner();
                     }
                 })
-                .drop(new Filter<ReferenceMetadata<E, ?>>() {
-                    @Override
-                    public boolean accepts(ReferenceMetadata<E, ?> item) {
-                        //for now we drop many-to-many relations
-                        return item.getRelationType().getLocalCardinality() > 1;
-                    }
-                })
                 .forThose(new Filter<ReferenceMetadata<E, ?>>() {
                               //one-to-one relations
                               @Override
                               public boolean accepts(ReferenceMetadata<E, ?> item) {
-                                  return item.getRelationType().getForeignCardinality() == 1;
+                                  //one-to-one
+                                  return item.getRelationType().getLocalCardinality() == 1 && item.getRelationType().getForeignCardinality() == 1;
                               }
                           },
                         new Processor<ReferenceMetadata<E, ?>>() {
@@ -389,7 +384,7 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
                               @Override
                               public boolean accepts(ReferenceMetadata<E, ?> item) {
                                   //one-to-many
-                                  return item.getRelationType().getForeignCardinality() > 1;
+                                  return item.getRelationType().getLocalCardinality() == 1 && item.getRelationType().getForeignCardinality() > 1;
                               }
                           },
                         new Processor<ReferenceMetadata<E, ?>>() {
@@ -402,7 +397,7 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
                                     }
                                     //noinspection unchecked
                                     final Collection<Object> originalCollection = (Collection<Object>) propertyValue;
-                                    final Collection<Object> newCollection = getCollection(originalCollection.getClass());
+                                    final Collection<Object> newCollection = ReflectionUtils.getCollection(originalCollection.getClass());
                                     for (Object foreignEntity : originalCollection) {
                                         if (foreignEntity == null) {
                                             newCollection.add(null);
@@ -419,47 +414,87 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
                                 }
                             }
                         }
+                )
+                .forThose(
+                        new Filter<ReferenceMetadata<E, ?>>() {
+                            @Override
+                            public boolean accepts(ReferenceMetadata<E, ?> item) {
+                                return item.getRelationType().getLocalCardinality() > 1 && item.getRelationType().getForeignCardinality() > 1;
+                            }
+                        },
+                        new Processor<ReferenceMetadata<E, ?>>() {
+                            @Override
+                            public void process(ReferenceMetadata<E, ?> reference) {
+                                try {
+                                    final Object propertyValue = wrapper.getPropertyValue(reference.getPropertyName());
+                                    if (propertyValue == null) {
+                                        return;
+                                    }
+                                    //noinspection unchecked
+                                    final Collection<Object> originalCollection = (Collection<Object>) propertyValue;
+                                    if (originalCollection.isEmpty()) {
+                                        return;
+                                    }
+                                    final Class<?> collectionType = wrapper.getPropertyType(reference.getPropertyName());
+                                    final Collection<Object> resultCollection = ReflectionUtils.getCollection(collectionType);
+                                    for (Object foreignEntity : originalCollection) {
+                                        if (foreignEntity == null) {
+                                            resultCollection.add(null);
+                                            continue;
+                                        }
+                                        resultCollection.add(dataAccess.save(foreignEntity));
+                                    }
+                                    wrapper.setPropertyValue(reference.getPropertyName(), resultCollection);
+                                } catch (Exception e) {
+                                    throw new EntityDefinitionError("Failed to cascade save property " + reference.getPropertyName(), e);
+                                }
+                            }
+                        }
                 );
     }
 
-    private Collection<Object> getCollection(Class<?> propertyType) {
-        if (!Collection.class.isAssignableFrom(propertyType)) {
-            throw new EntityDefinitionError("Expected property to be a collection while it was " + propertyType.getCanonicalName());
-        }
-        if (Set.class.isAssignableFrom(propertyType)) {
-            if (TreeSet.class.isAssignableFrom(propertyType)) {
-                return new TreeSet<Object>();
-            } else if (ConcurrentSkipListSet.class.isAssignableFrom(propertyType)) {
-                return new ConcurrentSkipListSet<Object>();
-            } else if (CopyOnWriteArraySet.class.isAssignableFrom(propertyType)) {
-                return new CopyOnWriteArraySet<Object>();
-            }
-            return new HashSet<Object>();
-        } else if (List.class.isAssignableFrom(propertyType)) {
-            if (LinkedList.class.isAssignableFrom(propertyType)) {
-                return new LinkedList<Object>();
-            } else if (CopyOnWriteArrayList.class.isAssignableFrom(propertyType)) {
-                return new CopyOnWriteArrayList<Object>();
-            }
-            return new ArrayList<Object>();
-        } else if (Queue.class.isAssignableFrom(propertyType)) {
-            if (ConcurrentLinkedQueue.class.isAssignableFrom(propertyType)) {
-                return new ConcurrentLinkedQueue<Object>();
-            } else if (PriorityQueue.class.isAssignableFrom(propertyType)) {
-                return new PriorityQueue<Object>();
-            } else if (ConcurrentLinkedQueue.class.isAssignableFrom(propertyType)) {
-                return new ConcurrentLinkedQueue<Object>();
-            } else if (LinkedBlockingQueue.class.isAssignableFrom(propertyType)) {
-                return new LinkedBlockingQueue<Object>();
-            } else if (SynchronousQueue.class.isAssignableFrom(propertyType)) {
-                return new SynchronousQueue<Object>();
-            } else if (PriorityBlockingQueue.class.isAssignableFrom(propertyType)) {
-                return new PriorityBlockingQueue<Object>();
-            }
-            return new PriorityQueue<Object>();
-        } else {
-            throw new UnsupportedOperationException("Cannot instantiate a collection of type " + propertyType.getCanonicalName());
-        }
+    @Override
+    public Map<TableMetadata<?>, Set<ManyToManyMiddleEntity>> getManyToManyRelatedObjects(final E entity) {
+        final HashMap<TableMetadata<?>, Set<ManyToManyMiddleEntity>> map = new HashMap<TableMetadata<?>, Set<ManyToManyMiddleEntity>>();
+        final BeanAccessor<E> accessor = new MethodBeanAccessor<E>(entity);
+        //noinspection unchecked
+        with(tableMetadata.getForeignReferences())
+                .keep(new Filter<ReferenceMetadata<E, ?>>() {
+                    @Override
+                    public boolean accepts(ReferenceMetadata<E, ?> item) {
+                        return item.getCascadeMetadata().cascadePersist() && RelationType.MANY_TO_MANY.equals(item.getRelationType());
+                    }
+                })
+                .each(new Processor<ReferenceMetadata<E, ?>>() {
+                    @Override
+                    public void process(ReferenceMetadata<E, ?> input) {
+                        final TableMetadata<?> foreignTable = input.getForeignTable();
+                        try {
+                            final Object propertyValue = accessor.getPropertyValue(input.getPropertyName());
+                            if (propertyValue == null) {
+                                return;
+                            }
+                            //noinspection unchecked
+                            final Collection<Object> collection = (Collection<Object>) propertyValue;
+                            if (collection.isEmpty()) {
+                                return;
+                            }
+                            final Set<ManyToManyMiddleEntity> entities = new HashSet<ManyToManyMiddleEntity>();
+                            for (Object item : collection) {
+                                final ManyToManyMiddleEntity middleEntity = new ManyToManyMiddleEntity();
+                                final BeanWrapper<ManyToManyMiddleEntity> wrapper = new MethodBeanWrapper<ManyToManyMiddleEntity>(middleEntity);
+                                final ColumnNameFilter columnNameFilter = new ColumnNameFilter(tableMetadata.getName());
+                                wrapper.setPropertyValue(with(foreignTable.getColumns()).find(columnNameFilter).getPropertyName(), entity);
+                                wrapper.setPropertyValue(with(foreignTable.getColumns()).find(new NegatingFilter<ColumnMetadata>(columnNameFilter)).getPropertyName(), item);
+                                entities.add(middleEntity);
+                            }
+                            map.put(foreignTable, entities);
+                        } catch (Exception e) {
+                            throw new UnsuccessfulOperationError("Failed to determine intermediary relation", e);
+                        }
+                    }
+                });
+        return map;
     }
 
 }

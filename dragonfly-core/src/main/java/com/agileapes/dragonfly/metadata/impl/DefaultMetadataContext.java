@@ -24,7 +24,7 @@ import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 public class DefaultMetadataContext extends DefaultMetadataRegistry implements MetadataContext {
 
     private final Cache<Class<?>, TableMetadata<?>> metadataCache = new ConcurrentCache<Class<?>, TableMetadata<?>>();
-    private final Set<TableMetadata<?>> manyToManyTables = new CopyOnWriteArraySet<TableMetadata<?>>();
+    private final Set<TableMetadata<?>> virtualTables = new CopyOnWriteArraySet<TableMetadata<?>>();
     private Set<MetadataRegistry> registries = new CopyOnWriteArraySet<MetadataRegistry>();
     private final Set<Class<?>> entityTypes = new HashSet<Class<?>>();
     private boolean ready = true;
@@ -128,8 +128,8 @@ public class DefaultMetadataContext extends DefaultMetadataRegistry implements M
         for (Map.Entry<Class<?>, TableMetadata<?>> entry : map.entrySet()) {
             metadataCache.write(entry.getKey(), entry.getValue());
         }
-        manyToManyTables.clear();
-        manyToManyTables.addAll(manyToManyMiddleTables.values());
+        virtualTables.clear();
+        virtualTables.addAll(manyToManyMiddleTables.values());
         ready = true;
     }
 
@@ -155,9 +155,9 @@ public class DefaultMetadataContext extends DefaultMetadataRegistry implements M
                         final HashSet<ColumnMetadata> columns = new HashSet<ColumnMetadata>();
                         final ColumnMetadata firstKey = firstTable.getPrimaryKey().getColumns().iterator().next();
                         final ColumnMetadata secondKey = secondTable.getPrimaryKey().getColumns().iterator().next();
-                        final ResolvedColumnMetadata firstColumn = new ResolvedColumnMetadata(null, ManyToManyMiddleEntity.class, firstTable.getName(), firstKey.getType(), "first", Object.class, false, firstKey.getLength(), firstKey.getPrecision(), firstKey.getScale(), null, null, firstKey);
+                        final ResolvedColumnMetadata firstColumn = new ResolvedRepresentationColumnMetadata(null, ManyToManyMiddleEntity.class, firstTable.getName(), firstKey.getType(), "first", Object.class, false, firstKey.getLength(), firstKey.getPrecision(), firstKey.getScale(), null, null, firstKey, key.getTargetProperty());
                         columns.add(firstColumn);
-                        final ResolvedColumnMetadata secondColumn = new ResolvedColumnMetadata(null, ManyToManyMiddleEntity.class, secondTable.getName(), secondKey.getType(), "second", Object.class, false, secondKey.getLength(), secondKey.getPrecision(), secondKey.getScale(), null, null, secondKey);
+                        final ResolvedColumnMetadata secondColumn = new ResolvedRepresentationColumnMetadata(null, ManyToManyMiddleEntity.class, secondTable.getName(), secondKey.getType(), "second", Object.class, false, secondKey.getLength(), secondKey.getPrecision(), secondKey.getScale(), null, null, secondKey, key.getLocalProperty());
                         columns.add(secondColumn);
                         final List<ConstraintMetadata> constraints = new ArrayList<ConstraintMetadata>();
                         //noinspection unchecked
@@ -194,11 +194,11 @@ public class DefaultMetadataContext extends DefaultMetadataRegistry implements M
         return resolvedColumn;
     }
 
-    public Set<TableMetadata<?>> getManyToManyTables() {
+    public Set<TableMetadata<?>> getVirtualTables() {
         if (!ready) {
             rebuildCache();
         }
-        return manyToManyTables;
+        return virtualTables;
     }
 
 }
