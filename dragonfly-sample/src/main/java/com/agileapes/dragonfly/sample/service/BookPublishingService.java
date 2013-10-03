@@ -73,6 +73,7 @@ public class BookPublishingService {
                 System.out.println(book.getTitle());
             }
         }
+        dataAccess.delete(authors.get(0));
     }
 
     private Book getBook(String title) {

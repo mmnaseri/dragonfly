@@ -286,7 +286,7 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
                 .forThose(new Filter<ReferenceMetadata<E, ?>>() {
                               @Override
                               public boolean accepts(ReferenceMetadata<E, ?> item) {
-                                  return !item.isRelationOwner();
+                                  return !item.isRelationOwner() && item.getRelationType().getLocalCardinality() == 1;
                               }
                           },
                         new Processor<ReferenceMetadata<E, ?>>() {
