@@ -2,8 +2,7 @@ package com.agileapes.dragonfly.sample.service;
 
 import com.agileapes.couteau.basics.api.Filter;
 import com.agileapes.dragonfly.data.DataAccess;
-import com.agileapes.dragonfly.sample.entities.Author;
-import com.agileapes.dragonfly.sample.entities.Book;
+import com.agileapes.dragonfly.sample.entities.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +22,21 @@ public class BookPublishingService {
     private DataAccess dataAccess;
 
     public void execute() {
+        final Person person = new Person();
+        person.setThings(Arrays.asList(new Thing(), new Thing(), new Thing()));
+        person.setLibraryCard(new LibraryCard());
+        dataAccess.save(person);
+        final List<Person> people = dataAccess.findAll(Person.class);
+        for (Person loadedPerson : people) {
+            System.out.println(loadedPerson);
+            System.out.println(loadedPerson.getName());
+            System.out.println(loadedPerson.getLibraryCard());
+            System.out.println(loadedPerson.getLibraryCard().getOwner());
+            for (Thing thing : loadedPerson.getThings()) {
+                System.out.println(thing);
+                System.out.println(thing.getOwner());
+            }
+        }
         final Book bookA = getBook("Book A");
         final Book bookB = getBook("Book B");
         Author authorA = getAuthor("Author A");

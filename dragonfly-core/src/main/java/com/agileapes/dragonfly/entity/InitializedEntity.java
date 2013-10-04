@@ -1,5 +1,7 @@
 package com.agileapes.dragonfly.entity;
 
+import java.util.Map;
+
 /**
  * This interface allows for the initialization of all data access objects with the given
  * initial state
@@ -50,5 +52,7 @@ public interface InitializedEntity<E> {
     void setInitializationContext(EntityInitializationContext initializationContext);
 
     EntityInitializationContext getInitializationContext();
+
+    void setMap(Map<String, Object> map);
 
 }

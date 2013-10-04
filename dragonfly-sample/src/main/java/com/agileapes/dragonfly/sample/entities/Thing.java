@@ -36,7 +36,7 @@ public class Thing {
     }
 
     @JoinColumn
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     public Person getOwner() {
         return owner;
     }

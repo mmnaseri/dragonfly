@@ -2,6 +2,7 @@ package com.agileapes.dragonfly.entity.impl;
 
 import com.agileapes.couteau.basics.api.Filter;
 import com.agileapes.couteau.basics.api.Processor;
+import com.agileapes.couteau.basics.api.Transformer;
 import com.agileapes.couteau.basics.api.impl.NegatingFilter;
 import com.agileapes.couteau.reflection.beans.BeanAccessor;
 import com.agileapes.couteau.reflection.beans.BeanWrapper;
@@ -11,10 +12,13 @@ import com.agileapes.couteau.reflection.error.NoSuchPropertyException;
 import com.agileapes.couteau.reflection.property.WritePropertyAccessor;
 import com.agileapes.couteau.reflection.util.ReflectionUtils;
 import com.agileapes.dragonfly.data.DataAccess;
+import com.agileapes.dragonfly.data.DataAccessSession;
+import com.agileapes.dragonfly.data.impl.ManyToManyActionHelper;
 import com.agileapes.dragonfly.data.impl.ManyToManyMiddleEntity;
 import com.agileapes.dragonfly.entity.EntityContext;
 import com.agileapes.dragonfly.entity.EntityHandler;
 import com.agileapes.dragonfly.entity.EntityInitializationContext;
+import com.agileapes.dragonfly.entity.InitializedEntity;
 import com.agileapes.dragonfly.error.EntityDefinitionError;
 import com.agileapes.dragonfly.error.EntityPreparationError;
 import com.agileapes.dragonfly.error.NoPrimaryKeyDefinedError;
@@ -117,6 +121,9 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
 
     @Override
     public void copy(E original, E copy) {
+        if (original instanceof InitializedEntity) {
+            ((InitializedEntity) original).freeze();
+        }
         final BeanAccessor<E> reader = new MethodBeanAccessor<E>(original);
         final BeanWrapper<E> writer = new MethodBeanWrapper<E>(copy);
         //noinspection unchecked
@@ -140,6 +147,9 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
                         }
                     }
                 });
+        if (original instanceof InitializedEntity) {
+            ((InitializedEntity) original).unfreeze();
+        }
     }
 
     @Override
@@ -178,6 +188,9 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
                                     }
                                 });
                                 final Object foreignKey = values.get(columnName);
+                                if (foreignKey == null) {
+                                    return;
+                                }
                                 final Object foreignEntity;
                                 if (hasKey() && getKey(entity) != null) {
                                     foreignEntity = initializationContext.get(reference.getForeignTable().getEntityType(), (Serializable) foreignKey, getEntityType(), getKey(entity));
@@ -236,7 +249,132 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
     }
 
     @Override
-    public void loadLazyRelations(E entity, ReferenceMetadata<E, ?> referenceMetadata, DataAccess dataAccess) {
+    public void loadLazyRelation(E entity, final ReferenceMetadata<E, ?> referenceMetadata, final DataAccess dataAccess, EntityContext entityContext, Map<String, Object> map, DataAccessSession session) {
+        final BeanWrapper<E> wrapper = new MethodBeanWrapper<E>(entity);
+        if (referenceMetadata.getRelationType().equals(RelationType.ONE_TO_ONE)) {
+            if (referenceMetadata.isRelationOwner()) {
+                final ColumnMetadata columnMetadata = with(tableMetadata.getColumns()).find(new ColumnPropertyFilter(referenceMetadata.getPropertyName()));
+                final String key = with(map.keySet()).find(new Filter<String>() {
+                    @Override
+                    public boolean accepts(String item) {
+                        return item.equalsIgnoreCase(columnMetadata.getName());
+                    }
+                });
+                if (!map.containsKey(key) || map.get(key) == null) {
+                    return;
+                }
+                final Object foreignEntity = entityContext.getInstance(referenceMetadata.getForeignTable().getEntityType());
+                if (!columnMetadata.getForeignReference().getDeclaringClass().isInstance(foreignEntity)) {
+                    return;
+                }
+                final BeanWrapper<Object> foreignEntityWrapper = new MethodBeanWrapper<Object>(foreignEntity);
+                try {
+                    foreignEntityWrapper.setPropertyValue(columnMetadata.getForeignReference().getPropertyName(), map.get(key));
+                } catch (Exception e) {
+                    throw new EntityPreparationError("Failed to prepare entity properties", e);
+                }
+                final List<Object> objects = dataAccess.find(foreignEntity);
+                if (objects.isEmpty()) {
+                    return;
+                }
+                if (objects.size() > 1) {
+                    throw new EntityPreparationError("More than one entity correspond to one-to-one relationship");
+                }
+                try {
+                    wrapper.setPropertyValue(referenceMetadata.getPropertyName(), objects.get(0));
+                } catch (Exception e) {
+                    throw new EntityPreparationError("Failed to prepare entity", e);
+                }
+            } else {
+                final Object foreignEntity = entityContext.getInstance(referenceMetadata.getForeignTable().getEntityType());
+                final BeanWrapper<Object> foreignEntityWrapper = new MethodBeanWrapper<Object>(foreignEntity);
+                try {
+                    foreignEntityWrapper.setPropertyValue(referenceMetadata.getForeignColumn().getPropertyName(), entity);
+                } catch (Exception e) {
+                    throw new EntityPreparationError("Failed to prepare entity properties", e);
+                }
+                final List<Object> objects = dataAccess.find(foreignEntity);
+                if (objects.isEmpty()) {
+                    return;
+                }
+                if (objects.size() > 1) {
+                    throw new EntityPreparationError("More than one entity correspond to one-to-one relationship");
+                }
+                try {
+                    wrapper.setPropertyValue(referenceMetadata.getPropertyName(), objects.get(0));
+                } catch (Exception e) {
+                    throw new EntityPreparationError("Failed to prepare entity", e);
+                }
+            }
+        } else if (referenceMetadata.getRelationType().equals(RelationType.ONE_TO_MANY)) {
+            final Object foreignEntity = entityContext.getInstance(referenceMetadata.getForeignTable().getEntityType());
+            final BeanWrapper<Object> foreignEntityWrapper = new MethodBeanWrapper<Object>(foreignEntity);
+            try {
+                foreignEntityWrapper.setPropertyValue(referenceMetadata.getForeignColumn().getPropertyName(), entity);
+            } catch (Exception e) {
+                throw new EntityPreparationError("Failed to prepare entity properties", e);
+            }
+            try {
+                final Collection<Object> newCollection = ReflectionUtils.getCollection(wrapper.getPropertyType(referenceMetadata.getPropertyName()));
+                newCollection.addAll(dataAccess.find(foreignEntity));
+                wrapper.setPropertyValue(referenceMetadata.getPropertyName(), newCollection);
+            } catch (Exception e) {
+                throw new EntityPreparationError("Failed to prepare entity", e);
+            }
+        } else if (referenceMetadata.getRelationType().equals(RelationType.MANY_TO_ONE)) {
+            final ColumnMetadata columnMetadata = with(tableMetadata.getColumns()).find(new ColumnPropertyFilter(referenceMetadata.getPropertyName()));
+            final String key = with(map.keySet()).find(new Filter<String>() {
+                @Override
+                public boolean accepts(String item) {
+                    return item.equalsIgnoreCase(columnMetadata.getName());
+                }
+            });
+            if (!map.containsKey(key) || map.get(key) == null) {
+                return;
+            }
+            final Object foreignEntity = entityContext.getInstance(referenceMetadata.getForeignTable().getEntityType());
+            if (!columnMetadata.getForeignReference().getDeclaringClass().isInstance(foreignEntity)) {
+                return;
+            }
+            final BeanWrapper<Object> foreignEntityWrapper = new MethodBeanWrapper<Object>(foreignEntity);
+            try {
+                foreignEntityWrapper.setPropertyValue(columnMetadata.getForeignReference().getPropertyName(), map.get(key));
+            } catch (Exception e) {
+                throw new EntityPreparationError("Failed to prepare entity properties", e);
+            }
+            final List<Object> objects = dataAccess.find(foreignEntity);
+            if (objects.isEmpty()) {
+                return;
+            }
+            if (objects.size() > 1) {
+                throw new EntityPreparationError("More than one entity correspond to one-to-one relationship");
+            }
+            try {
+                wrapper.setPropertyValue(referenceMetadata.getPropertyName(), objects.get(0));
+            } catch (Exception e) {
+                throw new EntityPreparationError("Failed to prepare entity", e);
+            }
+        } else if (referenceMetadata.getRelationType().equals(RelationType.MANY_TO_MANY)) {
+            final ManyToManyActionHelper helper = new ManyToManyActionHelper(new DefaultStatementPreparator(false), session.getConnection(), session.getDatabaseDialect().getStatementBuilderContext(), referenceMetadata.getForeignColumn().getTable(), tableMetadata);
+            final ManyToManyMiddleEntity middleEntity = new ManyToManyMiddleEntity();
+            final BeanWrapper<ManyToManyMiddleEntity> middleEntityWrapper = new MethodBeanWrapper<ManyToManyMiddleEntity>(middleEntity);
+            try {
+                middleEntityWrapper.setPropertyValue(referenceMetadata.getForeignColumn().getPropertyName(), entity);
+            } catch (Exception e) {
+                throw new EntityPreparationError("Failed to prepare entity", e);
+            }
+            final List<Serializable> list = helper.find(middleEntity);
+            try {
+                wrapper.setPropertyValue(referenceMetadata.getPropertyName(), with(list).transform(new Transformer<Serializable, Object>() {
+                    @Override
+                    public Object map(Serializable key) {
+                        return dataAccess.find(with(referenceMetadata.getForeignTable().getColumns()).find(new NegatingFilter<ColumnMetadata>(new ColumnNameFilter(tableMetadata.getName()))).getForeignReference().getTable().getEntityType(), key);
+                    }
+                }).list());
+            } catch (Exception e) {
+                throw new EntityPreparationError("Failed to prepare entity", e);
+            }
+        }
     }
 
     @Override
@@ -344,7 +482,7 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
     }
 
     @Override
-    public void saveDependentRelations(final E entity, final DataAccess dataAccess) {
+    public void saveDependentRelations(final E entity, final DataAccess dataAccess, final EntityContext entityContext) {
         final MethodBeanWrapper<E> wrapper = new MethodBeanWrapper<E>(entity);
         //noinspection unchecked
         with(tableMetadata.getForeignReferences())
@@ -364,18 +502,21 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
                           },
                         new Processor<ReferenceMetadata<E, ?>>() {
                             @Override
-                            public void process(ReferenceMetadata<E, ?> input) {
+                            public void process(ReferenceMetadata<E, ?> reference) {
                                 try {
-                                    final Object foreignEntity = wrapper.getPropertyValue(input.getPropertyName());
+                                    final Object foreignEntitySample = entityContext.getInstance(reference.getForeignColumn().getTable().getEntityType());
+                                    final MethodBeanWrapper<Object> foreignEntitySampleWrapper = new MethodBeanWrapper<Object>(foreignEntitySample);
+                                    foreignEntitySampleWrapper.setPropertyValue(reference.getForeignColumn().getPropertyName(), entity);
+                                    dataAccess.delete(foreignEntitySample);
+                                    final Object foreignEntity = wrapper.getPropertyValue(reference.getPropertyName());
                                     if (foreignEntity == null) {
                                         return;
                                     }
                                     final MethodBeanWrapper<Object> foreignEntityWrapper = new MethodBeanWrapper<Object>(foreignEntity);
-                                    foreignEntityWrapper.setPropertyValue(input.getForeignColumn().getPropertyName(), entity);
-                                    dataAccess.delete(foreignEntity);
-                                    wrapper.setPropertyValue(input.getPropertyName(), dataAccess.save(foreignEntity));
+                                    foreignEntityWrapper.setPropertyValue(reference.getForeignColumn().getPropertyName(), entity);
+                                    wrapper.setPropertyValue(reference.getPropertyName(), dataAccess.save(foreignEntity));
                                 } catch (Exception e) {
-                                    throw new EntityDefinitionError("Failed to access property " + input.getLocalTable().getEntityType().getCanonicalName() + "." + input.getPropertyName(), e);
+                                    throw new EntityDefinitionError("Failed to access property " + reference.getLocalTable().getEntityType().getCanonicalName() + "." + reference.getPropertyName(), e);
                                 }
                             }
                         }
@@ -389,9 +530,13 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
                           },
                         new Processor<ReferenceMetadata<E, ?>>() {
                             @Override
-                            public void process(ReferenceMetadata<E, ?> input) {
+                            public void process(ReferenceMetadata<E, ?> reference) {
                                 try {
-                                    final Object propertyValue = wrapper.getPropertyValue(input.getPropertyName());
+                                    final Object foreignEntitySample = entityContext.getInstance(reference.getForeignColumn().getTable().getEntityType());
+                                    final MethodBeanWrapper<Object> foreignEntitySampleWrapper = new MethodBeanWrapper<Object>(foreignEntitySample);
+                                    foreignEntitySampleWrapper.setPropertyValue(reference.getForeignColumn().getPropertyName(), entity);
+                                    dataAccess.delete(foreignEntitySample);
+                                    final Object propertyValue = wrapper.getPropertyValue(reference.getPropertyName());
                                     if (propertyValue == null) {
                                         return;
                                     }
@@ -404,13 +549,12 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
                                             continue;
                                         }
                                         final MethodBeanWrapper<Object> foreignEntityWrapper = new MethodBeanWrapper<Object>(foreignEntity);
-                                        foreignEntityWrapper.setPropertyValue(input.getForeignColumn().getPropertyName(), entity);
-                                        dataAccess.delete(foreignEntity);
+                                        foreignEntityWrapper.setPropertyValue(reference.getForeignColumn().getPropertyName(), entity);
                                         newCollection.add(dataAccess.save(foreignEntity));
                                     }
-                                    wrapper.setPropertyValue(input.getPropertyName(), newCollection);
+                                    wrapper.setPropertyValue(reference.getPropertyName(), newCollection);
                                 } catch (Exception e) {
-                                    throw new EntityDefinitionError("Failed to access property " + input.getLocalTable().getEntityType().getCanonicalName() + "." + input.getPropertyName(), e);
+                                    throw new EntityDefinitionError("Failed to access property " + reference.getLocalTable().getEntityType().getCanonicalName() + "." + reference.getPropertyName(), e);
                                 }
                             }
                         }

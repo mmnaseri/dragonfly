@@ -1,6 +1,7 @@
 package com.agileapes.dragonfly.entity;
 
 import com.agileapes.dragonfly.data.DataAccess;
+import com.agileapes.dragonfly.data.DataAccessSession;
 import com.agileapes.dragonfly.data.impl.ManyToManyMiddleEntity;
 import com.agileapes.dragonfly.metadata.ReferenceMetadata;
 import com.agileapes.dragonfly.metadata.TableMetadata;
@@ -95,7 +96,7 @@ public interface EntityHandler<E> {
      */
     void loadEagerRelations(E entity, Map<String, Object> values, EntityInitializationContext initializationContext);
 
-    void loadLazyRelations(E entity, ReferenceMetadata<E, ?> referenceMetadata, DataAccess dataAccess);
+    void loadLazyRelation(E entity, ReferenceMetadata<E, ?> referenceMetadata, DataAccess dataAccess, EntityContext entityContext, Map<String, Object> map, DataAccessSession session);
 
     /**
      * Deletes all objects on the deletion of which the correct deletion of
@@ -123,8 +124,9 @@ public interface EntityHandler<E> {
      * Saves all relations which refer to the entity
      * @param entity        the entity that is to be saved
      * @param dataAccess    the data access for the save
+     * @param entityContext
      */
-    void saveDependentRelations(E entity, DataAccess dataAccess);
+    void saveDependentRelations(E entity, DataAccess dataAccess, EntityContext entityContext);
 
     Map<TableMetadata<?>, Set<ManyToManyMiddleEntity>> getManyToManyRelatedObjects(E entity);
 

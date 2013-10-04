@@ -7,6 +7,7 @@ import com.agileapes.couteau.enhancer.impl.GeneratingClassEnhancer;
 import com.agileapes.couteau.reflection.util.ClassUtils;
 import com.agileapes.dragonfly.cg.StaticNamingPolicy;
 import com.agileapes.dragonfly.data.DataAccess;
+import com.agileapes.dragonfly.data.DataAccessSession;
 import com.agileapes.dragonfly.entity.EntityFactory;
 import com.agileapes.dragonfly.entity.EntityHandlerContext;
 import com.agileapes.dragonfly.entity.InitializedEntity;
@@ -35,10 +36,12 @@ public class DefaultEntityContext implements ModifiableEntityContext {
     private final DataSecurityManager securityManager;
     private final MetadataRegistry metadataRegistry;
     private final Cache<Class<?>, EntityFactory<?>> cache = new ConcurrentCache<Class<?>, EntityFactory<?>>();
+    private final DataAccessSession session;
 
-    public DefaultEntityContext(DataSecurityManager securityManager, MetadataRegistry metadataRegistry) {
+    public DefaultEntityContext(DataSecurityManager securityManager, MetadataRegistry metadataRegistry, DataAccessSession session) {
         this.securityManager = securityManager;
         this.metadataRegistry = metadataRegistry;
+        this.session = session;
         this.key = UUID.randomUUID().toString();
     }
 
@@ -49,7 +52,7 @@ public class DefaultEntityContext implements ModifiableEntityContext {
 
     @Override
     public <E> E getInstance(TableMetadata<E> tableMetadata) {
-        final EntityProxy<E> entityProxy = new EntityProxy<E>(securityManager, tableMetadata, handlerContext.getHandler(tableMetadata.getEntityType()), dataAccess);
+        final EntityProxy<E> entityProxy = new EntityProxy<E>(securityManager, tableMetadata, handlerContext.getHandler(tableMetadata.getEntityType()), dataAccess, session, this);
         if (interfaces.containsKey(tableMetadata.getEntityType())) {
             final Map<Class<?>, Class<?>> classMap = interfaces.get(tableMetadata.getEntityType());
             for (Map.Entry<Class<?>, Class<?>> entry : classMap.entrySet()) {

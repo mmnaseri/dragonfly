@@ -123,6 +123,7 @@ public class AnnotationMetadataResolver implements MetadataResolver {
         //noinspection unchecked
         withMethods(entityType)
         .keep(new GetterMethodFilter())
+        .drop(new AnnotatedElementFilter(Column.class, JoinColumn.class))
         .keep(new AnnotatedElementFilter(OneToMany.class))
         .each(new Processor<Method>() {
             @Override

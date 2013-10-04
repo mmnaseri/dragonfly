@@ -7,6 +7,8 @@ import com.agileapes.couteau.reflection.util.ReflectionUtils;
 import com.agileapes.dragonfly.cg.SecuredInterfaceInterceptor;
 import com.agileapes.dragonfly.data.DataAccess;
 import com.agileapes.dragonfly.data.DataAccessObject;
+import com.agileapes.dragonfly.data.DataAccessSession;
+import com.agileapes.dragonfly.entity.EntityContext;
 import com.agileapes.dragonfly.entity.EntityHandler;
 import com.agileapes.dragonfly.entity.EntityInitializationContext;
 import com.agileapes.dragonfly.entity.InitializedEntity;
@@ -19,7 +21,10 @@ import com.agileapes.dragonfly.security.DataSecurityManager;
 import com.agileapes.dragonfly.tools.ColumnPropertyFilter;
 
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 
@@ -35,6 +40,8 @@ public class EntityProxy<E> extends SecuredInterfaceInterceptor implements DataA
     private final TableMetadata<E> tableMetadata;
     private final EntityHandler<E> entityHandler;
     private final DataAccess dataAccess;
+    private final DataAccessSession session;
+    private final EntityContext entityContext;
     private Class<E> entityType;
     private E entity;
     private String token;
@@ -43,13 +50,17 @@ public class EntityProxy<E> extends SecuredInterfaceInterceptor implements DataA
     private final Filter<MethodDescriptor> setterMethodFilter;
     private final Filter<MethodDescriptor> getterMethodFilter;
     private boolean deleted = false;
-    private volatile boolean frozen = false;
+    private volatile int freezeLock = 0;
+    private final Set<String> lazyLoadedProperties;
+    private Map<String, Object> map;
 
-    public EntityProxy(DataSecurityManager securityManager, TableMetadata<E> tableMetadata, EntityHandler<E> entityHandler, DataAccess dataAccess) {
+    public EntityProxy(DataSecurityManager securityManager, TableMetadata<E> tableMetadata, EntityHandler<E> entityHandler, DataAccess dataAccess, DataAccessSession session, EntityContext entityContext) {
         super(securityManager);
         this.tableMetadata = tableMetadata;
         this.entityHandler = entityHandler;
         this.dataAccess = dataAccess;
+        this.session = session;
+        this.entityContext = entityContext;
         this.setterMethodFilter = new Filter<MethodDescriptor>() {
             @Override
             public boolean accepts(MethodDescriptor item) {
@@ -62,6 +73,7 @@ public class EntityProxy<E> extends SecuredInterfaceInterceptor implements DataA
                 return item.getName().matches("get[A-Z].*") && !item.getReturnType().equals(void.class) && item.getParameterTypes().length == 0;
             }
         };
+        lazyLoadedProperties = new HashSet<String>();
     }
 
     @Override
@@ -123,7 +135,7 @@ public class EntityProxy<E> extends SecuredInterfaceInterceptor implements DataA
 
     @Override
     protected Object call(MethodDescriptor methodDescriptor, Object target, Object[] arguments, MethodProxy methodProxy) throws Throwable {
-        if (!frozen) {
+        if (!isFrozen()) {
             if (initializationContext != null && setterMethodFilter.accepts(methodDescriptor)) {
                 final String propertyName = ReflectionUtils.getPropertyName(methodDescriptor.getName());
                 final ColumnMetadata columnMetadata = with(tableMetadata.getColumns()).find(new ColumnPropertyFilter(propertyName));
@@ -131,22 +143,27 @@ public class EntityProxy<E> extends SecuredInterfaceInterceptor implements DataA
                     invalidateCachedVersion();
                 }
             }
-            if (getterMethodFilter.accepts(methodDescriptor)) {
+            if (!isFrozen() && getterMethodFilter.accepts(methodDescriptor)) {
                 final String propertyName = ReflectionUtils.getPropertyName(methodDescriptor.getName());
-                final ReferenceMetadata<E, ?> referenceMetadata = with(tableMetadata.getForeignReferences()).find(new Filter<ReferenceMetadata<E, ?>>() {
-                    @Override
-                    public boolean accepts(ReferenceMetadata<E, ?> referenceMetadata) {
-                        return propertyName.equals(referenceMetadata.getPropertyName());
+                if (!lazyLoadedProperties.contains(propertyName)) {
+                    lazyLoadedProperties.add(propertyName);
+                    final ReferenceMetadata<E, ?> referenceMetadata = with(tableMetadata.getForeignReferences()).find(new Filter<ReferenceMetadata<E, ?>>() {
+                        @Override
+                        public boolean accepts(ReferenceMetadata<E, ?> referenceMetadata) {
+                            return propertyName.equals(referenceMetadata.getPropertyName());
+                        }
+                    });
+                    if (referenceMetadata != null && referenceMetadata.isLazy()) {
+                        entityHandler.loadLazyRelation(entity, referenceMetadata, dataAccess, entityContext, map, session);
                     }
-                });
-                entityHandler.loadLazyRelations(entity, referenceMetadata, dataAccess);
+                }
             }
         }
         return methodProxy.callSuper(target, arguments);
     }
 
     private void invalidateCachedVersion() {
-        if (initializationContext != null) {
+        if (initializationContext != null && !isFrozen()) {
             initializationContext.delete(entityType, entityHandler.getKey(entity));
         }
     }
@@ -175,12 +192,15 @@ public class EntityProxy<E> extends SecuredInterfaceInterceptor implements DataA
 
     @Override
     public void freeze() {
-        frozen = true;
+        freezeLock ++;
     }
 
     @Override
     public void unfreeze() {
-        frozen = false;
+        freezeLock --;
+        if (freezeLock < 0) {
+            throw new IllegalStateException();
+        }
     }
 
     @Override
@@ -191,6 +211,15 @@ public class EntityProxy<E> extends SecuredInterfaceInterceptor implements DataA
     @Override
     public EntityInitializationContext getInitializationContext() {
         return initializationContext;
+    }
+
+    @Override
+    public void setMap(Map<String, Object> map) {
+        this.map = map;
+    }
+
+    public boolean isFrozen() {
+        return freezeLock > 0;
     }
 
 }

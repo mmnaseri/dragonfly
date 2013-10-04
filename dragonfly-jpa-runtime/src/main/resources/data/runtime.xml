@@ -48,6 +48,7 @@
         <constructor-arg index="0" type="com.agileapes.dragonfly.security.DataSecurityManager"
                          ref="dataSecurityManager"/>
         <constructor-arg index="1" type="com.agileapes.dragonfly.metadata.MetadataRegistry" ref="metadataContext"/>
+        <constructor-arg index="2" type="com.agileapes.dragonfly.data.DataAccessSession" ref="dataAccessSession"/>
     </bean>
 
     <bean id="databaseDialect" class="${db.dialect}"/>

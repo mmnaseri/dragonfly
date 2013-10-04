@@ -27,7 +27,7 @@ public class Author {
         this.name = name;
     }
 
-    @ManyToMany(mappedBy = "authors", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @ManyToMany(mappedBy = "authors", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     public Collection<Book> getBooks() {
         return books;
     }

@@ -379,6 +379,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
             initializedEntity.setInitializationContext(initializationContext);
         }
         initializationContext.lock();
+        initializedEntity.setMap(values);
         entityHandler.loadEagerRelations(enhancedEntity, values, initializationContext);
         final TableMetadata<E> tableMetadata = session.getMetadataRegistry().getTableMetadata(entityHandler.getEntityType());
         final Connection connection = session.getConnection();
@@ -629,6 +630,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         final E enhancedEntity = getEnhancedEntity(entity);
         saveQueue.put(entity, enhancedEntity);
         final InitializedEntity<E> initializedEntity = getInitializedEntity(enhancedEntity);
+        initializedEntity.freeze();
         final Map<String, Object> sequenceValues = new HashMap<String, Object>();
         sequenceValues.putAll(session.getDatabaseDialect().loadTableValues(session.getMetadataRegistry().getTableMetadata(TableKeyGeneratorEntity.class), session.getMetadataRegistry().getTableMetadata(entityHandler.getEntityType()), session));
         sequenceValues.putAll(session.getDatabaseDialect().loadSequenceValues(session.getMetadataRegistry().getTableMetadata(entityHandler.getEntityType())));
@@ -667,11 +669,12 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
             deferredSaveQueue.get().add(entity);
         }
         entityHandler.copy(enhancedEntity, entity);
+        initializedEntity.unfreeze();
         return enhancedEntity;
     }
 
     private <E> void saveDependents(EntityHandler<E> entityHandler, E entity) {
-        entityHandler.saveDependentRelations(entity, this);
+        entityHandler.saveDependentRelations(entity, this, entityContext);
         final Map<TableMetadata<?>, Set<ManyToManyMiddleEntity>> relatedObjects = entityHandler.getManyToManyRelatedObjects(entity);
         boolean hasRelations = false;
         for (Set<ManyToManyMiddleEntity> entities : relatedObjects.values()) {
@@ -742,6 +745,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
             initializedEntity.setOriginalCopy(enhancedEntity);
         }
         final E originalCopy = initializedEntity.getOriginalCopy();
+        initializedEntity.freeze();
         final Map<String, Object> original = entityHandler.toMap(originalCopy);
         values.putAll(MapTools.prefixKeys(original, "old."));
         for (String key : original.keySet()) {
@@ -751,7 +755,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         }
         cleanUpStatement(internalExecuteUpdate(entityHandler.getEntityType(), Statements.Manipulation.UPDATE, values));
         eventHandler.afterUpdate(enhancedEntity);
-        entityHandler.saveDependentRelations(enhancedEntity, this);
+        entityHandler.saveDependentRelations(enhancedEntity, this, entityContext);
         saveQueueLock.set(saveQueueLock.get() - 1);
         if (saveQueueLock.get() == 0) {
             saveQueue.remove(entity);
@@ -763,6 +767,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
             deferredSaveQueue.get().add(entity);
         }
         entityHandler.copy(enhancedEntity, entity);
+        initializedEntity.unfreeze();
         return enhancedEntity;
     }
 
@@ -775,6 +780,8 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         deleteQueue.add(entity);
         final EntityHandler<E> entityHandler = entityHandlerContext.getHandler(entity);
         final E enhancedEntity = getEnhancedEntity(entity);
+        final InitializedEntity<E> initializedEntity = getInitializedEntity(enhancedEntity);
+        initializedEntity.freeze();
         eventHandler.beforeDelete(enhancedEntity);
         final Map<String, Object> map = MapTools.prefixKeys(entityHandler.toMap(enhancedEntity), "value.");
         if ((entityHandler.hasKey() && entityHandler.getKey(enhancedEntity) != null && exists(entityHandler.getEntityType(), entityHandler.getKey(enhancedEntity))) || exists(entityHandler.getEntityType(), map)) {
@@ -789,6 +796,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
             entityHandler.deleteDependentRelations(enhancedEntity, this);
         }
         eventHandler.afterDelete(enhancedEntity);
+        initializedEntity.unfreeze();
         deleteQueue.remove(entity);
     }
 
@@ -906,10 +914,13 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     @Override
     public <E> List<E> find(E sample) {
         final E enhancedEntity = getEnhancedEntity(sample);
+        final InitializedEntity<E> initializedEntity = getInitializedEntity(enhancedEntity);
+        initializedEntity.freeze();
         final EntityHandler<E> entityHandler = entityHandlerContext.getHandler(sample);
         eventHandler.beforeFind(enhancedEntity);
         final List<E> found = internalExecuteQuery(entityHandler.getEntityType(), Statements.Manipulation.FIND_LIKE, MapTools.prefixKeys(entityHandler.toMap(enhancedEntity), "value."));
         eventHandler.afterFind(enhancedEntity, found);
+        initializedEntity.unfreeze();
         return found;
     }
 

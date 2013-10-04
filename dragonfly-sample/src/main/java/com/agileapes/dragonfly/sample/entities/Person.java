@@ -77,8 +77,7 @@ public class Person {
         this.birthday = birthday;
     }
 
-    @JoinColumn
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "owner", cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "owner", cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
     public Collection<Thing> getThings() {
         return things;
     }
@@ -87,7 +86,7 @@ public class Person {
         this.things = things;
     }
 
-    @OneToOne(fetch = FetchType.EAGER, cascade = {CascadeType.ALL})
+    @OneToOne(fetch = FetchType.LAZY, cascade = {CascadeType.ALL})
     public LibraryCard getLibraryCard() {
         return libraryCard;
     }
