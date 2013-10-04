@@ -4,6 +4,7 @@ import com.agileapes.couteau.basics.api.Filter;
 import com.agileapes.couteau.basics.api.Processor;
 import com.agileapes.dragonfly.data.DataAccessSession;
 import com.agileapes.dragonfly.data.DataStructureHandler;
+import com.agileapes.dragonfly.error.UnsuccessfulOperationError;
 import com.agileapes.dragonfly.metadata.*;
 import com.agileapes.dragonfly.metadata.impl.DefaultMetadataContext;
 import com.agileapes.dragonfly.metadata.impl.ForeignKeyConstraintMetadata;
@@ -38,20 +39,19 @@ public class DefaultDataStructureHandler implements DataStructureHandler {
         this.session = session;
     }
 
-    private <E> void executeStatement(Class<E> entityType, Statements.Definition statementType, Metadata metadata) {
-        executeStatement(session.getMetadataRegistry().getTableMetadata(entityType), statementType, metadata);
-    }
-
     private <E> void executeStatement(TableMetadata<E> tableMetadata, Statements.Definition statementType, Metadata metadata) {
         try {
             final Statement statement = session.getDatabaseDialect().getStatementBuilderContext().getDefinitionStatementBuilder(statementType).getStatement(tableMetadata, metadata);
+            if (statement.getSql().trim().isEmpty()) {
+                return;
+            }
             final Connection connection = session.getConnection();
             final PreparedStatement preparedStatement = statement.prepare(connection);
             preparedStatement.executeUpdate();
             preparedStatement.close();
             connection.close();
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new UnsuccessfulOperationError("Failed to execute statement: " + statementType, e);
         }
     }
 
@@ -244,9 +244,8 @@ public class DefaultDataStructureHandler implements DataStructureHandler {
             connection.close();
             return result;
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new UnsuccessfulOperationError("Failed to check definition for table", e);
         }
-        return false;
     }
 
     @Override

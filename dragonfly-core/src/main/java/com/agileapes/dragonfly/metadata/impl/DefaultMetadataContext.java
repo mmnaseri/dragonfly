@@ -89,11 +89,11 @@ public class DefaultMetadataContext extends DefaultMetadataRegistry implements M
         }
         //adding table metadata for the key generator table so that we can later
         //rely on the table being there before calculating generated keys
-        if (schema != null) {
-            final TableMetadata<TableKeyGeneratorEntity> tableMetadata = TableKeyGeneratorEntity.getTableMetadata(schema);
-            map.put(tableMetadata.getEntityType(), tableMetadata);
-            addInternalMetadata(tableMetadata);
-        }
+        //if at this point schema is null then the schema must have been specified centrally and using
+        //the data source
+        final TableMetadata<TableKeyGeneratorEntity> tableMetadata = TableKeyGeneratorEntity.getTableMetadata(schema);
+        map.put(tableMetadata.getEntityType(), tableMetadata);
+        addInternalMetadata(tableMetadata);
         Map<ManyToManyDescriptor, TableMetadata<?>> manyToManyMiddleTables = new HashMap<ManyToManyDescriptor, TableMetadata<?>>();
         //we then resolve all unresolved foreign references
         for (Map.Entry<Class<?>, TableMetadata<?>> entry : map.entrySet()) {

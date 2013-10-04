@@ -92,7 +92,7 @@ public class DefaultDataAccessSession implements DataAccessSession {
     public Connection getConnection() {
         final Connection connection;
         try {
-            if (username != null && password != null) {
+            if (username != null && password != null && !username.isEmpty()) {
                 connection = dataSource.getConnection(username, password);
             } else {
                 connection = dataSource.getConnection();
@@ -147,7 +147,7 @@ public class DefaultDataAccessSession implements DataAccessSession {
      * Initializes the session by initializing all data structures
      */
     @Override
-    public void initialize() {
+    public synchronized void initialize() {
         if (initialized) {
             throw new DataAccessSessionInitializationError("Session is already initialized");
         }

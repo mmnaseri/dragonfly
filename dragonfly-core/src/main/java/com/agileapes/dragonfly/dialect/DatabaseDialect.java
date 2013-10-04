@@ -1,6 +1,7 @@
 package com.agileapes.dragonfly.dialect;
 
 import com.agileapes.couteau.basics.api.Filter;
+import com.agileapes.dragonfly.data.DataAccessSession;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.statement.StatementBuilderContext;
@@ -63,6 +64,8 @@ public interface DatabaseDialect extends Filter<DatabaseMetaData> {
      */
     String getName();
 
+    String getDriverClassName();
+
     /**
      * @return the default port through which connections can be made to the database
      */
@@ -84,5 +87,8 @@ public interface DatabaseDialect extends Filter<DatabaseMetaData> {
     String getCountColumn();
 
     <E> Map<String,Object> loadSequenceValues(TableMetadata<E> tableMetadata);
+
+    <E> Map<String,Object> loadTableValues(TableMetadata<?> generatorMetadata, TableMetadata<E> tableMetadata, DataAccessSession session);
+
 
 }

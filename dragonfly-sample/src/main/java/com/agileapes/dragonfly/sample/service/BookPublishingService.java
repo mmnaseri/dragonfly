@@ -2,16 +2,12 @@ package com.agileapes.dragonfly.sample.service;
 
 import com.agileapes.couteau.basics.api.Filter;
 import com.agileapes.dragonfly.data.DataAccess;
-import com.agileapes.dragonfly.metadata.MetadataRegistry;
-import com.agileapes.dragonfly.metadata.ReferenceMetadata;
-import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.sample.entities.Author;
 import com.agileapes.dragonfly.sample.entities.Book;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
@@ -26,15 +22,7 @@ public class BookPublishingService {
     @Autowired
     private DataAccess dataAccess;
 
-    @Autowired
-    private MetadataRegistry metadataRegistry;
-
     public void execute() {
-        final TableMetadata<Book> tableMetadata = metadataRegistry.getTableMetadata(Book.class);
-        final Collection<ReferenceMetadata<Book,?>> foreignReferences = tableMetadata.getForeignReferences();
-        for (ReferenceMetadata<Book, ?> foreignReference : foreignReferences) {
-            System.out.println(foreignReference);
-        }
         final Book bookA = getBook("Book A");
         final Book bookB = getBook("Book B");
         Author authorA = getAuthor("Author A");
@@ -64,11 +52,15 @@ public class BookPublishingService {
         bookB.setAuthors(Arrays.asList(authorB, authorC));
         bookB.setEditors(Arrays.asList(authorA, authorC));
         dataAccess.save(bookB);
+        dataAccess.save(getBook("Book C"));
         final List<Author> authors = dataAccess.find(authorB);
         for (Author author : authors) {
+            System.out.println("Author: " + author.getName());
+            System.out.println("Written books:");
             for (Book book : author.getBooks()) {
                 System.out.println(book.getTitle());
             }
+            System.out.println("Edited books:");
             for (Book book : author.getEditedBooks()) {
                 System.out.println(book.getTitle());
             }

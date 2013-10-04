@@ -1,6 +1,7 @@
 package com.agileapes.dragonfly.tools;
 
 import com.agileapes.couteau.basics.api.Transformer;
+import com.agileapes.dragonfly.dialect.DatabaseDialect;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
@@ -47,6 +48,20 @@ public abstract class DatabaseUtils {
         final String tableNames = with(first.getName(), second.getName()).sort().transform(transformer).join("_");
         final String finalName = with(tableNames).add(with(firstProperty, secondProperty).transform(transformer).sort().list()).join("_");
         return shorten(finalName, 16).toLowerCase();
+    }
+
+    public static String qualifyTable(TableMetadata<?> tableMetadata, Character identifierQuotation, Character schemaSeparator) {
+        final String name = identifierQuotation + tableMetadata.getName() + identifierQuotation;
+        return tableMetadata.getSchema() == null || tableMetadata.getSchema().isEmpty() ? name : identifierQuotation + tableMetadata.getSchema() + identifierQuotation + schemaSeparator + name;
+    }
+
+    public static String qualifyTable(TableMetadata<?> tableMetadata, DatabaseDialect databaseDialect) {
+        return qualifyTable(tableMetadata, databaseDialect.getIdentifierEscapeCharacter(), databaseDialect.getSchemaSeparator());
+    }
+
+    public static String escapeString(String string, Character stringEscapeCharacter) {
+        final String escapeCharacter = String.valueOf('\\' == stringEscapeCharacter ? "\\\\" : stringEscapeCharacter);
+        return string.replace("\n", "\\n").replaceAll("(^|[^" + escapeCharacter + "])\"", "$1" + escapeCharacter + "\"");
     }
 
 }
