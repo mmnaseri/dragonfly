@@ -31,7 +31,8 @@ public class BookPublishingService {
 
     public void execute() {
         final Set<Thread> threads = new HashSet<Thread>();
-        for (int i = 0; i < 100; i ++) {
+        final int benchmarkSize = 1000;
+        for (int i = 0; i < benchmarkSize; i ++) {
             threads.add(new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -85,14 +86,13 @@ public class BookPublishingService {
             }));
         }
         final Set<Thread> started = new HashSet<Thread>();
-        int count = 0;
+        final int operationSize = threads.size();
         while (!threads.isEmpty()) {
-            count ++;
             final Thread thread = threads.iterator().next();
             threads.remove(thread);
             started.add(thread);
             thread.start();
-            if (count % 10 == 0) {
+            if (started.size() == operationSize || threads.isEmpty()) {
                 for (Thread startedThread : started) {
                     try {
                         startedThread.join();

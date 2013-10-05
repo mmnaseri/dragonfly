@@ -22,6 +22,7 @@ public class Book {
     private String title;
     private Collection<Author> authors;
     private Collection<Author> editors;
+    private Long key;
 
     @Column
     public String getTitle() {
@@ -49,4 +50,15 @@ public class Book {
     public void setEditors(Collection<Author> editors) {
         this.editors = editors;
     }
+
+    @Column
+    @GeneratedValue(strategy = GenerationType.TABLE, generator = "book")
+    public Long getKey() {
+        return key;
+    }
+
+    public void setKey(Long key) {
+        this.key = key;
+    }
+
 }

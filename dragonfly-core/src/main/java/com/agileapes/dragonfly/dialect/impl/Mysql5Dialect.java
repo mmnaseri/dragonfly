@@ -95,7 +95,7 @@ public class Mysql5Dialect extends GenericDatabaseDialect {
     }
 
     @Override
-    public <E> Map<String, Object> loadTableValues(final TableMetadata<?> generatorMetadata, TableMetadata<E> tableMetadata, final DataAccessSession session) {
+    public synchronized <E> Map<String, Object> loadTableValues(final TableMetadata<?> generatorMetadata, TableMetadata<E> tableMetadata, final DataAccessSession session) {
         final HashMap<String, Object> result = new HashMap<String, Object>();
         with(tableMetadata.getColumns())
                 .forThose(

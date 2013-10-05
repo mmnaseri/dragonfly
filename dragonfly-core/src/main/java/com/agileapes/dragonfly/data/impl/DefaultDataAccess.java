@@ -240,7 +240,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         }
     }
 
-    private BatchOperationDescriptor getPreparedStatement(Statement statement, Map<String, Object> values) {
+    private synchronized BatchOperationDescriptor getPreparedStatement(Statement statement, Map<String, Object> values) {
         final Connection connection = session.getConnection();
         if (isInBatchMode()) {
             try {
