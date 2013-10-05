@@ -18,13 +18,24 @@ public class JdbcDataSource implements DataSource {
     private PrintWriter out;
     private int loginTimeout;
     private final String connectionString;
+    private final String username;
+    private final String password;
 
     public JdbcDataSource(String connectionString) {
+        this(connectionString, null, null);
+    }
+
+    public JdbcDataSource(String connectionString, String username, String password) {
         this.connectionString = connectionString;
+        this.username = username;
+        this.password = password;
     }
 
     @Override
     public Connection getConnection() throws SQLException {
+        if (username != null && password != null) {
+            return DriverManager.getConnection(connectionString, username, password);
+        }
         return DriverManager.getConnection(connectionString);
     }
 

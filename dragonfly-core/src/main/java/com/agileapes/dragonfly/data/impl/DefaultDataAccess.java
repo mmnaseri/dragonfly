@@ -43,7 +43,6 @@ import java.io.Serializable;
 import java.sql.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 
@@ -94,7 +93,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     private final StatementPreparator statementPreparator;
     private final ThreadLocal<List<BatchOperationDescriptor>> batchOperation;
     private final ThreadLocal<List<Object>> deferredKeys;
-    private final AtomicBoolean batch;
+    private final ThreadLocal<Boolean> batch;
     private final ThreadLocal<Set<LocalOperationResult>> localCounts;
 
     public DefaultDataAccess(DataAccessSession session, DataSecurityManager securityManager, EntityContext entityContext, EntityHandlerContext entityHandlerContext) {
@@ -132,7 +131,12 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
             }
         };
         this.batchOperation = new ThreadLocal<List<BatchOperationDescriptor>>();
-        this.batch = new AtomicBoolean(false);
+        this.batch = new ThreadLocal<Boolean>(){
+            @Override
+            protected Boolean initialValue() {
+                return false;
+            }
+        };
         if (entityContext instanceof DefaultEntityContext) {
             ((DefaultEntityContext) entityContext).setDataAccess(this);
         }
@@ -399,7 +403,6 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         initializedEntity.setMap(values);
         entityHandler.loadEagerRelations(enhancedEntity, values, initializationContext);
         final TableMetadata<E> tableMetadata = session.getMetadataRegistry().getTableMetadata(entityHandler.getEntityType());
-        final Connection connection = session.getConnection();
         final BeanWrapper<E> wrapper = new MethodBeanWrapper<E>(enhancedEntity);
         with(tableMetadata.getForeignReferences())
                 .forThose(
@@ -412,6 +415,12 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
                         new Processor<ReferenceMetadata<E, ?>>() {
                             @Override
                             public void process(ReferenceMetadata<E, ?> reference) {
+                                final Connection connection = session.getConnection();
+                                try {
+                                    connection.setAutoCommit(false);
+                                } catch (SQLException e) {
+                                    throw new EntityInitializationError(entityHandler.getEntityType(), e);
+                                }
                                 final TableMetadata<?> middleTable = reference.getForeignTable();
                                 final ManyToManyActionHelper helper = new ManyToManyActionHelper(statementPreparator, connection, session.getDatabaseDialect().getStatementBuilderContext(), middleTable, tableMetadata);
                                 final ManyToManyMiddleEntity middleEntity = new ManyToManyMiddleEntity();
@@ -429,14 +438,15 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
                                 } catch (Exception e) {
                                     throw new EntityInitializationError(entityHandler.getEntityType(), e);
                                 }
+                                try {
+                                    connection.commit();
+                                    connection.close();
+                                } catch (SQLException e) {
+                                    throw new EntityInitializationError(entityHandler.getEntityType(), e);
+                                }
                             }
                         }
                 );
-        try {
-            connection.close();
-        } catch (SQLException e) {
-            throw new EntityInitializationError(entityHandler.getEntityType(), e);
-        }
         initializationContext.unlock();
     }
 
@@ -706,8 +716,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         }
         final Connection connection = session.getConnection();
         try {
-            connection.setAutoCommit(false);
-            connection.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+            connection.setAutoCommit(true);
             final Map<TableMetadata<?>, ManyToManyActionHelper> helpers = new HashMap<TableMetadata<?>, ManyToManyActionHelper>();
             for (TableMetadata<?> tableMetadata : relatedObjects.keySet()) {
                 helpers.put(tableMetadata, new ManyToManyActionHelper(statementPreparator, connection, session.getDatabaseDialect().getStatementBuilderContext(), tableMetadata, session.getMetadataRegistry().getTableMetadata(entityHandler.getEntityType())));
@@ -724,7 +733,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
                 }
                 helper.close();
             }
-            connection.commit();
+//            connection.commit();
             connection.close();
         } catch (Exception e) {
             throw new UnsuccessfulOperationError("Failed to save dependent many-to-many objects", e);
@@ -822,6 +831,11 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         entityHandler.deleteDependencyRelations(enhancedEntity, this);
         final TableMetadata<E> tableMetadata = session.getMetadataRegistry().getTableMetadata(entityHandler.getEntityType());
         final Connection connection = session.getConnection();
+        try {
+            connection.setAutoCommit(true);
+        } catch (SQLException e) {
+            throw new EntityInitializationError(entityHandler.getEntityType(), e);
+        }
         with(tableMetadata.getForeignReferences())
                 .forThose(
                         new Filter<ReferenceMetadata<E, ?>>() {
@@ -852,6 +866,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
                         }
                 );
         try {
+//            connection.commit();
             connection.close();
         } catch (SQLException e) {
             throw new EntityInitializationError(entityHandler.getEntityType(), e);
