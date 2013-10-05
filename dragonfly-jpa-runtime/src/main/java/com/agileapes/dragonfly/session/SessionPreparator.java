@@ -1,9 +1,10 @@
-package com.agileapes.dragonfly;
+package com.agileapes.dragonfly.session;
 
 import com.agileapes.couteau.basics.api.Transformer;
 import com.agileapes.couteau.basics.api.impl.CastingTransformer;
 import com.agileapes.couteau.reflection.util.ClassUtils;
 import com.agileapes.dragonfly.annotations.Extension;
+import com.agileapes.dragonfly.assets.Disposable;
 import com.agileapes.dragonfly.dialect.DatabaseDialect;
 import com.agileapes.dragonfly.entity.EntityDefinition;
 import com.agileapes.dragonfly.entity.EntityDefinitionContext;

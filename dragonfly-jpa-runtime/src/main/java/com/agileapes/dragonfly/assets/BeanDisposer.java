@@ -1,4 +1,4 @@
-package com.agileapes.dragonfly;
+package com.agileapes.dragonfly.assets;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

@@ -1,8 +1,7 @@
 package com.agileapes.dragonfly.sample;
 
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-
 import com.agileapes.dragonfly.sample.service.*;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 
 /**
@@ -12,7 +11,7 @@ import com.agileapes.dragonfly.sample.service.*;
 public class Main {
 
     public static void main(String[] args) throws Exception {
-        final ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("/sample.xml");
+        final ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("/applicationContext.xml");
         context.getBean(CleanUpService.class).execute();
         context.getBean(BookPublishingService.class).execute();
         context.getBean(DeletePeopleService.class).execute();

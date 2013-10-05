@@ -34,14 +34,18 @@
 
     <bean id="auditInterceptor" class="com.agileapes.dragonfly.sample.audit.AuditInterceptor"/>
 
-    <bean id="dataAccess" class="com.agileapes.dragonfly.data.impl.SecuredDataAccess">
-        <constructor-arg index="0" type="com.agileapes.dragonfly.data.DataAccessSession" ref="dataAccessSession"/>
-        <constructor-arg index="1" type="com.agileapes.dragonfly.security.DataSecurityManager"
-                         ref="dataSecurityManager"/>
-        <constructor-arg index="2" type="com.agileapes.dragonfly.entity.EntityContext"
-                         ref="entityContext"/>
-        <constructor-arg index="3" type="com.agileapes.dragonfly.entity.EntityHandlerContext"
-                         ref="entityHandlerContext"/>
+    <bean class="com.agileapes.dragonfly.data.impl.DelegatingDataAccess">
+        <constructor-arg>
+            <bean id="dataAccess" class="com.agileapes.dragonfly.data.impl.SecuredDataAccess">
+                <constructor-arg index="0" type="com.agileapes.dragonfly.data.DataAccessSession" ref="dataAccessSession"/>
+                <constructor-arg index="1" type="com.agileapes.dragonfly.security.DataSecurityManager"
+                                 ref="dataSecurityManager"/>
+                <constructor-arg index="2" type="com.agileapes.dragonfly.entity.EntityContext"
+                                 ref="entityContext"/>
+                <constructor-arg index="3" type="com.agileapes.dragonfly.entity.EntityHandlerContext"
+                                 ref="entityHandlerContext"/>
+            </bean>
+        </constructor-arg>
     </bean>
 
     <bean id="entityContext" class="com.agileapes.dragonfly.entity.impl.DefaultEntityContext">
@@ -53,10 +57,12 @@
 
     <bean id="databaseDialect" class="${db.dialect}"/>
 
-    <bean id="sessionPreparator" class="com.agileapes.dragonfly.SessionPreparator">
+    <bean id="sessionPreparator" class="com.agileapes.dragonfly.session.SessionPreparator">
         <constructor-arg value="${dragonfly.basePackages}"/>
     </bean>
 
-    <bean class="com.agileapes.dragonfly.BeanDisposer"/>
+    <bean class="com.agileapes.dragonfly.assets.BeanDisposer"/>
+
+    <bean class="com.agileapes.dragonfly.assets.DataAccessPreparator"/>
 
 </beans>

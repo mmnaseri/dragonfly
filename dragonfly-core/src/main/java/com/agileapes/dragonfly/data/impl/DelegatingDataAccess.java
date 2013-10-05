@@ -5,6 +5,8 @@ import com.agileapes.couteau.basics.collections.CollectionWrapper;
 import com.agileapes.couteau.context.impl.OrderedBeanComparator;
 import com.agileapes.dragonfly.data.*;
 import com.agileapes.dragonfly.data.impl.op.*;
+import com.agileapes.dragonfly.events.DataAccessEventHandler;
+import com.agileapes.dragonfly.events.EventHandlerContext;
 
 import java.io.Serializable;
 import java.util.List;
@@ -18,7 +20,7 @@ import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
  * @since 1.0 (2013/9/26, 2:24)
  */
 @SuppressWarnings("unchecked")
-public class DelegatingDataAccess implements DataAccess {
+public class DelegatingDataAccess implements PartialDataAccess, EventHandlerContext {
 
     public static final NoOpCallback DEFAULT_CALLBACK = new NoOpCallback();
 
@@ -74,6 +76,15 @@ public class DelegatingDataAccess implements DataAccess {
 
     public synchronized void addCallback(DataCallback<?> callback) {
         callbacks = with(callbacks).add(new SmartDataCallback<DataOperation>((DataCallback<DataOperation>) callback)).sort(new OrderedBeanComparator()).concurrentList();
+    }
+
+    @Override
+    public void addHandler(DataAccessEventHandler eventHandler) {
+        if (dataAccess instanceof EventHandlerContext) {
+            ((EventHandlerContext) dataAccess).addHandler(eventHandler);
+        } else {
+            throw new UnsupportedOperationException();
+        }
     }
 
     private <E extends DataOperation> Executable<E> given(E operation) {
@@ -283,6 +294,46 @@ public class DelegatingDataAccess implements DataAccess {
                 batchOperation.execute(DelegatingDataAccess.this);
             }
         });
+    }
+
+    @Override
+    public <O> List<O> executeQuery(O sample) {
+        if (dataAccess instanceof PartialDataAccess) {
+            return ((PartialDataAccess) dataAccess).executeQuery(sample);
+        }
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <O> List<O> executeQuery(Class<O> resultType) {
+        if (dataAccess instanceof PartialDataAccess) {
+            return ((PartialDataAccess) dataAccess).executeQuery(resultType);
+        }
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <O> List<O> executeQuery(Class<O> resultType, Map<String, Object> values) {
+        if (dataAccess instanceof PartialDataAccess) {
+            return ((PartialDataAccess) dataAccess).executeQuery(resultType, values);
+        }
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <E> List<Map<String, Object>> executeUntypedQuery(Class<E> entityType, String queryName, Map<String, Object> values) {
+        if (dataAccess instanceof PartialDataAccess) {
+            return ((PartialDataAccess) dataAccess).executeUntypedQuery(entityType, queryName, values);
+        }
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <O> int executeUpdate(O sample) {
+        if (dataAccess instanceof PartialDataAccess) {
+            return ((PartialDataAccess) dataAccess).executeUpdate(sample);
+        }
+        throw new UnsupportedOperationException();
     }
 
 }

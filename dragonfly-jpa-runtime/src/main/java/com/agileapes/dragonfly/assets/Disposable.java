@@ -1,4 +1,4 @@
-package com.agileapes.dragonfly;
+package com.agileapes.dragonfly.assets;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
