@@ -24,7 +24,7 @@ public class ListPeopleService {
         //noinspection unchecked
         final List<Person> people = ((DataAccessObject<Person, ?>) instance).findLike();
         for (Person person : people) {
-            System.out.println(people);
+            System.out.println(person);
             System.out.println("Person: " + person.getName());
             for (Thing thing : person.getThings()) {
                 System.out.println("Thing: " + thing.getName());

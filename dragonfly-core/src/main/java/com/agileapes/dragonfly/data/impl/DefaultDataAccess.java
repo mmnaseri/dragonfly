@@ -3,6 +3,7 @@ package com.agileapes.dragonfly.data.impl;
 import com.agileapes.couteau.basics.api.Filter;
 import com.agileapes.couteau.basics.api.Processor;
 import com.agileapes.couteau.basics.api.Transformer;
+import com.agileapes.couteau.basics.api.impl.EqualityFilter;
 import com.agileapes.couteau.basics.api.impl.NegatingFilter;
 import com.agileapes.couteau.context.error.RegistryException;
 import com.agileapes.couteau.reflection.beans.BeanInitializer;
@@ -94,6 +95,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     private final ThreadLocal<List<BatchOperationDescriptor>> batchOperation;
     private final ThreadLocal<List<Object>> deferredKeys;
     private final AtomicBoolean batch;
+    private final ThreadLocal<Set<LocalOperationResult>> localCounts;
 
     public DefaultDataAccess(DataAccessSession session, DataSecurityManager securityManager, EntityContext entityContext, EntityHandlerContext entityHandlerContext) {
         this(session, securityManager, entityContext, entityHandlerContext, true);
@@ -151,6 +153,12 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
             @Override
             protected Long initialValue() {
                 return 0L;
+            }
+        };
+        this.localCounts = new ThreadLocal<Set<LocalOperationResult>>() {
+            @Override
+            protected Set<LocalOperationResult> initialValue() {
+                return new HashSet<LocalOperationResult>();
             }
         };
         if (autoInitialize) {
@@ -306,16 +314,25 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     }
 
     private <E> long internalCount(Class<E> entityType, Statements.Manipulation statement, Map<String, Object> values) {
+        final LocalOperationResult result = new LocalOperationResult(entityType, statement, values);
+        if (isInBatchMode() && localCounts.get().contains(result)) {
+            return (Long) with(localCounts.get()).find(new EqualityFilter<LocalOperationResult>(result)).getResult();
+        }
         final List<Map<String, Object>> list = internalExecuteUntypedQuery(entityType, statement, values);
         if (list.size() != 1) {
             throw new UnsuccessfulOperationError("Failed to execute statement");
         }
-        return (Long) list.get(0).get(with(list.get(0).keySet()).find(new Filter<String>() {
+        final Long value = (Long) list.get(0).get(with(list.get(0).keySet()).find(new Filter<String>() {
             @Override
             public boolean accepts(String item) {
                 return session.getDatabaseDialect().getCountColumn().equalsIgnoreCase(item);
             }
         }));
+        if (isInBatchMode()) {
+            result.setResult(value);
+            localCounts.get().add(result);
+        }
+        return value;
     }
 
     /**
@@ -454,6 +471,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         if (!isInBatchMode()) {
             throw new BatchOperationInterruptedError("No batch operation has been started");
         }
+        localCounts.get().clear();
         final List<BatchOperationDescriptor> descriptors = batchOperation.get();
         batchOperation.remove();
         batch.set(false);
