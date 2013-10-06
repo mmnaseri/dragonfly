@@ -1,5 +1,8 @@
 package com.agileapes.dragonfly.data.impl;
 
+import com.agileapes.couteau.basics.api.Processor;
+import com.agileapes.dragonfly.statement.impl.DelegatingCallableStatement;
+import com.agileapes.dragonfly.statement.impl.DelegatingPreparedStatement;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -15,8 +18,10 @@ public class DelegatingConnection implements Connection {
 
     private static final Log log = LogFactory.getLog(Connection.class);
     private final Connection connection;
+    private final Processor<Connection> closeCallback;
 
-    public DelegatingConnection(Connection connection) {
+    public DelegatingConnection(Connection connection, Processor<Connection> closeCallback) {
+        this.closeCallback = closeCallback;
         log.info("Connection requested");
         this.connection = connection;
     }
@@ -30,13 +35,13 @@ public class DelegatingConnection implements Connection {
     @Override
     public PreparedStatement prepareStatement(String sql) throws SQLException {
         log.info("Preparing statement " + sql);
-        return connection.prepareStatement(sql);
+        return new DelegatingPreparedStatement(connection.prepareStatement(sql), this);
     }
 
     @Override
     public CallableStatement prepareCall(String sql) throws SQLException {
         log.info("Preparing call " + sql);
-        return connection.prepareCall(sql);
+        return new DelegatingCallableStatement(connection.prepareCall(sql), this);
     }
 
     @Override
@@ -72,6 +77,7 @@ public class DelegatingConnection implements Connection {
     public void close() throws SQLException {
         log.info("Closing the connection");
         connection.close();
+        closeCallback.process(this);
     }
 
     @Override

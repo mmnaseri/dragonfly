@@ -1,5 +1,6 @@
 package com.agileapes.dragonfly.data.impl;
 
+import com.agileapes.couteau.basics.api.Processor;
 import com.agileapes.dragonfly.data.DataAccessSession;
 import com.agileapes.dragonfly.data.DataStructureHandler;
 import com.agileapes.dragonfly.dialect.DatabaseDialect;
@@ -15,6 +16,7 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * This class encapsulates a session of interaction with the database. It is usually sufficient
@@ -32,6 +34,8 @@ public class DefaultDataAccessSession implements DataAccessSession {
     private static final String PORT_SEPARATOR = ":";
     private static final String DB_SEPARATOR = "/";
     private static final String DEFAULT_HOST = "localhost";
+    public static final long DEFAULT_CONNECTION_THRESHOLD = 100L;
+    public static final long DEFAULT_WAIT_LENIENCY = 1000L;
     private DatabaseDialect databaseDialect;
     private final String username;
     private final String password;
@@ -40,6 +44,9 @@ public class DefaultDataAccessSession implements DataAccessSession {
     private final MetadataRegistry metadataRegistry;
     private final DataStructureHandler dataStructureHandler;
     private boolean initialized = false;
+    private final AtomicLong connections = new AtomicLong(0L);
+    private long maxConnections = DEFAULT_CONNECTION_THRESHOLD;
+    private long waitLeniency = DEFAULT_WAIT_LENIENCY;
 
     private static String getConnectionString(DatabaseDialect databaseDialect, String hostName, Integer port, String databaseName) {
         return JDBC_PREFIX + databaseDialect.getName() + PROTOCOL_SPECIFIER + (hostName == null ? DEFAULT_HOST : hostName) + PORT_SEPARATOR + (port == null ? databaseDialect.getDefaultPort() : port) + DB_SEPARATOR + (databaseName == null ? "" : databaseName);
@@ -90,6 +97,20 @@ public class DefaultDataAccessSession implements DataAccessSession {
      */
     @Override
     public Connection getConnection() {
+        connections.incrementAndGet();
+        log.info("[" + connections.get() + "] Connection requested ...");
+        long wait = 0;
+        while (connections.get() >= maxConnections && wait < waitLeniency) {
+            try {
+                wait += 100;
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                throw new IllegalStateException("Failed to initialize connection", e);
+            }
+        }
+        if (connections.get() >= maxConnections) {
+            log.info("Threshold exceeded but operations are being stacked up, so we proceed anyway.");
+        }
         final Connection connection;
         try {
             if (username != null && password != null && !username.isEmpty()) {
@@ -100,7 +121,13 @@ public class DefaultDataAccessSession implements DataAccessSession {
         } catch (SQLException e) {
             throw new DatabaseConnectionError(e);
         }
-        return new DelegatingConnection(connection);
+        return new DelegatingConnection(connection, new Processor<Connection>() {
+            @Override
+            public void process(Connection input) {
+                log.info("[" + connections.get() + "] Closing connection ...");
+                connections.decrementAndGet();
+            }
+        });
     }
 
     /**
@@ -162,6 +189,14 @@ public class DefaultDataAccessSession implements DataAccessSession {
     @Override
     public boolean isInitialized() {
         return initialized;
+    }
+
+    public void setMaxConnections(long maxConnections) {
+        this.maxConnections = maxConnections;
+    }
+
+    public void setWaitLeniency(long waitLeniency) {
+        this.waitLeniency = waitLeniency;
     }
 
 }

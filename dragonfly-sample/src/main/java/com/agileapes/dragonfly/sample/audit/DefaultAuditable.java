@@ -9,7 +9,7 @@ import java.util.Date;
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/13, 16:22)
  */
-@Extension(descriptor = "!com.agileapes.dragonfly.sample.audit.Identifiable+")
+@Extension(descriptor = "!@com.agileapes.dragonfly.annotations.Extension && !com.agileapes.dragonfly.sample.audit.Identifiable+")
 public class DefaultAuditable implements Auditable, Identifiable {
 
     private String updateUser;

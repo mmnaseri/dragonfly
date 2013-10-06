@@ -32,6 +32,7 @@ import com.agileapes.dragonfly.statement.Statement;
 import com.agileapes.dragonfly.statement.StatementBuilder;
 import com.agileapes.dragonfly.statement.StatementType;
 import com.agileapes.dragonfly.statement.Statements;
+import com.agileapes.dragonfly.statement.impl.DelegatingPreparedStatement;
 import com.agileapes.dragonfly.statement.impl.FreemarkerSecondPassStatementBuilder;
 import com.agileapes.dragonfly.statement.impl.ProcedureCallStatement;
 import com.agileapes.dragonfly.tools.ColumnNameFilter;
@@ -95,6 +96,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     private final ThreadLocal<List<Object>> deferredKeys;
     private final ThreadLocal<Boolean> batch;
     private final ThreadLocal<Set<LocalOperationResult>> localCounts;
+    private final ThreadLocal<Stack<PreparedStatement>> localStatements;
 
     public DefaultDataAccess(DataAccessSession session, DataSecurityManager securityManager, EntityContext entityContext, EntityHandlerContext entityHandlerContext) {
         this(session, securityManager, entityContext, entityHandlerContext, true);
@@ -165,6 +167,12 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
                 return new HashSet<LocalOperationResult>();
             }
         };
+        this.localStatements = new ThreadLocal<Stack<PreparedStatement>>(){
+            @Override
+            protected Stack<PreparedStatement> initialValue() {
+                return new Stack<PreparedStatement>();
+            }
+        };
         if (autoInitialize) {
             log.info("Automatically initializing the session");
             synchronized (this.session) {
@@ -174,6 +182,39 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
             }
         }
     }
+
+    /**
+     * Connection handling
+     */
+
+    private Connection openConnection() {
+        if (localStatements.get().isEmpty()) {
+            return session.getConnection();
+        } else {
+            try {
+                return localStatements.get().peek().getConnection();
+            } catch (SQLException e) {
+                throw new DatabaseConnectionError(e);
+            }
+        }
+    }
+
+    private void closeConnection(Connection connection) throws SQLException {
+        if (localStatements.get().isEmpty()) {
+            connection.close();
+        }
+    }
+
+    private <S extends PreparedStatement> S openStatement(S preparedStatement) {
+        localStatements.get().push(preparedStatement);
+        return preparedStatement;
+    }
+
+    private void closeStatement(PreparedStatement preparedStatement) throws SQLException {
+        localStatements.get().pop();
+        preparedStatement.close();
+    }
+
 
     /**
      * Internal update methods
@@ -241,7 +282,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     }
 
     private synchronized BatchOperationDescriptor getPreparedStatement(Statement statement, Map<String, Object> values) {
-        final Connection connection = session.getConnection();
+        final Connection connection = openConnection();
         if (isInBatchMode()) {
             try {
                 connection.setAutoCommit(false);
@@ -255,7 +296,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         } else {
             finalStatement = statement;
         }
-        final PreparedStatement preparedStatement = finalStatement.prepare(connection, null, values);
+        final PreparedStatement preparedStatement = openStatement(new DelegatingPreparedStatement(finalStatement.prepare(connection, null, values), connection));
         return new BatchOperationDescriptor(preparedStatement, finalStatement.getSql());
     }
 
@@ -300,8 +341,8 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
             throw new BatchOperationInterruptedError("Batch operation interrupted by query");
         }
         final Statement statement = getStatement(entityType, statementName, StatementType.QUERY);
-        final Connection connection = session.getConnection();
-        final PreparedStatement preparedStatement = statement.prepare(connection, null, values);
+        final Connection connection = openConnection();
+        final PreparedStatement preparedStatement = openStatement(statement.prepare(connection, null, values));
         final ArrayList<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
         try {
             final ResultSet resultSet = preparedStatement.executeQuery();
@@ -309,8 +350,8 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
                 result.add(rowHandler.handleRow(resultSet));
             }
             resultSet.close();
-            preparedStatement.close();
-            connection.close();
+            closeStatement(preparedStatement);
+            closeConnection(connection);
         } catch (SQLException e) {
             throw new UnsuccessfulOperationError("Failed to retrieve result set from the database", e);
         }
@@ -415,7 +456,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
                         new Processor<ReferenceMetadata<E, ?>>() {
                             @Override
                             public void process(ReferenceMetadata<E, ?> reference) {
-                                final Connection connection = session.getConnection();
+                                final Connection connection = openConnection();
                                 try {
                                     connection.setAutoCommit(false);
                                 } catch (SQLException e) {
@@ -440,7 +481,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
                                 }
                                 try {
                                     connection.commit();
-                                    connection.close();
+                                    closeConnection(connection);
                                 } catch (SQLException e) {
                                     throw new EntityInitializationError(entityHandler.getEntityType(), e);
                                 }
@@ -568,8 +609,8 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     public <E> List<Map<String, Object>> executeUntypedQuery(Class<E> entityType, String queryName, Map<String, Object> values) {
         final ArrayList<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
         final Statement statement = getStatement(entityType, queryName, StatementType.QUERY);
-        final Connection connection = session.getConnection();
-        final PreparedStatement preparedStatement = statement.prepare(connection, null, values);
+        final Connection connection = openConnection();
+        final PreparedStatement preparedStatement = openStatement(statement.prepare(connection, null, values));
         final ResultSet resultSet;
         try {
             resultSet = preparedStatement.executeQuery();
@@ -581,8 +622,8 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
                 result.add(rowHandler.handleRow(resultSet));
             }
             resultSet.close();
-            preparedStatement.close();
-            connection.close();
+            closeStatement(preparedStatement);
+            closeConnection(connection);
         } catch (SQLException e) {
             throw new UnsuccessfulOperationError("Failed to load result set", e);
         }
@@ -597,7 +638,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         }
         final Partial annotation = resultType.getAnnotation(Partial.class);
         final Statement statement = getStatement(annotation.targetEntity(), annotation.query(), StatementType.INSERT, StatementType.DELETE, StatementType.UPDATE);
-        final PreparedStatement preparedStatement = statement.prepare(session.getConnection(), mapCreator, sample);
+        final PreparedStatement preparedStatement = openStatement(statement.prepare(openConnection(), mapCreator, sample));
         try {
             final int affectedRows = preparedStatement.executeUpdate();
             cleanUpStatement(preparedStatement);
@@ -704,9 +745,8 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     private <E> void saveDependents(EntityHandler<E> entityHandler, E entity) {
         entityHandler.saveDependentRelations(entity, this, entityContext);
         final Map<TableMetadata<?>, Set<ManyToManyMiddleEntity>> relatedObjects = entityHandler.getManyToManyRelatedObjects(entity);
-        final Connection connection = session.getConnection();
+        final Connection connection = openConnection();
         try {
-            connection.setAutoCommit(true);
             final Map<TableMetadata<?>, ManyToManyActionHelper> helpers = new HashMap<TableMetadata<?>, ManyToManyActionHelper>();
             for (TableMetadata<?> tableMetadata : relatedObjects.keySet()) {
                 helpers.put(tableMetadata, new ManyToManyActionHelper(statementPreparator, connection, session.getDatabaseDialect().getStatementBuilderContext(), tableMetadata, session.getMetadataRegistry().getTableMetadata(entityHandler.getEntityType())));
@@ -727,8 +767,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
                 }
                 helper.close();
             }
-//            connection.commit();
-            connection.close();
+            closeConnection(connection);
         } catch (Exception e) {
             throw new UnsuccessfulOperationError("Failed to save dependent many-to-many objects", e);
         }
@@ -737,8 +776,8 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     private void cleanUpStatement(PreparedStatement preparedStatement) {
         try {
             final Connection connection = preparedStatement.getConnection();
-            preparedStatement.close();
-            connection.close();
+            closeStatement(preparedStatement);
+            closeConnection(connection);
         } catch (SQLException e) {
             throw new UnsuccessfulOperationError("Failed to clean up", e);
         }
@@ -777,7 +816,6 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         cleanUpStatement(internalExecuteUpdate(entityHandler.getEntityType(), Statements.Manipulation.UPDATE, values));
         eventHandler.afterUpdate(enhancedEntity);
         saveDependents(entityHandler, enhancedEntity);
-//        entityHandler.saveDependentRelations(enhancedEntity, this, entityContext);
         saveQueueLock.set(saveQueueLock.get() - 1);
         if (saveQueueLock.get() == 0) {
             saveQueue.remove(entity);
@@ -825,12 +863,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     private <E> void deleteDependencies(final EntityHandler<E> entityHandler, final E enhancedEntity) {
         entityHandler.deleteDependencyRelations(enhancedEntity, this);
         final TableMetadata<E> tableMetadata = session.getMetadataRegistry().getTableMetadata(entityHandler.getEntityType());
-        final Connection connection = session.getConnection();
-        try {
-            connection.setAutoCommit(true);
-        } catch (SQLException e) {
-            throw new EntityInitializationError(entityHandler.getEntityType(), e);
-        }
+        final Connection connection = openConnection();
         with(tableMetadata.getForeignReferences())
                 .forThose(
                         new Filter<ReferenceMetadata<E, ?>>() {
@@ -861,8 +894,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
                         }
                 );
         try {
-//            connection.commit();
-            connection.close();
+            closeConnection(connection);
         } catch (SQLException e) {
             throw new EntityInitializationError(entityHandler.getEntityType(), e);
         }
@@ -1063,7 +1095,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         final CallableStatement callableStatement;
         final ArrayList<Object> result = new ArrayList<Object>();
         try {
-            callableStatement = statement.prepare(session.getConnection(), null, values);
+            callableStatement = openStatement(statement.prepare(openConnection(), null, values));
             for (int i = 0; i < procedureMetadata.getParameters().size(); i++) {
                 final ParameterMetadata metadata = procedureMetadata.getParameters().get(i);
                 if (!metadata.getParameterMode().equals(ParameterMode.IN)) {

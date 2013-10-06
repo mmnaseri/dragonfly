@@ -9,10 +9,7 @@ import com.agileapes.dragonfly.sample.entities.Book;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 
@@ -31,7 +28,7 @@ public class BookPublishingService {
 
     public void execute() {
         final Set<Thread> threads = new HashSet<Thread>();
-        final int benchmarkSize = 1000;
+        final int benchmarkSize = 100;
         for (int i = 0; i < benchmarkSize; i ++) {
             threads.add(new Thread(new Runnable() {
                 @Override
@@ -78,7 +75,7 @@ public class BookPublishingService {
                             System.out.println(book.getTitle());
                         }
                     }
-//                    dataAccess.delete(authors.get(0));
+                    dataAccess.delete(authors.get(0));
                     for (LogEntry logEntry : logContainer.getEntries()) {
                         System.out.println(logEntry);
                     }
