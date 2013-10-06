@@ -1,5 +1,7 @@
 package com.agileapes.dragonfly.entity;
 
+import java.util.Map;
+
 /**
  * This interface allows for the initialization of all data access objects with the given
  * initial state
@@ -36,13 +38,6 @@ public interface InitializedEntity<E> {
     E getOriginalCopy();
 
     /**
-     * Determines whether or not the underlying entity has been changed in any way
-     * @return {@code true} means that there as at least one apparent difference between this
-     * entity and the original copy
-     */
-    boolean isDirtied();
-
-    /**
      * Freezes the entity's state. This will prevent auto-loading of lazy-load properties,
      * dirty checking, etc.
      */
@@ -53,5 +48,11 @@ public interface InitializedEntity<E> {
      * as though the entity is being used for application
      */
     void unfreeze();
+
+    void setInitializationContext(EntityInitializationContext initializationContext);
+
+    EntityInitializationContext getInitializationContext();
+
+    void setMap(Map<String, Object> map);
 
 }

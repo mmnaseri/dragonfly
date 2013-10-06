@@ -31,7 +31,11 @@ public interface DataAccess {
      *                  {@link EntityContext#getInstance(Class)} or {@link EntityContext#getInstance(TableMetadata)}
      * @param <E>       the type of the entity
      */
-    <E> void save(E entity);
+    <E> E save(E entity);
+
+    <E> E insert(E entity);
+
+    <E> E update(E entity);
 
     /**
      * <p>Attempts to delete the given entity. This is done by taking the given
@@ -169,11 +173,56 @@ public interface DataAccess {
      * @param parameters       the parameters to the procedure. Note that parameters corresponding
      *                         to {@link com.agileapes.dragonfly.annotations.ParameterMode#OUT} and
      *                         {@link com.agileapes.dragonfly.annotations.ParameterMode#IN_OUT} must
-     *                         be of type {@link Reference} with the generics type specified to be
+     *                         be of type {@link com.agileapes.dragonfly.data.impl.Reference} with the generics type specified to be
      *                         matching that of the defined parameter
      * @param <E>              the type of the entity over which the call is taking place
      * @return the result of the call of an empty list if no result is returned
      */
     <E> List<?> call(Class<E> entityType, String procedureName, Object... parameters);
+
+    /**
+     * Counts all items of the given type
+     * @param entityType       the type of the entity for which the procedure is defined
+     * @param <E>              the type of the entity over which the call is taking place
+     * @return the number of items from the given type in the database
+     */
+    <E> long countAll(Class<E> entityType);
+
+    /**
+     * Counts items matching the given sample
+     * @param sample    the sample to be counted
+     * @param <E>       the type of the item
+     * @return number of matching items in the persistent storage
+     */
+    <E> long count(E sample);
+
+    /**
+     * Determines if an item matching the given sample exists in the database
+     * @param sample    the sample to be checked
+     * @param <E>       the type of the item
+     * @return {@code true} in case the item exists in the database
+     */
+    <E> boolean exists(E sample);
+
+    /**
+     * Checks whether an item of the given type with the given key exists in the database
+     * @param entityType    the type of the entity. This must be an entity for which
+     *                      table metadata has been previously decided, or can be
+     *                      readily determined.
+     * @param key           the key to the item
+     * @param <E>           the type of the items to be controlled
+     * @param <K>           the type of the key
+     * @return boolean value specifying whether or not the entity specified exists
+     */
+    <E, K extends Serializable> boolean exists(Class<E> entityType, K key);
+
+    /**
+     * Runs the operations specified through the callback in batches so that
+     * all similar operations are executed sequentially and through the same
+     * batch operation
+     * @param batchOperation    the stack of operations to be executed
+     * @return the result of the update operations
+     */
+    List<Integer> run(BatchOperation batchOperation);
 
 }

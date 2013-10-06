@@ -18,7 +18,7 @@ public interface DataAccessObject<E, K extends Serializable> {
      * Refreshes the entity from the database, changing the values of its properties to
      * reflect the most up-to-date values in the database.
      */
-    void refresh();
+    void load();
 
     /**
      * Saves the entity to database. This is done either by inserting a new entry in the
@@ -54,14 +54,5 @@ public interface DataAccessObject<E, K extends Serializable> {
      * @return the number of affected items
      */
     int update(String queryName);
-
-    /**
-     * This method will load all eagerly connected related properties of the entity
-     */
-    void loadRelations();
-
-    void saveRelations();
-
-    void deleteRelations();
 
 }

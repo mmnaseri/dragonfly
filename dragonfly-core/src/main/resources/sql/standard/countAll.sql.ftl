@@ -1,0 +1,1 @@
+SELECT COUNT(*) AS ${escape("cnt")} FROM ${qualify(table)};

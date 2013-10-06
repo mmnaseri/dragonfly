@@ -1,7 +1,7 @@
 package com.agileapes.dragonfly.entity.impl;
 
-import com.agileapes.dragonfly.entity.EntityMapCreator;
 import com.agileapes.dragonfly.entity.EntityHandler;
+import com.agileapes.dragonfly.entity.EntityMapCreator;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 

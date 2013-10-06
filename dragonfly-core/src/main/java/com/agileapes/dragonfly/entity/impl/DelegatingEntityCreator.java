@@ -2,11 +2,8 @@ package com.agileapes.dragonfly.entity.impl;
 
 import com.agileapes.dragonfly.entity.EntityContext;
 import com.agileapes.dragonfly.entity.EntityHandler;
-import com.agileapes.dragonfly.entity.EntityInitializationContext;
 import com.agileapes.dragonfly.entity.MapEntityCreator;
-import com.agileapes.dragonfly.error.EntityInitializationError;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
-import com.agileapes.dragonfly.metadata.TableMetadata;
 
 import java.util.Collection;
 import java.util.Map;
@@ -26,20 +23,11 @@ public class DelegatingEntityCreator implements MapEntityCreator {
     }
 
     @Override
-    public <E> E fromMap(TableMetadata<E> tableMetadata, Map<String, Object> values, EntityInitializationContext initializationContext) {
-        try {
-            return fromMap(entityContext.getInstance(tableMetadata.getEntityType()), tableMetadata.getColumns(), values, initializationContext);
-        } catch (Exception e) {
-            throw new EntityInitializationError(tableMetadata.getEntityType(), e);
-        }
-    }
-
-    @Override
-    public <E> E fromMap(E entity, Collection<ColumnMetadata> columns, Map<String, Object> values, EntityInitializationContext initializationContext) {
+    public <E> E fromMap(E entity, Collection<ColumnMetadata> columns, Map<String, Object> values) {
         if (!handler.getEntityType().isInstance(entity)) {
             throw new UnsupportedOperationException();
         }
         //noinspection unchecked
-        return (E) handler.fromMap(entity, values, initializationContext);
+        return (E) handler.fromMap(entity, values);
     }
 }

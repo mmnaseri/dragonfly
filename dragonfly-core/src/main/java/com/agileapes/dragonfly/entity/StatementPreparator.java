@@ -25,4 +25,14 @@ public interface StatementPreparator {
      */
     PreparedStatement prepare(Connection connection, TableMetadata<?> tableMetadata, Map<String, Object> value, String sql);
 
+    /**
+     * Prepares the statement for the given connection
+     * @param statement        the statement to be prepared
+     * @param tableMetadata    the table metadata for the statement
+     * @param value            the map of values to be interpolated into the statement
+     * @param sql              the SQL statement
+     * @return the prepared statement
+     */
+    PreparedStatement prepare(PreparedStatement statement, TableMetadata<?> tableMetadata, Map<String, Object> value, String sql);
+
 }

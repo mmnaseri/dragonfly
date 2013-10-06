@@ -1,11 +1,14 @@
 package com.agileapes.dragonfly.entity;
 
-import com.agileapes.couteau.basics.api.Filter;
-import com.agileapes.dragonfly.metadata.CascadeMetadata;
+import com.agileapes.dragonfly.data.DataAccess;
+import com.agileapes.dragonfly.data.DataAccessSession;
+import com.agileapes.dragonfly.data.impl.ManyToManyMiddleEntity;
+import com.agileapes.dragonfly.metadata.ReferenceMetadata;
+import com.agileapes.dragonfly.metadata.TableMetadata;
 
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * This interface encapsulates all the information about an entity that can be known
@@ -35,10 +38,9 @@ public interface EntityHandler<E> {
      * that here, the map's keys are column names.
      * @param entity    the entity to be populated
      * @param map       the map to read from
-     * @param initializationContext
      * @return populated entity (same instance as the input)
      */
-    E fromMap(E entity, Map<String, Object> map, EntityInitializationContext initializationContext);
+    E fromMap(E entity, Map<String, Object> map);
 
     /**
      * Returns the current value set for the key property on the given entity, or throws
@@ -86,5 +88,46 @@ public interface EntityHandler<E> {
      */
     String getKeyProperty();
 
-    Collection<?> getRelatedItems(E entity, Filter<CascadeMetadata> cascadeMetadataFilter);
+    /**
+     * Loads all eager relations into the entity
+     * @param entity                   the entity to be loaded
+     * @param values                   the values of the actual data retrieval
+     * @param initializationContext    the initialization context for the entity
+     */
+    void loadEagerRelations(E entity, Map<String, Object> values, EntityInitializationContext initializationContext);
+
+    void loadLazyRelation(E entity, ReferenceMetadata<E, ?> referenceMetadata, DataAccess dataAccess, EntityContext entityContext, Map<String, Object> map, DataAccessSession session);
+
+    /**
+     * Deletes all objects on the deletion of which the correct deletion of
+     * the entity relies
+     * @param entity        the entity that is to be deleted
+     * @param dataAccess    the data access for the deletion
+     */
+    void deleteDependencyRelations(E entity, DataAccess dataAccess);
+
+    /**
+     * Deletes all objects that are references by the given entity
+     * @param entity        the entity that is to be deleted
+     * @param dataAccess    the data access for the deletion
+     */
+    void deleteDependentRelations(E entity, DataAccess dataAccess);
+
+    /**
+     * Saves all relations to which references exist in the given entity
+     * @param entity        the entity that is to be saved
+     * @param dataAccess    the data access for the save
+     */
+    void saveDependencyRelations(E entity, DataAccess dataAccess);
+
+    /**
+     * Saves all relations which refer to the entity
+     * @param entity        the entity that is to be saved
+     * @param dataAccess    the data access for the save
+     * @param entityContext
+     */
+    void saveDependentRelations(E entity, DataAccess dataAccess, EntityContext entityContext);
+
+    Map<TableMetadata<?>, Set<ManyToManyMiddleEntity>> getManyToManyRelatedObjects(E entity);
+
 }

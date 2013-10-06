@@ -7,6 +7,7 @@ import com.agileapes.couteau.enhancer.impl.GeneratingClassEnhancer;
 import com.agileapes.couteau.reflection.util.ClassUtils;
 import com.agileapes.dragonfly.cg.StaticNamingPolicy;
 import com.agileapes.dragonfly.data.DataAccess;
+import com.agileapes.dragonfly.data.DataAccessSession;
 import com.agileapes.dragonfly.entity.EntityFactory;
 import com.agileapes.dragonfly.entity.EntityHandlerContext;
 import com.agileapes.dragonfly.entity.InitializedEntity;
@@ -35,10 +36,12 @@ public class DefaultEntityContext implements ModifiableEntityContext {
     private final DataSecurityManager securityManager;
     private final MetadataRegistry metadataRegistry;
     private final Cache<Class<?>, EntityFactory<?>> cache = new ConcurrentCache<Class<?>, EntityFactory<?>>();
+    private final DataAccessSession session;
 
-    public DefaultEntityContext(DataSecurityManager securityManager, MetadataRegistry metadataRegistry) {
+    public DefaultEntityContext(DataSecurityManager securityManager, MetadataRegistry metadataRegistry, DataAccessSession session) {
         this.securityManager = securityManager;
         this.metadataRegistry = metadataRegistry;
+        this.session = session;
         this.key = UUID.randomUUID().toString();
     }
 
@@ -49,22 +52,23 @@ public class DefaultEntityContext implements ModifiableEntityContext {
 
     @Override
     public <E> E getInstance(TableMetadata<E> tableMetadata) {
-        final EntityProxy<E> entityProxy = new EntityProxy<E>(dataAccess, tableMetadata, securityManager, handlerContext.getHandler(tableMetadata.getEntityType()), this);
+        final EntityProxy<E> entityProxy = new EntityProxy<E>(securityManager, tableMetadata, handlerContext.getHandler(tableMetadata.getEntityType()), dataAccess, session, this);
         if (interfaces.containsKey(tableMetadata.getEntityType())) {
             final Map<Class<?>, Class<?>> classMap = interfaces.get(tableMetadata.getEntityType());
             for (Map.Entry<Class<?>, Class<?>> entry : classMap.entrySet()) {
                 entityProxy.addInterface(entry.getKey(), entry.getValue());
             }
         }
-        final E proxy = enhanceObject(tableMetadata.getEntityType(), entityProxy);
-        //noinspection unchecked
-        ((InitializedEntity<E>) proxy).initialize(tableMetadata.getEntityType(), proxy, key);
-        //noinspection unchecked
-        ((InitializedEntity<E>) proxy).setOriginalCopy(proxy);
-        return proxy;
+        final E entity = enhanceObject(tableMetadata.getEntityType(), entityProxy);
+        if (entity instanceof InitializedEntity<?>) {
+            //noinspection unchecked
+            InitializedEntity<E> initializedEntity = (InitializedEntity<E>) entity;
+            initializedEntity.initialize(tableMetadata.getEntityType(), entity, key);
+        }
+        return entity;
     }
 
-    private <E> E enhanceObject(Class<E> type, EntityProxy<E> entityProxy) {
+    private synchronized <E> E enhanceObject(Class<E> type, EntityProxy<E> entityProxy) {
         final EntityFactory<E> factory = getFactory(type, entityProxy);
         return factory.getInstance(entityProxy);
     }
@@ -102,7 +106,11 @@ public class DefaultEntityContext implements ModifiableEntityContext {
 
     @Override
     public <E> boolean has(E entity) {
-        return entity instanceof InitializedEntity && ((InitializedEntity) entity).getToken().equals(key);
+        if (entity instanceof InitializedEntity) {
+            InitializedEntity initializedEntity = (InitializedEntity) entity;
+            return key.equals(initializedEntity.getToken());
+        }
+        return false;
     }
 
     @Override

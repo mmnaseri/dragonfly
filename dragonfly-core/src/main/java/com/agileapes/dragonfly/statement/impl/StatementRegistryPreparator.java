@@ -8,7 +8,6 @@ import com.agileapes.dragonfly.statement.StatementBuilder;
 import com.agileapes.dragonfly.statement.Statements;
 import freemarker.cache.StringTemplateLoader;
 import freemarker.template.Configuration;
-import freemarker.template.utility.StringUtil;
 
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -24,16 +23,14 @@ public class StatementRegistryPreparator {
     private final MetadataRegistry registry;
     private final Set<Class<?>> entities;
     private final StatementBuilder statementBuilder;
-    private final StringTemplateLoader loader;
+    private final Configuration configuration;
 
     public StatementRegistryPreparator(DatabaseDialect dialect, MetadataResolver resolver, MetadataRegistry registry) {
         this.dialect = dialect;
         this.resolver = resolver;
         this.registry = registry;
         this.entities = new CopyOnWriteArraySet<Class<?>>();
-        this.loader = new StringTemplateLoader();
-        final Configuration configuration = new Configuration();
-        configuration.setTemplateLoader(loader);
+        this.configuration = new Configuration();
         this.statementBuilder = new FreemarkerStatementBuilder(configuration, "sql", this.dialect);
     }
 
@@ -43,8 +40,12 @@ public class StatementRegistryPreparator {
 
     public void prepare(StatementRegistry statementRegistry) {
         for (Class<?> entity : entities) {
-            registry.addTableMetadata(resolver.resolve(entity));
+            if (!registry.contains(entity)) {
+                registry.addTableMetadata(resolver.resolve(entity));
+            }
         }
+        entities.clear();
+        entities.addAll(registry.getEntityTypes());
         for (Class<?> entity : entities) {
             final TableMetadata<?> tableMetadata = registry.getTableMetadata(entity);
             try {
@@ -54,15 +55,20 @@ public class StatementRegistryPreparator {
                 statementRegistry.register(entity.getCanonicalName() + ".findAll", dialect.getStatementBuilderContext().getManipulationStatementBuilder(Statements.Manipulation.FIND_ALL).getStatement(tableMetadata));
                 statementRegistry.register(entity.getCanonicalName() + ".findByKey", dialect.getStatementBuilderContext().getManipulationStatementBuilder(Statements.Manipulation.FIND_ONE).getStatement(tableMetadata));
                 statementRegistry.register(entity.getCanonicalName() + ".findLike", dialect.getStatementBuilderContext().getManipulationStatementBuilder(Statements.Manipulation.FIND_LIKE).getStatement(tableMetadata));
+                statementRegistry.register(entity.getCanonicalName() + ".countAll", dialect.getStatementBuilderContext().getManipulationStatementBuilder(Statements.Manipulation.COUNT_ALL).getStatement(tableMetadata));
+                statementRegistry.register(entity.getCanonicalName() + ".countByKey", dialect.getStatementBuilderContext().getManipulationStatementBuilder(Statements.Manipulation.COUNT_ONE).getStatement(tableMetadata));
+                statementRegistry.register(entity.getCanonicalName() + ".countLike", dialect.getStatementBuilderContext().getManipulationStatementBuilder(Statements.Manipulation.COUNT_LIKE).getStatement(tableMetadata));
                 statementRegistry.register(entity.getCanonicalName() + ".insert", dialect.getStatementBuilderContext().getManipulationStatementBuilder(Statements.Manipulation.INSERT).getStatement(tableMetadata));
                 statementRegistry.register(entity.getCanonicalName() + ".updateBySample", dialect.getStatementBuilderContext().getManipulationStatementBuilder(Statements.Manipulation.UPDATE).getStatement(tableMetadata));
                 statementRegistry.register(entity.getCanonicalName() + ".truncate", dialect.getStatementBuilderContext().getManipulationStatementBuilder(Statements.Manipulation.TRUNCATE).getStatement(tableMetadata));
                 for (NamedQueryMetadata namedQueryMetadata : tableMetadata.getNamedQueries()) {
+                    final StringTemplateLoader loader = new StringTemplateLoader();
                     loader.putTemplate("sql", namedQueryMetadata.getQuery());
+                    configuration.setTemplateLoader(loader);
                     statementRegistry.register(entity.getCanonicalName() + "." + namedQueryMetadata.getName(), statementBuilder.getStatement(tableMetadata));
                 }
                 for (StoredProcedureMetadata procedure : tableMetadata.getProcedures()) {
-                    statementRegistry.register(entity.getCanonicalName() + ".call" + StringUtil.capitalize(procedure.getName()), new ProcedureCallStatement(dialect.getStatementBuilderContext().getManipulationStatementBuilder(Statements.Manipulation.CALL).getStatement(tableMetadata, procedure), dialect));
+                    statementRegistry.register(entity.getCanonicalName() + ".call." + procedure.getName(), new ProcedureCallStatement(dialect.getStatementBuilderContext().getManipulationStatementBuilder(Statements.Manipulation.CALL).getStatement(tableMetadata, procedure), dialect));
                 }
             } catch (RegistryException e) {
                 throw new MetadataCollectionError("Failed to prepare statements for entity " + entity.getCanonicalName(), e);
