@@ -8,6 +8,7 @@ import com.agileapes.dragonfly.sample.entities.Author;
 import com.agileapes.dragonfly.sample.entities.Book;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StopWatch;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -30,8 +31,9 @@ public class BookPublishingService {
     private LogContainer logContainer;
 
     public void execute() {
+        final StopWatch stopWatch = new StopWatch();
         final Set<Thread> threads = new HashSet<Thread>();
-        final int benchmarkSize = 1000;
+        final int benchmarkSize = 100;
         for (int i = 0; i < benchmarkSize; i ++) {
             threads.add(new Thread(new Runnable() {
                 @Override
@@ -87,6 +89,7 @@ public class BookPublishingService {
         }
         final Set<Thread> started = new HashSet<Thread>();
         final int operationSize = threads.size();
+        stopWatch.start();
         while (!threads.isEmpty()) {
             final Thread thread = threads.iterator().next();
             threads.remove(thread);
@@ -103,6 +106,8 @@ public class BookPublishingService {
                 started.clear();
             }
         }
+        stopWatch.stop();
+        System.out.println(stopWatch.prettyPrint());
     }
 
     private Book getBook(String title) {
