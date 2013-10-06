@@ -1,0 +1,76 @@
+package com.agileapes.dragonfly.data.impl;
+
+import javax.sql.DataSource;
+import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+
+/**
+ * This class encapsulates a simple data source established through a simple connection
+ * string
+ *
+ * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
+ * @since 1.0 (8/14/13, 3:23 PM)
+ */
+public class JdbcDataSource implements DataSource {
+
+    private PrintWriter out;
+    private int loginTimeout;
+    private final String connectionString;
+    private final String username;
+    private final String password;
+
+    public JdbcDataSource(String connectionString) {
+        this(connectionString, null, null);
+    }
+
+    public JdbcDataSource(String connectionString, String username, String password) {
+        this.connectionString = connectionString;
+        this.username = username;
+        this.password = password;
+    }
+
+    @Override
+    public Connection getConnection() throws SQLException {
+        if (username != null && password != null) {
+            return DriverManager.getConnection(connectionString, username, password);
+        }
+        return DriverManager.getConnection(connectionString);
+    }
+
+    @Override
+    public Connection getConnection(String username, String password) throws SQLException {
+        return DriverManager.getConnection(connectionString, username, password);
+    }
+
+    @Override
+    public PrintWriter getLogWriter() throws SQLException {
+        return out;
+    }
+
+    @Override
+    public void setLogWriter(PrintWriter out) throws SQLException {
+        this.out = out;
+    }
+
+    @Override
+    public void setLoginTimeout(int seconds) throws SQLException {
+        loginTimeout = seconds;
+    }
+
+    @Override
+    public int getLoginTimeout() throws SQLException {
+        return loginTimeout;
+    }
+
+    @Override
+    public <T> T unwrap(Class<T> iface) throws SQLException {
+        throw new SQLException("This class does not wrap any interfaces");
+    }
+
+    @Override
+    public boolean isWrapperFor(Class<?> iface) throws SQLException {
+        return false;
+    }
+}

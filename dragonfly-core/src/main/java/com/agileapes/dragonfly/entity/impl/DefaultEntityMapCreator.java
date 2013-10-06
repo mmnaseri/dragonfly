@@ -67,6 +67,9 @@ public class DefaultEntityMapCreator implements EntityMapCreator {
                         throw new Error("Entity " + entity.getClass().getCanonicalName() + " references a non-existent column in " + column.getName());
                     }
                 }
+                if (!target.getDeclaringClass().isInstance(value)) {
+                    continue;
+                }
                 final BeanAccessor<?> targetAccessor = new MethodBeanAccessor<Object>(value);
                 try {
                     value = targetAccessor.getPropertyValue(target.getPropertyName());

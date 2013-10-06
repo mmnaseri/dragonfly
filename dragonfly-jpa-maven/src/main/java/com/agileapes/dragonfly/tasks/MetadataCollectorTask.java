@@ -16,6 +16,7 @@ import com.agileapes.dragonfly.metadata.impl.AnnotationMetadataResolver;
 import com.agileapes.dragonfly.metadata.impl.DefaultMetadataContext;
 import com.agileapes.dragonfly.metadata.impl.DefaultMetadataResolverContext;
 import com.agileapes.dragonfly.mojo.PluginExecutor;
+import com.agileapes.dragonfly.statement.impl.DefaultStatementRegistry;
 import com.agileapes.dragonfly.statement.impl.StatementRegistry;
 import com.agileapes.dragonfly.statement.impl.StatementRegistryPreparator;
 import org.apache.maven.plugin.MojoFailureException;
@@ -39,7 +40,7 @@ import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 public class MetadataCollectorTask extends PluginTask<PluginExecutor> implements ApplicationContextAware {
 
     private final MetadataRegistry registry = new DefaultMetadataContext();
-    private final StatementRegistry statementRegistry = new StatementRegistry();
+    private final StatementRegistry statementRegistry = new DefaultStatementRegistry();
     private ApplicationContext applicationContext;
 
     @Autowired

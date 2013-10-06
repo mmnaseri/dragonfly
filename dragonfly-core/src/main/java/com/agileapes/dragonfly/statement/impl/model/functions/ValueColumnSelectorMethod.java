@@ -29,7 +29,9 @@ public class ValueColumnSelectorMethod extends FilteringMethodModel<ColumnMetada
             //noinspection unchecked
             final Map<String, ?> map = (Map<String, ?>) value;
             for (String property : map.keySet()) {
-                properties.add(property.substring(6));
+                if (property.startsWith("value.")) {
+                    properties.add(property.substring(6));
+                }
             }
             return;
         }

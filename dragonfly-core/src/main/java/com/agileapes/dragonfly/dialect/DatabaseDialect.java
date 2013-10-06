@@ -1,6 +1,7 @@
 package com.agileapes.dragonfly.dialect;
 
 import com.agileapes.couteau.basics.api.Filter;
+import com.agileapes.dragonfly.data.DataAccessSession;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.statement.StatementBuilderContext;
@@ -9,6 +10,7 @@ import java.io.Serializable;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Map;
 
 /**
  * This interface holds all vendor-specific and dialectal information needed throughout the
@@ -50,17 +52,19 @@ public interface DatabaseDialect extends Filter<DatabaseMetaData> {
 
     /**
      * Retrieves generated key data for the given table from the given result set
+     *
      * @param generatedKeys    the result set containing generated keys
-     * @param tableMetadata    the table metadata
      * @return the generated key
      * @throws SQLException
      */
-    Serializable retrieveKey(ResultSet generatedKeys, TableMetadata<?> tableMetadata) throws SQLException;
+    Serializable retrieveKey(ResultSet generatedKeys) throws SQLException;
 
     /**
      * @return the name of the dialect
      */
     String getName();
+
+    String getDriverClassName();
 
     /**
      * @return the default port through which connections can be made to the database
@@ -75,5 +79,16 @@ public interface DatabaseDialect extends Filter<DatabaseMetaData> {
      * @return {@code true} means that the table exists
      */
     <E> boolean hasTable(DatabaseMetaData databaseMetadata, TableMetadata<E> tableMetadata);
+
+    /**
+     * @return the name of the column associated with the count of data as specified by
+     * the statements defined through the statement builder context for the dialect
+     */
+    String getCountColumn();
+
+    <E> Map<String,Object> loadSequenceValues(TableMetadata<E> tableMetadata);
+
+    <E> Map<String,Object> loadTableValues(TableMetadata<?> generatorMetadata, TableMetadata<E> tableMetadata, DataAccessSession session);
+
 
 }

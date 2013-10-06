@@ -1,6 +1,6 @@
 package com.agileapes.dragonfly.error;
 
-import com.agileapes.dragonfly.data.Reference;
+import com.agileapes.dragonfly.data.impl.Reference;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)

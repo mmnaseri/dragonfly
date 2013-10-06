@@ -1,23 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <bean id="dataAccessSession" class="com.agileapes.dragonfly.data.DataAccessSession">
+    <bean id="dataAccessSession" class="com.agileapes.dragonfly.data.impl.DefaultDataAccessSession">
         <constructor-arg index="0" type="com.agileapes.dragonfly.dialect.DatabaseDialect" ref="databaseDialect"/>
         <constructor-arg index="1" type="com.agileapes.dragonfly.statement.impl.StatementRegistry"
                          ref="statementRegistry"/>
         <constructor-arg index="2" type="com.agileapes.dragonfly.metadata.MetadataRegistry" ref="metadataContext"/>
         <constructor-arg index="3" type="javax.sql.DataSource" ref="${db.dataSource}"/>
-        <constructor-arg index="4" type="java.lang.String" value="${db.username}"/>
-        <constructor-arg index="5" type="java.lang.String" value="${db.password}"/>
     </bean>
 
     <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
         <property name="locations" value="classpath:db.properties"/>
     </bean>
 
-    <bean id="statementRegistry" class="com.agileapes.dragonfly.statement.impl.StatementRegistry"/>
+    <bean id="statementRegistry" class="com.agileapes.dragonfly.statement.impl.DefaultStatementRegistry"/>
 
     <bean id="metadataContext" class="com.agileapes.dragonfly.metadata.impl.DefaultMetadataContext"/>
 
@@ -36,26 +34,35 @@
 
     <bean id="auditInterceptor" class="com.agileapes.dragonfly.sample.audit.AuditInterceptor"/>
 
-    <bean id="dataAccess" class="com.agileapes.dragonfly.data.impl.SecuredDataAccess">
-        <constructor-arg index="0" type="com.agileapes.dragonfly.data.DataAccessSession" ref="dataAccessSession"/>
-        <constructor-arg index="1" type="com.agileapes.dragonfly.security.DataSecurityManager"
-                         ref="dataSecurityManager"/>
-        <constructor-arg index="2" type="com.agileapes.dragonfly.entity.EntityContext"
-                         ref="entityContext"/>
-        <constructor-arg index="3" type="com.agileapes.dragonfly.entity.EntityHandlerContext"
-                         ref="entityHandlerContext"/>
+    <bean class="com.agileapes.dragonfly.data.impl.DelegatingDataAccess">
+        <constructor-arg>
+            <bean id="dataAccess" class="com.agileapes.dragonfly.data.impl.SecuredDataAccess">
+                <constructor-arg index="0" type="com.agileapes.dragonfly.data.DataAccessSession" ref="dataAccessSession"/>
+                <constructor-arg index="1" type="com.agileapes.dragonfly.security.DataSecurityManager"
+                                 ref="dataSecurityManager"/>
+                <constructor-arg index="2" type="com.agileapes.dragonfly.entity.EntityContext"
+                                 ref="entityContext"/>
+                <constructor-arg index="3" type="com.agileapes.dragonfly.entity.EntityHandlerContext"
+                                 ref="entityHandlerContext"/>
+            </bean>
+        </constructor-arg>
     </bean>
 
     <bean id="entityContext" class="com.agileapes.dragonfly.entity.impl.DefaultEntityContext">
         <constructor-arg index="0" type="com.agileapes.dragonfly.security.DataSecurityManager"
                          ref="dataSecurityManager"/>
         <constructor-arg index="1" type="com.agileapes.dragonfly.metadata.MetadataRegistry" ref="metadataContext"/>
+        <constructor-arg index="2" type="com.agileapes.dragonfly.data.DataAccessSession" ref="dataAccessSession"/>
     </bean>
 
     <bean id="databaseDialect" class="${db.dialect}"/>
 
-    <bean id="sessionPreparator" class="com.agileapes.dragonfly.SessionPreparator">
+    <bean id="sessionPreparator" class="com.agileapes.dragonfly.session.SessionPreparator">
         <constructor-arg value="${dragonfly.basePackages}"/>
     </bean>
+
+    <bean class="com.agileapes.dragonfly.assets.BeanDisposer"/>
+
+    <bean class="com.agileapes.dragonfly.assets.DataAccessPreparator"/>
 
 </beans>
