@@ -8,7 +8,6 @@ import com.agileapes.couteau.maven.resource.ProjectResourceTypeFilter;
 import com.agileapes.couteau.maven.task.PluginTask;
 import com.agileapes.couteau.reflection.util.assets.AnnotatedElementFilter;
 import com.agileapes.dragonfly.annotations.Extension;
-import com.agileapes.dragonfly.entity.EntityDefinitionContext;
 import com.agileapes.dragonfly.ext.ExtensionManager;
 import com.agileapes.dragonfly.mojo.PluginExecutor;
 import org.apache.maven.plugin.MojoFailureException;

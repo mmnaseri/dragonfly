@@ -1,6 +1,7 @@
 package com.agileapes.dragonfly.sample;
 
-import com.agileapes.dragonfly.sample.service.*;
+import com.agileapes.dragonfly.sample.service.BookPublishingService;
+import com.agileapes.dragonfly.sample.service.CleanUpService;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 

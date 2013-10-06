@@ -4,7 +4,6 @@ import com.agileapes.dragonfly.metadata.TableMetadata;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.Statement;
 import java.util.Map;
 
 /**

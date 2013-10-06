@@ -1,7 +1,5 @@
 package com.agileapes.dragonfly.error;
 
-import com.agileapes.dragonfly.metadata.TableMetadata;
-
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/8/29, 14:38)

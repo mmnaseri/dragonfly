@@ -1,7 +1,6 @@
 package com.agileapes.dragonfly.entity;
 
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
-import com.agileapes.dragonfly.metadata.TableMetadata;
 
 import java.util.Collection;
 import java.util.Map;

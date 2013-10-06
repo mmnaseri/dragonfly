@@ -1,13 +1,9 @@
 package com.agileapes.dragonfly.entity.impl;
 
 import com.agileapes.couteau.basics.api.Cache;
-import com.agileapes.couteau.basics.api.impl.CachingDataDispenser;
 import com.agileapes.couteau.basics.api.impl.ConcurrentCache;
 import com.agileapes.dragonfly.data.DataAccess;
 import com.agileapes.dragonfly.entity.EntityInitializationContext;
-import com.agileapes.dragonfly.error.ContextLockFailureError;
-
-import java.io.Serializable;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
