@@ -25,4 +25,8 @@ public class ManyToManyMiddleEntity {
         this.second = second;
     }
 
+    public boolean isComplete() {
+        return first != null && second != null;
+    }
+
 }

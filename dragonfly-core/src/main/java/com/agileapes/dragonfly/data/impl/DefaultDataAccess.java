@@ -131,7 +131,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
             }
         };
         this.batchOperation = new ThreadLocal<List<BatchOperationDescriptor>>();
-        this.batch = new ThreadLocal<Boolean>(){
+        this.batch = new ThreadLocal<Boolean>() {
             @Override
             protected Boolean initialValue() {
                 return false;
@@ -704,16 +704,6 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     private <E> void saveDependents(EntityHandler<E> entityHandler, E entity) {
         entityHandler.saveDependentRelations(entity, this, entityContext);
         final Map<TableMetadata<?>, Set<ManyToManyMiddleEntity>> relatedObjects = entityHandler.getManyToManyRelatedObjects(entity);
-        boolean hasRelations = false;
-        for (Set<ManyToManyMiddleEntity> entities : relatedObjects.values()) {
-            if (!entities.isEmpty()) {
-                hasRelations = true;
-                break;
-            }
-        }
-        if (!hasRelations) {
-            return;
-        }
         final Connection connection = session.getConnection();
         try {
             connection.setAutoCommit(true);
@@ -728,6 +718,10 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
                 final ManyToManyMiddleEntity someRelation = entry.getValue().iterator().next();
                 final ManyToManyActionHelper helper = helpers.get(entry.getKey());
                 helper.delete(someRelation);
+                if (entry.getValue().size() == 1 && !someRelation.isComplete()) {
+                    helper.close();
+                    continue;
+                }
                 for (ManyToManyMiddleEntity middleEntity : entry.getValue()) {
                     helper.insert(middleEntity);
                 }
@@ -782,7 +776,8 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         }
         cleanUpStatement(internalExecuteUpdate(entityHandler.getEntityType(), Statements.Manipulation.UPDATE, values));
         eventHandler.afterUpdate(enhancedEntity);
-        entityHandler.saveDependentRelations(enhancedEntity, this, entityContext);
+        saveDependents(entityHandler, enhancedEntity);
+//        entityHandler.saveDependentRelations(enhancedEntity, this, entityContext);
         saveQueueLock.set(saveQueueLock.get() - 1);
         if (saveQueueLock.get() == 0) {
             saveQueue.remove(entity);

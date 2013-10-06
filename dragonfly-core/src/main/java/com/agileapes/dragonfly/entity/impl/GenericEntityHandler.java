@@ -629,20 +629,24 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
                     public void process(ReferenceMetadata<E, ?> input) {
                         final TableMetadata<?> foreignTable = input.getForeignTable();
                         try {
-                            final Object propertyValue = accessor.getPropertyValue(input.getPropertyName());
+                            Object propertyValue = accessor.getPropertyValue(input.getPropertyName());
                             if (propertyValue == null) {
-                                return;
+                                propertyValue = Collections.emptyList();
                             }
                             //noinspection unchecked
                             final Collection<Object> collection = (Collection<Object>) propertyValue;
+                            final ColumnNameFilter columnNameFilter = new ColumnNameFilter(tableMetadata.getName());
                             if (collection.isEmpty()) {
+                                final ManyToManyMiddleEntity middleEntity = new ManyToManyMiddleEntity();
+                                final BeanWrapper<ManyToManyMiddleEntity> wrapper = new MethodBeanWrapper<ManyToManyMiddleEntity>(middleEntity);
+                                wrapper.setPropertyValue(with(foreignTable.getColumns()).find(columnNameFilter).getPropertyName(), entity);
+                                map.put(foreignTable, new HashSet<ManyToManyMiddleEntity>(Arrays.asList(middleEntity)));
                                 return;
                             }
                             final Set<ManyToManyMiddleEntity> entities = new HashSet<ManyToManyMiddleEntity>();
                             for (Object item : collection) {
                                 final ManyToManyMiddleEntity middleEntity = new ManyToManyMiddleEntity();
                                 final BeanWrapper<ManyToManyMiddleEntity> wrapper = new MethodBeanWrapper<ManyToManyMiddleEntity>(middleEntity);
-                                final ColumnNameFilter columnNameFilter = new ColumnNameFilter(tableMetadata.getName());
                                 wrapper.setPropertyValue(with(foreignTable.getColumns()).find(columnNameFilter).getPropertyName(), entity);
                                 wrapper.setPropertyValue(with(foreignTable.getColumns()).find(new NegatingFilter<ColumnMetadata>(columnNameFilter)).getPropertyName(), item);
                                 entities.add(middleEntity);
