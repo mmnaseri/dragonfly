@@ -1,6 +1,7 @@
 package com.agileapes.dragonfly.entity.impl;
 
 import com.agileapes.couteau.basics.api.Cache;
+import com.agileapes.couteau.basics.api.impl.AbstractCache;
 import com.agileapes.couteau.basics.api.impl.SimpleCache;
 import com.agileapes.dragonfly.data.DataAccess;
 
@@ -13,7 +14,7 @@ public class ThreadLocalEntityInitializationContext extends AbstractLockingEntit
     private final ThreadLocal<Cache<EntityInstanceDescriptor, Object>> threadLocalCache = new ThreadLocal<Cache<EntityInstanceDescriptor, Object>>() {
         @Override
         protected Cache<EntityInstanceDescriptor, Object> initialValue() {
-            return new SimpleCache<EntityInstanceDescriptor, Object>();
+            return new SimpleCache<EntityInstanceDescriptor, Object>(100, AbstractCache.RemovePolicy.OLDEST_FIRST);
         }
     };
 

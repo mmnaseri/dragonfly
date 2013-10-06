@@ -154,7 +154,9 @@ public class EntityProxy<E> extends SecuredInterfaceInterceptor implements DataA
                         }
                     });
                     if (referenceMetadata != null && referenceMetadata.isLazy()) {
+                        freeze();
                         entityHandler.loadLazyRelation(entity, referenceMetadata, dataAccess, entityContext, map, session);
+                        unfreeze();
                     }
                 }
             }

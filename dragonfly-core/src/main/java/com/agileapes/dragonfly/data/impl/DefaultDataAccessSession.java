@@ -47,6 +47,7 @@ public class DefaultDataAccessSession implements DataAccessSession {
     private final AtomicLong connections = new AtomicLong(0L);
     private long maxConnections = DEFAULT_CONNECTION_THRESHOLD;
     private long waitLeniency = DEFAULT_WAIT_LENIENCY;
+    private final ThreadLocal<DelegatingConnection> localConnection;
 
     private static String getConnectionString(DatabaseDialect databaseDialect, String hostName, Integer port, String databaseName) {
         return JDBC_PREFIX + databaseDialect.getName() + PROTOCOL_SPECIFIER + (hostName == null ? DEFAULT_HOST : hostName) + PORT_SEPARATOR + (port == null ? databaseDialect.getDefaultPort() : port) + DB_SEPARATOR + (databaseName == null ? "" : databaseName);
@@ -88,6 +89,7 @@ public class DefaultDataAccessSession implements DataAccessSession {
         this.username = username;
         this.password = password;
         this.dataStructureHandler = new DefaultDataStructureHandler(this);
+        this.localConnection = new ThreadLocal<DelegatingConnection>();
     }
 
     /**
@@ -96,7 +98,12 @@ public class DefaultDataAccessSession implements DataAccessSession {
      * @return the connection instance
      */
     @Override
-    public Connection getConnection() {
+    public synchronized Connection getConnection() {
+        if (localConnection.get() != null) {
+            final DelegatingConnection connection = localConnection.get();
+            connection.open();
+            return connection;
+        }
         connections.incrementAndGet();
         log.info("[" + connections.get() + "] Connection requested ...");
         long wait = 0;
@@ -109,7 +116,7 @@ public class DefaultDataAccessSession implements DataAccessSession {
             }
         }
         if (connections.get() >= maxConnections) {
-            log.info("Threshold exceeded but operations are being stacked up, so we proceed anyway.");
+            log.warn("Threshold exceeded but operations are stacked up, so we will proceed anyway.");
         }
         final Connection connection;
         try {
@@ -121,13 +128,17 @@ public class DefaultDataAccessSession implements DataAccessSession {
         } catch (SQLException e) {
             throw new DatabaseConnectionError(e);
         }
-        return new DelegatingConnection(connection, new Processor<Connection>() {
+        final DelegatingConnection delegatingConnection = new DelegatingConnection(connection, new Processor<Connection>() {
             @Override
             public void process(Connection input) {
                 log.info("[" + connections.get() + "] Closing connection ...");
                 connections.decrementAndGet();
+                localConnection.remove();
             }
         });
+        delegatingConnection.open();
+        localConnection.set(delegatingConnection);
+        return delegatingConnection;
     }
 
     /**

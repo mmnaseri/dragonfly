@@ -19,11 +19,18 @@ public class DelegatingConnection implements Connection {
     private static final Log log = LogFactory.getLog(Connection.class);
     private final Connection connection;
     private final Processor<Connection> closeCallback;
+    private final ThreadLocal<Long> opened;
 
     public DelegatingConnection(Connection connection, Processor<Connection> closeCallback) {
         this.closeCallback = closeCallback;
-        log.info("Connection requested");
         this.connection = connection;
+        this.opened = new ThreadLocal<Long>(){
+            @Override
+            protected Long initialValue() {
+                return 0L;
+            }
+        };
+        log.info("Connection requested");
     }
 
     @Override
@@ -64,7 +71,9 @@ public class DelegatingConnection implements Connection {
     @Override
     public void commit() throws SQLException {
         log.info("Committing connection");
-        connection.commit();
+        if (!connection.getAutoCommit()) {
+            connection.commit();
+        }
     }
 
     @Override
@@ -73,11 +82,22 @@ public class DelegatingConnection implements Connection {
         connection.rollback();
     }
 
+    public void open() {
+        opened.set(opened.get() + 1);
+    }
+
     @Override
     public void close() throws SQLException {
+        opened.set(opened.get() - 1);
+        if (opened.get() < 0) {
+            throw new IllegalStateException();
+        }
         log.info("Closing the connection");
-        connection.close();
+        if (opened.get() > 0) {
+            return;
+        }
         closeCallback.process(this);
+        connection.close();
     }
 
     @Override

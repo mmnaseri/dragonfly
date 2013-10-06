@@ -28,7 +28,7 @@ public class BookPublishingService {
 
     public void execute() {
         final Set<Thread> threads = new HashSet<Thread>();
-        final int benchmarkSize = 100;
+        final int benchmarkSize = 1000;
         for (int i = 0; i < benchmarkSize; i ++) {
             threads.add(new Thread(new Runnable() {
                 @Override
@@ -80,7 +80,7 @@ public class BookPublishingService {
                         System.out.println(logEntry);
                     }
                 }
-            }));
+            }, "Publisher-" + i));
         }
         final Set<Thread> started = new HashSet<Thread>();
         final int operationSize = threads.size();

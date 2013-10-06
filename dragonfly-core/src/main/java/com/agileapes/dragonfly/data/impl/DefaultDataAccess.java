@@ -457,11 +457,6 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
                             @Override
                             public void process(ReferenceMetadata<E, ?> reference) {
                                 final Connection connection = openConnection();
-                                try {
-                                    connection.setAutoCommit(false);
-                                } catch (SQLException e) {
-                                    throw new EntityInitializationError(entityHandler.getEntityType(), e);
-                                }
                                 final TableMetadata<?> middleTable = reference.getForeignTable();
                                 final ManyToManyActionHelper helper = new ManyToManyActionHelper(statementPreparator, connection, session.getDatabaseDialect().getStatementBuilderContext(), middleTable, tableMetadata);
                                 final ManyToManyMiddleEntity middleEntity = new ManyToManyMiddleEntity();
@@ -480,7 +475,6 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
                                     throw new EntityInitializationError(entityHandler.getEntityType(), e);
                                 }
                                 try {
-                                    connection.commit();
                                     closeConnection(connection);
                                 } catch (SQLException e) {
                                     throw new EntityInitializationError(entityHandler.getEntityType(), e);

@@ -358,11 +358,6 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
             }
         } else if (referenceMetadata.getRelationType().equals(RelationType.MANY_TO_MANY)) {
             final Connection connection = session.getConnection();
-            try {
-                connection.setAutoCommit(true);
-            } catch (SQLException e) {
-                throw new EntityPreparationError("Failed to change auto-commit mode on connection", e);
-            }
             final ManyToManyActionHelper helper = new ManyToManyActionHelper(new DefaultStatementPreparator(false), connection, session.getDatabaseDialect().getStatementBuilderContext(), referenceMetadata.getForeignColumn().getTable(), tableMetadata);
             final ManyToManyMiddleEntity middleEntity = new ManyToManyMiddleEntity();
             final BeanWrapper<ManyToManyMiddleEntity> middleEntityWrapper = new MethodBeanWrapper<ManyToManyMiddleEntity>(middleEntity);
@@ -374,7 +369,6 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
             final List<Serializable> list = helper.find(middleEntity);
             helper.close();
             try {
-//                connection.commit();
                 connection.close();
             } catch (SQLException e) {
                 throw new EntityPreparationError("Failed to commit changes to the database", e);
