@@ -9,15 +9,15 @@ import java.util.List;
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/10/7, 23:43)
  */
-public class AllTypeFilter implements Filter<Class<?>> {
+public class AndTypeFilter implements Filter<Class<?>> {
 
     private final List<Filter<Class<?>>> filters;
 
-    public AllTypeFilter(Filter<Class<?>>... filters) {
+    public AndTypeFilter(Filter<Class<?>>... filters) {
         this(Arrays.asList(filters));
     }
 
-    public AllTypeFilter(List<Filter<Class<?>>> filters) {
+    public AndTypeFilter(List<Filter<Class<?>>> filters) {
         this.filters = filters;
     }
 
