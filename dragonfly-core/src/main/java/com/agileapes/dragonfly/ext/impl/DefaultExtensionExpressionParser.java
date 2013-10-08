@@ -13,7 +13,10 @@ import org.antlr.runtime.RecognitionException;
 import org.antlr.runtime.tree.CommonTree;
 import org.antlr.runtime.tree.Tree;
 
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
@@ -37,7 +40,7 @@ public class DefaultExtensionExpressionParser implements ExtensionExpressionPars
         final TypeDescriptorParser parser = new TypeDescriptorParser(new BufferedTokenStream(new TypeDescriptorLexer(new ANTLRStringStream(expression))));
         try {
             final TypeDescriptorParser.start_return start = parser.start();
-            final Filter<Class<?>> filter = createFilter((CommonTree) start.getTree());
+            final Filter<Class<?>> filter = getFilter((CommonTree) start.getTree());
             if (parser.getNumberOfSyntaxErrors() > 0) {
                 throw new RecognitionException();
             }
@@ -47,78 +50,137 @@ public class DefaultExtensionExpressionParser implements ExtensionExpressionPars
         }
     }
 
-    private Filter<Class<?>> createFilter(CommonTree tree) {
-        if (tree.getType() == TypeDescriptorParser.SELECT) {
-            final List<CommonTree> children = tree.getChildren();
-            if (children.size() == 1) {
-                final CommonTree child = children.get(0);
-                if (child.getType() == TypeDescriptorParser.ANY) {
-                    return ALL;
-                } else if (child.getType() == TypeDescriptorParser.TYPE) {
-                    return new TypeFilter(convertTree(child), TypeSelector.EQUALS);
-                }
-            } else if (children.size() == 2) {
-                final CommonTree first = children.get(0);
-                final CommonTree second = children.get(1);
-                if (first.getType() == TypeDescriptorParser.TYPE) {
-                    if (second.getType() != TypeDescriptorParser.CHILD) {
-                        throw new ExpressionParseError(new Error("Invalid token: " + second.getToken()));
-                    }
-                    return new TypeFilter(convertTree(first), TypeSelector.ASSIGNABLE);
-                } else {
-                    if (first.getType() == TypeDescriptorParser.ANNOTATION) {
-                        final ArrayList<Filter<Class<?>>> filters = new ArrayList<Filter<Class<?>>>();
-                        if (second.getType() == TypeDescriptorParser.TYPE) {
-                            filters.add(new TypeFilter(convertTree(second), TypeSelector.EQUALS));
-                        }
-                        filters.addAll(getAnnotationFilters(first.getChildren()));
-                        return new AllTypeFilter(filters);
-                    }
-                    throw new ExpressionParseError(new Error("Invalid token: " + second.getToken()));
-                }
-            } else if (children.size() == 3) {
-                final CommonTree first = children.get(0);
-                final CommonTree second = children.get(1);
-                final ArrayList<Filter<Class<?>>> filters = new ArrayList<Filter<Class<?>>>();
-                filters.add(new TypeFilter(convertTree(second), TypeSelector.ASSIGNABLE));
-                filters.addAll(getAnnotationFilters(first.getChildren()));
-                return new AllTypeFilter(filters);
+    private Filter<Class<?>> getType(List<CommonTree> items) {
+        final CommonTree first = items.remove(0);
+        if (first.getType() == TypeDescriptorParser.TYPE) {
+            final TypeSelector typeSelector;
+            if (first.getChildCount() == 1 && first.getChild(0).getType() == TypeDescriptorParser.SOMETHING) {
+                return ALL;
             }
-        } else if (tree.getType() == TypeDescriptorParser.NOT) {
-            return new NegatingFilter<Class<?>>(createFilter((CommonTree) tree.getChildren().get(0)));
-        } else if (tree.getType() == TypeDescriptorParser.AND) {
-            return new AllTypeFilter(with(tree.getChildren()).transform(new CastingTransformer(CommonTree.class)).transform(new Transformer<CommonTree, Filter<Class<?>>>() {
-                @Override
-                public Filter<Class<?>> map(CommonTree input) {
-                    return createFilter(input);
-                }
-            }).list());
-        } else if (tree.getType() == TypeDescriptorParser.OR) {
-            return new AnyTypeFilter(with(tree.getChildren()).transform(new CastingTransformer(CommonTree.class)).transform(new Transformer<CommonTree, Filter<Class<?>>>() {
-                @Override
-                public Filter<Class<?>> map(CommonTree input) {
-                    return createFilter(input);
-                }
-            }).list());
+            if (items.isEmpty() || items.get(0).getType() != TypeDescriptorParser.CHILD) {
+                typeSelector = TypeSelector.EQUALS;
+            } else {
+                items.remove(0);
+                typeSelector = TypeSelector.ASSIGNABLE;
+            }
+            return new TypeFilter(convertTree(first), typeSelector);
         }
-        return ALL;
+        throw new ExpressionParseError("Parse error in expression at " + first.getTokenStartIndex());
+    }
+
+    private Filter<Class<?>> getFilter(CommonTree item) {
+        if (item.getType() == TypeDescriptorParser.SOMETHING) {
+            return ALL;
+        } else if (item.getType() == TypeDescriptorParser.SELECT) {
+            final ArrayList<CommonTree> trees = new ArrayList<CommonTree>(item.getChildren());
+            final List<Filter<Class<?>>> annotations = getAnnotations(trees);
+            return new AndTypeFilter(with(getType(trees)).add(new Filter<Class<?>>() {
+                @Override
+                public boolean accepts(Class<?> item) {
+                    for (Filter<Class<?>> filter : annotations) {
+                        boolean found = false;
+                        for (Annotation annotation : item.getAnnotations()) {
+                            if (filter.accepts(annotation.annotationType())) {
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found) {
+                            return false;
+                        }
+                    }
+                    return true;
+                }
+            }).list());
+        } else if (item.getType() == TypeDescriptorParser.NOT) {
+            return new NegatingFilter<Class<?>>(getFilter((CommonTree) item.getChild(0)));
+        } else if (item.getType() == TypeDescriptorParser.AND) {
+            return getAnd(item);
+        } else if (item.getType() == TypeDescriptorParser.OR) {
+            return getOr(item);
+        } else if (item.getType() == TypeDescriptorParser.PROPERTY) {
+            return getProperty(with(item.getChildren()).transform(new CastingTransformer(CommonTree.class)).list());
+        } else if (item.getType() == TypeDescriptorParser.METHOD) {
+            return getMethod(with(item.getChildren()).transform(new CastingTransformer(CommonTree.class)).list());
+        }
+        return null;
+    }
+
+    private Filter<Class<?>> getMethod(List<CommonTree> items) {
+        return new HavingMethodFilter(getAnnotations(items), getType(items), getIdentifier(items), getParameters(items));
+    }
+
+    private Filter<Class<?>> getAnd(CommonTree tree) {
+        final ArrayList<Filter<Class<?>>> filters = new ArrayList<Filter<Class<?>>>();
+        for (CommonTree item : ((Collection<CommonTree>) tree.getChildren())) {
+            filters.add(getFilter(item));
+        }
+        return new AndTypeFilter(filters);
+    }
+
+    private Filter<Class<?>> getOr(CommonTree tree) {
+        final ArrayList<Filter<Class<?>>> filters = new ArrayList<Filter<Class<?>>>();
+        for (CommonTree item : ((Collection<CommonTree>) tree.getChildren())) {
+            filters.add(getFilter(item));
+        }
+        return new OrTypeFilter(filters);
+    }
+
+    private List<Filter<Class<?>>> getParameters(List<CommonTree> items) {
+        if (items.isEmpty()) {
+            return Collections.emptyList();
+        }
+        final CommonTree first = items.remove(0);
+        if (first.getType() == TypeDescriptorParser.ANYTHING) {
+            return null;
+        }
+        if (first.getType() != TypeDescriptorParser.PARAMS) {
+            throw new ExpressionParseError("Parse error in expression at " + first.getTokenStartIndex());
+        }
+        final ArrayList<Filter<Class<?>>> filters = new ArrayList<Filter<Class<?>>>();
+        final ArrayList<CommonTree> children = new ArrayList<CommonTree>(first.getChildren());
+        while (!children.isEmpty()) {
+            filters.add(getType(children));
+        }
+        return filters;
+    }
+
+    private String getIdentifier(List<CommonTree> items) {
+        final CommonTree first = items.remove(0);
+        if (first.getType() == TypeDescriptorParser.SOMETHING) {
+            return ".*";
+        }
+        return first.getText();
+    }
+
+    private List<Filter<Class<?>>> getAnnotations(List<CommonTree> items) {
+        final CommonTree first = items.get(0);
+        if (first.getType() != TypeDescriptorParser.ANNOTATION) {
+            return Collections.emptyList();
+        }
+        items.remove(0);
+        return getAnnotationFilters(first.getChildren());
     }
 
     private List<Filter<Class<?>>> getAnnotationFilters(List<CommonTree> annotations) {
         final ArrayList<Filter<Class<?>>> filters = new ArrayList<Filter<Class<?>>>();
         for (CommonTree annotation : annotations) {
-            filters.add(new AnnotationTypeFilter(convertTree(annotation)));
+            filters.add(new TypeFilter(convertTree(annotation), TypeSelector.EQUALS));
         }
         return filters;
     }
 
-    private List convertTree(CommonTree tree) {
+    private List<String> convertTree(CommonTree tree) {
         return with(tree.getChildren()).transform(new Transformer<Object, String>() {
             @Override
             public String map(Object input) {
                 return ((Tree) input).getText();
             }
         }).list();
+    }
+
+    public Filter<Class<?>> getProperty(List<CommonTree> items) {
+        return new HavingPropertyFilter(getType(items), getIdentifier(items));
     }
 
 }

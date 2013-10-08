@@ -6,6 +6,14 @@ package com.agileapes.dragonfly.error;
  */
 public class ExpressionParseError extends Error {
 
+    public ExpressionParseError(String message) {
+        super(message);
+    }
+
+    public ExpressionParseError(String message, Throwable cause) {
+        super(message, cause);
+    }
+
     public ExpressionParseError(Throwable cause) {
         super(cause);
     }

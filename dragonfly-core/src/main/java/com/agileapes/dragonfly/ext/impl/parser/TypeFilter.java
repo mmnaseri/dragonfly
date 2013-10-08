@@ -18,8 +18,10 @@ import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 public class TypeFilter implements Filter<Class<?>> {
 
     private final Pattern descriptor;
+    private final boolean defaultPackage;
     private final TypeSelector selector;
     private final Set<Class<?>> checked = new HashSet<Class<?>>();
+    private final String originalDescriptor;
 
     public TypeFilter(List<String> parts, TypeSelector selector) {
         this(with(parts).transform(new Transformer<String, String>() {
@@ -40,6 +42,8 @@ public class TypeFilter implements Filter<Class<?>> {
     public TypeFilter(String descriptor, TypeSelector selector) {
         this.descriptor = Pattern.compile(descriptor, Pattern.DOTALL);
         this.selector = selector;
+        this.defaultPackage = !descriptor.contains(".");
+        this.originalDescriptor = descriptor;
     }
 
     @Override
@@ -48,6 +52,9 @@ public class TypeFilter implements Filter<Class<?>> {
             return false;
         }
         if (descriptor.matcher(item.getCanonicalName()).matches()) {
+            return true;
+        }
+        if (defaultPackage && item.getCanonicalName().matches("java\\.lang\\." + originalDescriptor)) {
             return true;
         }
         checked.add(item);
