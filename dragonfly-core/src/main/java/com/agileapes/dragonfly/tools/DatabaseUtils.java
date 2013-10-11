@@ -1,6 +1,5 @@
 package com.agileapes.dragonfly.tools;
 
-import com.agileapes.couteau.basics.api.Transformer;
 import com.agileapes.dragonfly.dialect.DatabaseDialect;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 
@@ -16,14 +15,14 @@ public abstract class DatabaseUtils {
         String identifier = name;
         while (identifier.length() > length) {
             String original = identifier;
-            identifier = identifier.replaceFirst("([a-z])(.*?)\\1", "$1$2");
+            identifier = identifier.replaceFirst("[aeiou]", "");
             if (identifier.equals(original)) {
                 break;
             }
         }
         while (identifier.length() > length) {
             String original = identifier;
-            identifier = identifier.replaceFirst("[aeiou]", "");
+            identifier = identifier.replaceFirst("([a-z])(.*?)\\1", "$1$2");
             if (identifier.equals(original)) {
                 break;
             }
@@ -35,19 +34,13 @@ public abstract class DatabaseUtils {
     }
 
     public static String unify(final String name) {
-        return shorten(name, 12).toLowerCase();
+        return shorten(name, 25).toLowerCase();
     }
 
     public static String getMiddleTableName(TableMetadata<?> first, TableMetadata<?> second, String firstProperty, String secondProperty) {
-        final Transformer<String, String> transformer = new Transformer<String, String>() {
-            @Override
-            public String map(String input) {
-                return shorten(input, 10);
-            }
-        };
-        final String tableNames = with(first.getName(), second.getName()).transform(transformer).sort().join("_");
-        final String finalName = with(tableNames).add(with(firstProperty, secondProperty).transform(transformer).sort().list()).join("_");
-        return shorten(finalName, 16).toLowerCase();
+        final String tableNames = with(first.getName(), second.getName()).sort().join("_");
+        final String finalName = with(tableNames).add(with(firstProperty, secondProperty).sort().list()).join("_");
+        return shorten(finalName, 25).toLowerCase();
     }
 
     public static String qualifyTable(TableMetadata<?> tableMetadata, Character identifierQuotation, Character schemaSeparator) {

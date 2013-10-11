@@ -19,9 +19,10 @@ public class EventCallbackService {
         final Station station = new Station();
         station.setName("My Station");
         dataAccess.save(station);
-        System.out.println(station.getCreationDate());
+        System.out.println("Saved station with id: " + station.getId());
+        System.out.println("Station inserted at: " + station.getCreationDate());
         dataAccess.save(station);
-        System.out.println(station.getUpdateDate());
+        System.out.println("Station updated at: " + station.getUpdateDate());
     }
 
 }
