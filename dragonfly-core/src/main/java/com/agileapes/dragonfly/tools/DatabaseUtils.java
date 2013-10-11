@@ -16,14 +16,14 @@ public abstract class DatabaseUtils {
         String identifier = name;
         while (identifier.length() > length) {
             String original = identifier;
-            identifier = identifier.replaceFirst("[aeiou]", "");
+            identifier = identifier.replaceFirst("([a-z])(.*?)\\1", "$1$2");
             if (identifier.equals(original)) {
                 break;
             }
         }
         while (identifier.length() > length) {
             String original = identifier;
-            identifier = identifier.replaceFirst("([a-z])(.*?)\\1", "$1$2");
+            identifier = identifier.replaceFirst("[aeiou]", "");
             if (identifier.equals(original)) {
                 break;
             }
