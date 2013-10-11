@@ -45,7 +45,7 @@ public abstract class DatabaseUtils {
                 return shorten(input, 10);
             }
         };
-        final String tableNames = with(first.getName(), second.getName()).sort().transform(transformer).join("_");
+        final String tableNames = with(first.getName(), second.getName()).transform(transformer).sort().join("_");
         final String finalName = with(tableNames).add(with(firstProperty, secondProperty).transform(transformer).sort().list()).join("_");
         return shorten(finalName, 16).toLowerCase();
     }

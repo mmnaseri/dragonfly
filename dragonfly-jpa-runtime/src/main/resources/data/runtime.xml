@@ -32,7 +32,7 @@
                          ref="accessDeniedHandler"/>
     </bean>
 
-    <bean id="auditInterceptor" class="com.agileapes.dragonfly.sample.audit.AuditInterceptor"/>
+    <bean id="auditInterceptor" class="com.agileapes.dragonfly.sample.ext.AuditInterceptor"/>
 
     <bean class="com.agileapes.dragonfly.data.impl.DelegatingDataAccess">
         <constructor-arg>
@@ -64,5 +64,7 @@
     <bean class="com.agileapes.dragonfly.assets.BeanDisposer"/>
 
     <bean class="com.agileapes.dragonfly.assets.DataAccessPreparator"/>
+
+    <bean class="com.agileapes.dragonfly.events.CallbackResolver"/>
 
 </beans>

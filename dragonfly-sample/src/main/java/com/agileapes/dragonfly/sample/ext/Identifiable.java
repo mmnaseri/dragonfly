@@ -1,4 +1,4 @@
-package com.agileapes.dragonfly.sample.audit;
+package com.agileapes.dragonfly.sample.ext;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)

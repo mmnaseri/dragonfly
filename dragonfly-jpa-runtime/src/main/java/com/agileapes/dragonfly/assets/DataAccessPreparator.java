@@ -6,13 +6,18 @@ import com.agileapes.dragonfly.data.DataCallback;
 import com.agileapes.dragonfly.data.impl.DelegatingDataAccess;
 import com.agileapes.dragonfly.entity.EntityHandlerContext;
 import com.agileapes.dragonfly.entity.EntityHandlerContextPostProcessor;
+import com.agileapes.dragonfly.events.EventHandlerContext;
+import com.agileapes.dragonfly.events.EventHandlerContextPostProcessor;
+import com.agileapes.dragonfly.metadata.MetadataContext;
+import com.agileapes.dragonfly.metadata.MetadataContextPostProcessor;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
 import java.util.Collection;
-import java.util.Map;
+import java.util.HashSet;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
@@ -20,44 +25,57 @@ import java.util.Map;
  */
 public class DataAccessPreparator implements ApplicationContextAware {
 
-    private void handleDelegationCallbacks(ListableBeanFactory beanFactory) {
-        final Map<String,DataCallback> callbacks = beanFactory.getBeansOfType(DataCallback.class, false, true);
-        final Map<String, DelegatingDataAccess> dataAccessCollection = beanFactory.getBeansOfType(DelegatingDataAccess.class, false, true);
-        for (DelegatingDataAccess dataAccess : dataAccessCollection.values()) {
-            for (DataCallback callback : callbacks.values()) {
-                dataAccess.addCallback(callback);
-            }
-        }
-    }
-
-    private void postProcessEntityHandlerContext(ListableBeanFactory beanFactory) {
-        final Collection<EntityHandlerContextPostProcessor> postProcessors = beanFactory.getBeansOfType(EntityHandlerContextPostProcessor.class, false, true).values();
-        final Collection<EntityHandlerContext> contexts = beanFactory.getBeansOfType(EntityHandlerContext.class, false, true).values();
-        for (EntityHandlerContext context : contexts) {
-            for (EntityHandlerContextPostProcessor postProcessor : postProcessors) {
-                postProcessor.postProcessEntityHandlerContext(context);
-            }
-        }
-    }
-
-    private void postProcessDataAccess(ListableBeanFactory beanFactory) {
-        final Collection<DataAccess> dataAccessCollection = beanFactory.getBeansOfType(DataAccess.class, false, true).values();
-        final Collection<DataAccessPostProcessor> postProcessors = beanFactory.getBeansOfType(DataAccessPostProcessor.class, false, true).values();
-        for (DataAccess dataAccess : dataAccessCollection) {
-            for (DataAccessPostProcessor postProcessor : postProcessors) {
-                postProcessor.postProcessDataAccess(dataAccess);
-            }
-        }
-    }
+    private static final Log log = LogFactory.getLog(DataAccessPreparator.class);
 
     @Override
-    public void setApplicationContext(ApplicationContext beanFactory) throws BeansException {
-        postProcessDataAccess(beanFactory);
-        postProcessEntityHandlerContext(beanFactory);
-        handleDelegationCallbacks(beanFactory);
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        final Collection<AsynchronousPostProcessor<?, ?>> postProcessors = new HashSet<AsynchronousPostProcessor<?, ?>>();
+        postProcessors.add(new AsynchronousPostProcessor<EntityHandlerContext, EntityHandlerContextPostProcessor>(EntityHandlerContext.class, EntityHandlerContextPostProcessor.class, new PostProcessor<EntityHandlerContext, EntityHandlerContextPostProcessor>() {
+            @Override
+            public void postProcess(EntityHandlerContext context, EntityHandlerContextPostProcessor postProcessor) {
+                postProcessor.postProcessEntityHandlerContext(context);
+            }
+        }));
+        postProcessors.add(new AsynchronousPostProcessor<DelegatingDataAccess, DataCallback>(DelegatingDataAccess.class, DataCallback.class, new PostProcessor<DelegatingDataAccess, DataCallback>() {
+            @Override
+            public void postProcess(DelegatingDataAccess context, DataCallback postProcessor) {
+                context.addCallback(postProcessor);
+            }
+        }));
+        postProcessors.add(new AsynchronousPostProcessor<EventHandlerContext, EventHandlerContextPostProcessor>(EventHandlerContext.class, EventHandlerContextPostProcessor.class, new PostProcessor<EventHandlerContext, EventHandlerContextPostProcessor>() {
+            @Override
+            public void postProcess(EventHandlerContext context, EventHandlerContextPostProcessor postProcessor) {
+                postProcessor.postProcessEventHandlerContext(context);
+            }
+        }));
+        postProcessors.add(new AsynchronousPostProcessor<MetadataContext, MetadataContextPostProcessor>(MetadataContext.class, MetadataContextPostProcessor.class, new PostProcessor<MetadataContext, MetadataContextPostProcessor>() {
+            @Override
+            public void postProcess(MetadataContext context, MetadataContextPostProcessor postProcessor) {
+                postProcessor.postProcessMetadataContext(context);
+            }
+        }));
+        final DefaultPostProcessor<DataAccess, DataAccessPostProcessor> dataAccessInitializer = new DefaultPostProcessor<DataAccess, DataAccessPostProcessor>(DataAccess.class, DataAccessPostProcessor.class, new PostProcessor<DataAccess, DataAccessPostProcessor>() {
+            @Override
+            public void postProcess(DataAccess context, DataAccessPostProcessor postProcessor) {
+                postProcessor.postProcessDataAccess(context);
+            }
+        });
+        dataAccessInitializer.setApplicationContext(applicationContext);
+        for (AsynchronousPostProcessor<?, ?> postProcessor : postProcessors) {
+            log.info("Starting post processor: " + postProcessor.getName());
+            postProcessor.setApplicationContext(applicationContext);
+            postProcessor.start();
+        }
+        log.info("Waiting for post processors to finish ...");
+        for (AsynchronousPostProcessor<?, ?> postProcessor : postProcessors) {
+            try {
+                postProcessor.join();
+            } catch (InterruptedException e) {
+                throw new IllegalStateException(e);
+            }
+        }
+        log.info("Initializing data access ...");
+        dataAccessInitializer.run();
     }
 
-    public DataAccessPreparator() {
-        System.out.println();
-    }
 }

@@ -1,4 +1,4 @@
-package com.agileapes.dragonfly.sample.audit;
+package com.agileapes.dragonfly.sample.ext;
 
 import com.agileapes.dragonfly.data.DataAccess;
 import com.agileapes.dragonfly.data.DataAccessPostProcessor;
