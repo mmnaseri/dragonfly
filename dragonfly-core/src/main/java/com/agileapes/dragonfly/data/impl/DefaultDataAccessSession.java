@@ -152,7 +152,6 @@ public class DefaultDataAccessSession implements DataAccessSession {
     /**
      * @return the statement registry associated with session
      */
-    @Override
     public StatementRegistry getStatementRegistry(String region) {
         return new LocalStatementRegistry(statementRegistry, region);
     }

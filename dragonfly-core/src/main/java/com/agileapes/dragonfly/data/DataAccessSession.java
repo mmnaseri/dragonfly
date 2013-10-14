@@ -17,8 +17,6 @@ public interface DataAccessSession {
 
     DatabaseDialect getDatabaseDialect();
 
-    StatementRegistry getStatementRegistry(String region);
-
     StatementRegistry getStatementRegistry(Class<?> entityType);
 
     MetadataRegistry getMetadataRegistry();
