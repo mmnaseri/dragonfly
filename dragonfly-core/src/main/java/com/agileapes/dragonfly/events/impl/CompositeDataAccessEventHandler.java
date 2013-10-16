@@ -63,9 +63,9 @@ public class CompositeDataAccessEventHandler implements DataAccessEventHandler, 
     }
 
     @Override
-    public <E> void afterUpdate(E entity) {
+    public <E> void afterUpdate(E entity, boolean updated) {
         for (DataAccessEventHandler handler : handlers) {
-            handler.afterUpdate(entity);
+            handler.afterUpdate(entity, updated);
         }
     }
 

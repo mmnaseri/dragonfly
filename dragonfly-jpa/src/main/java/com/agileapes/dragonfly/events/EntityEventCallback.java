@@ -88,7 +88,7 @@ public class EntityEventCallback extends AbstractDataAccessEventHandler {
     }
 
     @Override
-    public <E> void afterUpdate(E entity) {
+    public <E> void afterUpdate(E entity, boolean updated) {
         runCallback(entity, PostUpdate.class);
     }
 

@@ -23,6 +23,7 @@ public class Station {
     private Long id;
     private Date creationDate;
     private Date updateDate;
+    private int version;
 
     @Column
     public String getName() {
@@ -65,4 +66,13 @@ public class Station {
         setCreationDate(new Date());
     }
 
+    @Column
+    @Version
+    public int getVersion() {
+        return version;
+    }
+
+    public void setVersion(int version) {
+        this.version = version;
+    }
 }

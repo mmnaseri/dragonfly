@@ -5,6 +5,8 @@ import com.agileapes.dragonfly.sample.entities.Station;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/10/11, 13:06)
@@ -23,6 +25,12 @@ public class EventCallbackService {
         System.out.println("Station inserted at: " + station.getCreationDate());
         dataAccess.save(station);
         System.out.println("Station updated at: " + station.getUpdateDate());
+        final List<Station> stations = dataAccess.find(station);
+        for (Station found : stations) {
+            System.out.println(found.getVersion());
+            found.setVersion(found.getVersion() - 1);
+            dataAccess.save(found);
+        }
     }
 
 }

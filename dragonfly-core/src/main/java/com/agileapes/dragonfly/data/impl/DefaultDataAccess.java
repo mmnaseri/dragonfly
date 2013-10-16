@@ -98,10 +98,6 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     private final ThreadLocal<Set<LocalOperationResult>> localCounts;
     private final ThreadLocal<Stack<PreparedStatement>> localStatements;
 
-    public DefaultDataAccess(DataAccessSession session, DataSecurityManager securityManager, EntityContext entityContext, EntityHandlerContext entityHandlerContext) {
-        this(session, securityManager, entityContext, entityHandlerContext, true);
-    }
-
     public DefaultDataAccess(DataAccessSession session, DataSecurityManager securityManager, EntityContext entityContext, EntityHandlerContext entityHandlerContext, boolean autoInitialize) {
         this.session = session;
         this.securityManager = securityManager;
@@ -428,6 +424,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     private <E> void prepareEntity(E entity, Map<String, Object> values) {
         final E enhancedEntity = getEnhancedEntity(entity);
         final InitializedEntity<E> initializedEntity = getInitializedEntity(enhancedEntity);
+        initializedEntity.setOriginalCopy(enhancedEntity);
         final EntityHandler<E> entityHandler = entityHandlerContext.getHandler(entity);
         final EntityInitializationContext initializationContext;
         if (initializedEntity.getInitializationContext() != null) {
@@ -807,8 +804,13 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
                 values.put("value." + key, original.get(key));
             }
         }
-        cleanUpStatement(internalExecuteUpdate(entityHandler.getEntityType(), Statements.Manipulation.UPDATE, values));
-        eventHandler.afterUpdate(enhancedEntity);
+        final PreparedStatement preparedStatement = internalExecuteUpdate(entityHandler.getEntityType(), Statements.Manipulation.UPDATE, values);
+        try {
+            eventHandler.afterUpdate(enhancedEntity, preparedStatement.getUpdateCount() > 0);
+        } catch (SQLException e) {
+            throw new UnsuccessfulOperationError("Failed to count the number of updated elements", e);
+        }
+        cleanUpStatement(preparedStatement);
         saveDependents(entityHandler, enhancedEntity);
         saveQueueLock.set(saveQueueLock.get() - 1);
         if (saveQueueLock.get() == 0) {

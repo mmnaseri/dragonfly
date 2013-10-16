@@ -33,7 +33,7 @@ public abstract class AbstractDataAccessEventHandler implements DataAccessEventH
     }
 
     @Override
-    public <E> void afterUpdate(E entity) {
+    public <E> void afterUpdate(E entity, boolean updated) {
     }
 
     @Override

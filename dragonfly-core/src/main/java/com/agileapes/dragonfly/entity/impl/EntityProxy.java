@@ -143,7 +143,7 @@ public class EntityProxy<E> extends SecuredInterfaceInterceptor implements DataA
                     invalidateCachedVersion();
                 }
             }
-            if (!isFrozen() && getterMethodFilter.accepts(methodDescriptor)) {
+            if (getterMethodFilter.accepts(methodDescriptor)) {
                 final String propertyName = ReflectionUtils.getPropertyName(methodDescriptor.getName());
                 if (!lazyLoadedProperties.contains(propertyName)) {
                     lazyLoadedProperties.add(propertyName);

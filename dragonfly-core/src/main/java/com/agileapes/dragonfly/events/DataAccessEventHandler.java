@@ -20,7 +20,7 @@ public interface DataAccessEventHandler {
 
     <E> void beforeUpdate(E entity);
 
-    <E> void afterUpdate(E entity);
+    <E> void afterUpdate(E entity, boolean updated);
 
     <E> void beforeDelete(E entity);
 
