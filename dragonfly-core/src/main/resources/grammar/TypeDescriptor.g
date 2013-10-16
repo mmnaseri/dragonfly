@@ -46,7 +46,7 @@ METHOD	:	'method';
 
 PARAMS	:	'PARAMS';
 
-ID  	:	('a'..'z'|'A'..'Z'|'_'|'$') ('a'..'z'|'A'..'Z'|'0'..'9'|'_'|'$')*;
+ID  	:	('a'..'z'|'A'..'Z'|'$'|'_') ('a' .. 'z' | 'A' .. 'Z' | '$' | '_' | '0' .. '9'|'?'|'*')*;
 
 COMMA	:	',';
 
@@ -56,7 +56,7 @@ clazz	:	type (CHILD |);
 
 selector:	annotations WHITESPACE clazz -> ^(SELECT annotations clazz)
 	|	clazz -> ^(SELECT clazz)
-	|	HAVING! WHITESPACE! PROPERTY^ WHITESPACE!? OPENING! WHITESPACE!? clazz WHITESPACE! (ID|SOMETHING) WHITESPACE!? CLOSING!
+	|	HAVING! WHITESPACE! PROPERTY^ WHITESPACE!? OPENING! WHITESPACE!? (annotations WHITESPACE!)? clazz WHITESPACE! (ID|SOMETHING) WHITESPACE!? CLOSING!
 	|	HAVING! WHITESPACE! METHOD^ WHITESPACE!? OPENING! WHITESPACE!? (annotations WHITESPACE!)? clazz WHITESPACE! (ID|SOMETHING) WHITESPACE!? OPENING! WHITESPACE!? (methodParameters WHITESPACE!? | ANYTHING |) CLOSING! WHITESPACE!? CLOSING!;
 
 methodParameters

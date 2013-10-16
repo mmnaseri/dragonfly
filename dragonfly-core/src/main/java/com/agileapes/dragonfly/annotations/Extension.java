@@ -18,6 +18,6 @@ public @interface Extension {
 
     String ALL = "*";
 
-    String descriptor() default ALL;
+    String filter() default ALL;
 
 }
