@@ -87,7 +87,7 @@ public class TypeDescriptorParser extends Parser {
 
 
 			root_0 = (Object)adaptor.becomeRoot((Object)adaptor.create(TYPE, "TYPE"), root_0);
-			pushFollow(FOLLOW_typeRest_in_type269);
+			pushFollow(FOLLOW_typeRest_in_type283);
 			typeRest1=typeRest();
 			state._fsp--;
 
@@ -141,7 +141,7 @@ public class TypeDescriptorParser extends Parser {
 			root_0 = (Object)adaptor.nil();
 
 
-			pushFollow(FOLLOW_type_in_clazz277);
+			pushFollow(FOLLOW_type_in_clazz291);
 			type2=type();
 			state._fsp--;
 
@@ -167,7 +167,7 @@ public class TypeDescriptorParser extends Parser {
 				case 1 :
 					
 					{
-					CHILD3=(Token)match(input,CHILD,FOLLOW_CHILD_in_clazz280); 
+					CHILD3=(Token)match(input,CHILD,FOLLOW_CHILD_in_clazz294); 
 					CHILD3_tree = (Object)adaptor.create(CHILD3);
 					adaptor.addChild(root_0, CHILD3_tree);
 
@@ -225,33 +225,35 @@ public class TypeDescriptorParser extends Parser {
 		Token OPENING12=null;
 		Token WHITESPACE13=null;
 		Token WHITESPACE15=null;
-		Token set16=null;
 		Token WHITESPACE17=null;
-		Token CLOSING18=null;
-		Token HAVING19=null;
-		Token WHITESPACE20=null;
-		Token METHOD21=null;
+		Token set18=null;
+		Token WHITESPACE19=null;
+		Token CLOSING20=null;
+		Token HAVING21=null;
 		Token WHITESPACE22=null;
-		Token OPENING23=null;
+		Token METHOD23=null;
 		Token WHITESPACE24=null;
+		Token OPENING25=null;
 		Token WHITESPACE26=null;
 		Token WHITESPACE28=null;
-		Token set29=null;
 		Token WHITESPACE30=null;
-		Token OPENING31=null;
+		Token set31=null;
 		Token WHITESPACE32=null;
+		Token OPENING33=null;
 		Token WHITESPACE34=null;
-		Token ANYTHING35=null;
-		Token CLOSING36=null;
-		Token WHITESPACE37=null;
+		Token WHITESPACE36=null;
+		Token ANYTHING37=null;
 		Token CLOSING38=null;
+		Token WHITESPACE39=null;
+		Token CLOSING40=null;
 		ParserRuleReturnScope annotations4 =null;
 		ParserRuleReturnScope clazz6 =null;
 		ParserRuleReturnScope clazz7 =null;
-		ParserRuleReturnScope clazz14 =null;
-		ParserRuleReturnScope annotations25 =null;
-		ParserRuleReturnScope clazz27 =null;
-		ParserRuleReturnScope methodParameters33 =null;
+		ParserRuleReturnScope annotations14 =null;
+		ParserRuleReturnScope clazz16 =null;
+		ParserRuleReturnScope annotations27 =null;
+		ParserRuleReturnScope clazz29 =null;
+		ParserRuleReturnScope methodParameters35 =null;
 
 		Object WHITESPACE5_tree=null;
 		Object HAVING8_tree=null;
@@ -261,55 +263,56 @@ public class TypeDescriptorParser extends Parser {
 		Object OPENING12_tree=null;
 		Object WHITESPACE13_tree=null;
 		Object WHITESPACE15_tree=null;
-		Object set16_tree=null;
 		Object WHITESPACE17_tree=null;
-		Object CLOSING18_tree=null;
-		Object HAVING19_tree=null;
-		Object WHITESPACE20_tree=null;
-		Object METHOD21_tree=null;
+		Object set18_tree=null;
+		Object WHITESPACE19_tree=null;
+		Object CLOSING20_tree=null;
+		Object HAVING21_tree=null;
 		Object WHITESPACE22_tree=null;
-		Object OPENING23_tree=null;
+		Object METHOD23_tree=null;
 		Object WHITESPACE24_tree=null;
+		Object OPENING25_tree=null;
 		Object WHITESPACE26_tree=null;
 		Object WHITESPACE28_tree=null;
-		Object set29_tree=null;
 		Object WHITESPACE30_tree=null;
-		Object OPENING31_tree=null;
+		Object set31_tree=null;
 		Object WHITESPACE32_tree=null;
+		Object OPENING33_tree=null;
 		Object WHITESPACE34_tree=null;
-		Object ANYTHING35_tree=null;
-		Object CLOSING36_tree=null;
-		Object WHITESPACE37_tree=null;
+		Object WHITESPACE36_tree=null;
+		Object ANYTHING37_tree=null;
 		Object CLOSING38_tree=null;
+		Object WHITESPACE39_tree=null;
+		Object CLOSING40_tree=null;
 		RewriteRuleTokenStream stream_WHITESPACE=new RewriteRuleTokenStream(adaptor,"token WHITESPACE");
 		RewriteRuleSubtreeStream stream_annotations=new RewriteRuleSubtreeStream(adaptor,"rule annotations");
 		RewriteRuleSubtreeStream stream_clazz=new RewriteRuleSubtreeStream(adaptor,"rule clazz");
 
 		try {
 			
-			int alt13=4;
+			int alt14=4;
 			switch ( input.LA(1) ) {
 			case ANNOTATION:
 				{
-				alt13=1;
+				alt14=1;
 				}
 				break;
 			case ID:
 			case SOMETHING:
 				{
-				alt13=2;
+				alt14=2;
 				}
 				break;
 			case HAVING:
 				{
-				int LA13_3 = input.LA(2);
-				if ( (LA13_3==WHITESPACE) ) {
-					int LA13_4 = input.LA(3);
-					if ( (LA13_4==PROPERTY) ) {
-						alt13=3;
+				int LA14_3 = input.LA(2);
+				if ( (LA14_3==WHITESPACE) ) {
+					int LA14_4 = input.LA(3);
+					if ( (LA14_4==PROPERTY) ) {
+						alt14=3;
 					}
-					else if ( (LA13_4==METHOD) ) {
-						alt13=4;
+					else if ( (LA14_4==METHOD) ) {
+						alt14=4;
 					}
 
 					else {
@@ -319,7 +322,7 @@ public class TypeDescriptorParser extends Parser {
 								input.consume();
 							}
 							NoViableAltException nvae =
-								new NoViableAltException("", 13, 4, input);
+								new NoViableAltException("", 14, 4, input);
 							throw nvae;
 						} finally {
 							input.rewind(nvaeMark);
@@ -333,7 +336,7 @@ public class TypeDescriptorParser extends Parser {
 					try {
 						input.consume();
 						NoViableAltException nvae =
-							new NoViableAltException("", 13, 3, input);
+							new NoViableAltException("", 14, 3, input);
 						throw nvae;
 					} finally {
 						input.rewind(nvaeMark);
@@ -344,22 +347,22 @@ public class TypeDescriptorParser extends Parser {
 				break;
 			default:
 				NoViableAltException nvae =
-					new NoViableAltException("", 13, 0, input);
+					new NoViableAltException("", 14, 0, input);
 				throw nvae;
 			}
-			switch (alt13) {
+			switch (alt14) {
 				case 1 :
 					
 					{
-					pushFollow(FOLLOW_annotations_in_selector290);
+					pushFollow(FOLLOW_annotations_in_selector304);
 					annotations4=annotations();
 					state._fsp--;
 
 					stream_annotations.add(annotations4.getTree());
-					WHITESPACE5=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_selector292);  
+					WHITESPACE5=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_selector306);  
 					stream_WHITESPACE.add(WHITESPACE5);
 
-					pushFollow(FOLLOW_clazz_in_selector294);
+					pushFollow(FOLLOW_clazz_in_selector308);
 					clazz6=clazz();
 					state._fsp--;
 
@@ -396,7 +399,7 @@ public class TypeDescriptorParser extends Parser {
 				case 2 :
 					
 					{
-					pushFollow(FOLLOW_clazz_in_selector309);
+					pushFollow(FOLLOW_clazz_in_selector323);
 					clazz7=clazz();
 					state._fsp--;
 
@@ -435,9 +438,9 @@ public class TypeDescriptorParser extends Parser {
 					root_0 = (Object)adaptor.nil();
 
 
-					HAVING8=(Token)match(input,HAVING,FOLLOW_HAVING_in_selector322); 
-					WHITESPACE9=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_selector325); 
-					PROPERTY10=(Token)match(input,PROPERTY,FOLLOW_PROPERTY_in_selector328); 
+					HAVING8=(Token)match(input,HAVING,FOLLOW_HAVING_in_selector336); 
+					WHITESPACE9=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_selector339); 
+					PROPERTY10=(Token)match(input,PROPERTY,FOLLOW_PROPERTY_in_selector342); 
 					PROPERTY10_tree = (Object)adaptor.create(PROPERTY10);
 					root_0 = (Object)adaptor.becomeRoot(PROPERTY10_tree, root_0);
 
@@ -451,13 +454,13 @@ public class TypeDescriptorParser extends Parser {
 						case 1 :
 							
 							{
-							WHITESPACE11=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_selector331); 
+							WHITESPACE11=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_selector345); 
 							}
 							break;
 
 					}
 
-					OPENING12=(Token)match(input,OPENING,FOLLOW_OPENING_in_selector335); 
+					OPENING12=(Token)match(input,OPENING,FOLLOW_OPENING_in_selector349); 
 					
 					int alt3=2;
 					int LA3_0 = input.LA(1);
@@ -468,60 +471,51 @@ public class TypeDescriptorParser extends Parser {
 						case 1 :
 							
 							{
-							WHITESPACE13=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_selector338); 
+							WHITESPACE13=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_selector352); 
 							}
 							break;
 
 					}
 
-					pushFollow(FOLLOW_clazz_in_selector342);
-					clazz14=clazz();
-					state._fsp--;
-
-					adaptor.addChild(root_0, clazz14.getTree());
-
-					WHITESPACE15=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_selector344); 
-					set16=input.LT(1);
-					if ( input.LA(1)==ID||input.LA(1)==SOMETHING ) {
-						input.consume();
-						adaptor.addChild(root_0, (Object)adaptor.create(set16));
-						state.errorRecovery=false;
-					}
-					else {
-						MismatchedSetException mse = new MismatchedSetException(null,input);
-						throw mse;
-					}
 					
 					int alt4=2;
 					int LA4_0 = input.LA(1);
-					if ( (LA4_0==WHITESPACE) ) {
+					if ( (LA4_0==ANNOTATION) ) {
 						alt4=1;
 					}
 					switch (alt4) {
 						case 1 :
 							
 							{
-							WHITESPACE17=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_selector353); 
+							pushFollow(FOLLOW_annotations_in_selector357);
+							annotations14=annotations();
+							state._fsp--;
+
+							adaptor.addChild(root_0, annotations14.getTree());
+
+							WHITESPACE15=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_selector359); 
 							}
 							break;
 
 					}
 
-					CLOSING18=(Token)match(input,CLOSING,FOLLOW_CLOSING_in_selector357); 
+					pushFollow(FOLLOW_clazz_in_selector364);
+					clazz16=clazz();
+					state._fsp--;
+
+					adaptor.addChild(root_0, clazz16.getTree());
+
+					WHITESPACE17=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_selector366); 
+					set18=input.LT(1);
+					if ( input.LA(1)==ID||input.LA(1)==SOMETHING ) {
+						input.consume();
+						adaptor.addChild(root_0, (Object)adaptor.create(set18));
+						state.errorRecovery=false;
 					}
-					break;
-				case 4 :
-					
-					{
-					root_0 = (Object)adaptor.nil();
-
-
-					HAVING19=(Token)match(input,HAVING,FOLLOW_HAVING_in_selector363); 
-					WHITESPACE20=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_selector366); 
-					METHOD21=(Token)match(input,METHOD,FOLLOW_METHOD_in_selector369); 
-					METHOD21_tree = (Object)adaptor.create(METHOD21);
-					root_0 = (Object)adaptor.becomeRoot(METHOD21_tree, root_0);
-
+					else {
+						MismatchedSetException mse = new MismatchedSetException(null,input);
+						throw mse;
+					}
 					
 					int alt5=2;
 					int LA5_0 = input.LA(1);
@@ -532,13 +526,27 @@ public class TypeDescriptorParser extends Parser {
 						case 1 :
 							
 							{
-							WHITESPACE22=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_selector372); 
+							WHITESPACE19=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_selector375); 
 							}
 							break;
 
 					}
 
-					OPENING23=(Token)match(input,OPENING,FOLLOW_OPENING_in_selector376); 
+					CLOSING20=(Token)match(input,CLOSING,FOLLOW_CLOSING_in_selector379); 
+					}
+					break;
+				case 4 :
+					
+					{
+					root_0 = (Object)adaptor.nil();
+
+
+					HAVING21=(Token)match(input,HAVING,FOLLOW_HAVING_in_selector385); 
+					WHITESPACE22=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_selector388); 
+					METHOD23=(Token)match(input,METHOD,FOLLOW_METHOD_in_selector391); 
+					METHOD23_tree = (Object)adaptor.create(METHOD23);
+					root_0 = (Object)adaptor.becomeRoot(METHOD23_tree, root_0);
+
 					
 					int alt6=2;
 					int LA6_0 = input.LA(1);
@@ -549,68 +557,68 @@ public class TypeDescriptorParser extends Parser {
 						case 1 :
 							
 							{
-							WHITESPACE24=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_selector379); 
+							WHITESPACE24=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_selector394); 
 							}
 							break;
 
 					}
 
+					OPENING25=(Token)match(input,OPENING,FOLLOW_OPENING_in_selector398); 
 					
 					int alt7=2;
 					int LA7_0 = input.LA(1);
-					if ( (LA7_0==ANNOTATION) ) {
+					if ( (LA7_0==WHITESPACE) ) {
 						alt7=1;
 					}
 					switch (alt7) {
 						case 1 :
 							
 							{
-							pushFollow(FOLLOW_annotations_in_selector384);
-							annotations25=annotations();
-							state._fsp--;
-
-							adaptor.addChild(root_0, annotations25.getTree());
-
-							WHITESPACE26=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_selector386); 
+							WHITESPACE26=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_selector401); 
 							}
 							break;
 
 					}
 
-					pushFollow(FOLLOW_clazz_in_selector391);
-					clazz27=clazz();
-					state._fsp--;
-
-					adaptor.addChild(root_0, clazz27.getTree());
-
-					WHITESPACE28=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_selector393); 
-					set29=input.LT(1);
-					if ( input.LA(1)==ID||input.LA(1)==SOMETHING ) {
-						input.consume();
-						adaptor.addChild(root_0, (Object)adaptor.create(set29));
-						state.errorRecovery=false;
-					}
-					else {
-						MismatchedSetException mse = new MismatchedSetException(null,input);
-						throw mse;
-					}
 					
 					int alt8=2;
 					int LA8_0 = input.LA(1);
-					if ( (LA8_0==WHITESPACE) ) {
+					if ( (LA8_0==ANNOTATION) ) {
 						alt8=1;
 					}
 					switch (alt8) {
 						case 1 :
 							
 							{
-							WHITESPACE30=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_selector402); 
+							pushFollow(FOLLOW_annotations_in_selector406);
+							annotations27=annotations();
+							state._fsp--;
+
+							adaptor.addChild(root_0, annotations27.getTree());
+
+							WHITESPACE28=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_selector408); 
 							}
 							break;
 
 					}
 
-					OPENING31=(Token)match(input,OPENING,FOLLOW_OPENING_in_selector406); 
+					pushFollow(FOLLOW_clazz_in_selector413);
+					clazz29=clazz();
+					state._fsp--;
+
+					adaptor.addChild(root_0, clazz29.getTree());
+
+					WHITESPACE30=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_selector415); 
+					set31=input.LT(1);
+					if ( input.LA(1)==ID||input.LA(1)==SOMETHING ) {
+						input.consume();
+						adaptor.addChild(root_0, (Object)adaptor.create(set31));
+						state.errorRecovery=false;
+					}
+					else {
+						MismatchedSetException mse = new MismatchedSetException(null,input);
+						throw mse;
+					}
 					
 					int alt9=2;
 					int LA9_0 = input.LA(1);
@@ -621,57 +629,74 @@ public class TypeDescriptorParser extends Parser {
 						case 1 :
 							
 							{
-							WHITESPACE32=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_selector409); 
+							WHITESPACE32=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_selector424); 
+							}
+							break;
+
+					}
+
+					OPENING33=(Token)match(input,OPENING,FOLLOW_OPENING_in_selector428); 
+					
+					int alt10=2;
+					int LA10_0 = input.LA(1);
+					if ( (LA10_0==WHITESPACE) ) {
+						alt10=1;
+					}
+					switch (alt10) {
+						case 1 :
+							
+							{
+							WHITESPACE34=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_selector431); 
 							}
 							break;
 
 					}
 
 					
-					int alt11=3;
+					int alt12=3;
 					switch ( input.LA(1) ) {
 					case ID:
 					case SOMETHING:
 						{
-						alt11=1;
+						alt12=1;
 						}
 						break;
 					case ANYTHING:
 						{
-						alt11=2;
+						alt12=2;
 						}
 						break;
 					case CLOSING:
 						{
-						alt11=3;
+						alt12=3;
 						}
 						break;
 					default:
 						NoViableAltException nvae =
-							new NoViableAltException("", 11, 0, input);
+							new NoViableAltException("", 12, 0, input);
 						throw nvae;
 					}
-					switch (alt11) {
+					switch (alt12) {
 						case 1 :
 							
 							{
-							pushFollow(FOLLOW_methodParameters_in_selector414);
-							methodParameters33=methodParameters();
+							pushFollow(FOLLOW_methodParameters_in_selector436);
+							methodParameters35=methodParameters();
 							state._fsp--;
 
-							adaptor.addChild(root_0, methodParameters33.getTree());
+							adaptor.addChild(root_0, methodParameters35.getTree());
 
 							
-							int alt10=2;
-							int LA10_0 = input.LA(1);
-							if ( (LA10_0==WHITESPACE) ) {
-								alt10=1;
+							int alt11=2;
+							int LA11_0 = input.LA(1);
+							if ( (LA11_0==WHITESPACE) ) {
+								alt11=1;
 							}
-							switch (alt10) {
+							switch (alt11) {
 								case 1 :
 									
 									{
-									WHITESPACE34=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_selector416); 
+									WHITESPACE36=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_selector438); 
 									}
 									break;
 
@@ -682,9 +707,9 @@ public class TypeDescriptorParser extends Parser {
 						case 2 :
 							
 							{
-							ANYTHING35=(Token)match(input,ANYTHING,FOLLOW_ANYTHING_in_selector422); 
-							ANYTHING35_tree = (Object)adaptor.create(ANYTHING35);
-							adaptor.addChild(root_0, ANYTHING35_tree);
+							ANYTHING37=(Token)match(input,ANYTHING,FOLLOW_ANYTHING_in_selector444); 
+							ANYTHING37_tree = (Object)adaptor.create(ANYTHING37);
+							adaptor.addChild(root_0, ANYTHING37_tree);
 
 							}
 							break;
@@ -696,24 +721,24 @@ public class TypeDescriptorParser extends Parser {
 
 					}
 
-					CLOSING36=(Token)match(input,CLOSING,FOLLOW_CLOSING_in_selector427); 
+					CLOSING38=(Token)match(input,CLOSING,FOLLOW_CLOSING_in_selector449); 
 					
-					int alt12=2;
-					int LA12_0 = input.LA(1);
-					if ( (LA12_0==WHITESPACE) ) {
-						alt12=1;
+					int alt13=2;
+					int LA13_0 = input.LA(1);
+					if ( (LA13_0==WHITESPACE) ) {
+						alt13=1;
 					}
-					switch (alt12) {
+					switch (alt13) {
 						case 1 :
 							
 							{
-							WHITESPACE37=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_selector430); 
+							WHITESPACE39=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_selector452); 
 							}
 							break;
 
 					}
 
-					CLOSING38=(Token)match(input,CLOSING,FOLLOW_CLOSING_in_selector434); 
+					CLOSING40=(Token)match(input,CLOSING,FOLLOW_CLOSING_in_selector456); 
 					}
 					break;
 
@@ -752,15 +777,15 @@ public class TypeDescriptorParser extends Parser {
 
 		Object root_0 = null;
 
-		Token WHITESPACE40=null;
-		Token COMMA41=null;
 		Token WHITESPACE42=null;
-		ParserRuleReturnScope clazz39 =null;
-		ParserRuleReturnScope clazz43 =null;
+		Token COMMA43=null;
+		Token WHITESPACE44=null;
+		ParserRuleReturnScope clazz41 =null;
+		ParserRuleReturnScope clazz45 =null;
 
-		Object WHITESPACE40_tree=null;
-		Object COMMA41_tree=null;
 		Object WHITESPACE42_tree=null;
+		Object COMMA43_tree=null;
+		Object WHITESPACE44_tree=null;
 
 		try {
 			
@@ -773,49 +798,32 @@ public class TypeDescriptorParser extends Parser {
 			
 			
 			{
-			pushFollow(FOLLOW_clazz_in_methodParameters447);
-			clazz39=clazz();
+			pushFollow(FOLLOW_clazz_in_methodParameters469);
+			clazz41=clazz();
 			state._fsp--;
 
-			adaptor.addChild(root_0, clazz39.getTree());
+			adaptor.addChild(root_0, clazz41.getTree());
 
 			
-			loop16:
+			loop17:
 			while (true) {
-				int alt16=2;
-				int LA16_0 = input.LA(1);
-				if ( (LA16_0==WHITESPACE) ) {
-					int LA16_1 = input.LA(2);
-					if ( (LA16_1==COMMA) ) {
-						alt16=1;
+				int alt17=2;
+				int LA17_0 = input.LA(1);
+				if ( (LA17_0==WHITESPACE) ) {
+					int LA17_1 = input.LA(2);
+					if ( (LA17_1==COMMA) ) {
+						alt17=1;
 					}
 
 				}
-				else if ( (LA16_0==COMMA) ) {
-					alt16=1;
+				else if ( (LA17_0==COMMA) ) {
+					alt17=1;
 				}
 
-				switch (alt16) {
+				switch (alt17) {
 				case 1 :
 					
 					{
-					
-					int alt14=2;
-					int LA14_0 = input.LA(1);
-					if ( (LA14_0==WHITESPACE) ) {
-						alt14=1;
-					}
-					switch (alt14) {
-						case 1 :
-							
-							{
-							WHITESPACE40=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_methodParameters450); 
-							}
-							break;
-
-					}
-
-					COMMA41=(Token)match(input,COMMA,FOLLOW_COMMA_in_methodParameters454); 
 					
 					int alt15=2;
 					int LA15_0 = input.LA(1);
@@ -826,23 +834,40 @@ public class TypeDescriptorParser extends Parser {
 						case 1 :
 							
 							{
-							WHITESPACE42=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_methodParameters457); 
+							WHITESPACE42=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_methodParameters472); 
 							}
 							break;
 
 					}
 
-					pushFollow(FOLLOW_clazz_in_methodParameters461);
-					clazz43=clazz();
+					COMMA43=(Token)match(input,COMMA,FOLLOW_COMMA_in_methodParameters476); 
+					
+					int alt16=2;
+					int LA16_0 = input.LA(1);
+					if ( (LA16_0==WHITESPACE) ) {
+						alt16=1;
+					}
+					switch (alt16) {
+						case 1 :
+							
+							{
+							WHITESPACE44=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_methodParameters479); 
+							}
+							break;
+
+					}
+
+					pushFollow(FOLLOW_clazz_in_methodParameters483);
+					clazz45=clazz();
 					state._fsp--;
 
-					adaptor.addChild(root_0, clazz43.getTree());
+					adaptor.addChild(root_0, clazz45.getTree());
 
 					}
 					break;
 
 				default :
-					break loop16;
+					break loop17;
 				}
 			}
 
@@ -884,21 +909,21 @@ public class TypeDescriptorParser extends Parser {
 
 		Object root_0 = null;
 
-		Token set44=null;
-		Token SEPARATOR45=null;
 		Token set46=null;
-		Token ANYTHING47=null;
+		Token SEPARATOR47=null;
 		Token set48=null;
-		Token SEPARATOR49=null;
+		Token ANYTHING49=null;
 		Token set50=null;
+		Token SEPARATOR51=null;
+		Token set52=null;
 
-		Object set44_tree=null;
-		Object SEPARATOR45_tree=null;
 		Object set46_tree=null;
-		Object ANYTHING47_tree=null;
+		Object SEPARATOR47_tree=null;
 		Object set48_tree=null;
-		Object SEPARATOR49_tree=null;
+		Object ANYTHING49_tree=null;
 		Object set50_tree=null;
+		Object SEPARATOR51_tree=null;
+		Object set52_tree=null;
 
 		try {
 			
@@ -908,48 +933,48 @@ public class TypeDescriptorParser extends Parser {
 
 
 			
-			loop17:
+			loop18:
 			while (true) {
-				int alt17=2;
-				int LA17_0 = input.LA(1);
-				if ( (LA17_0==ID||LA17_0==SOMETHING) ) {
-					int LA17_1 = input.LA(2);
-					if ( (LA17_1==SEPARATOR) ) {
-						alt17=1;
+				int alt18=2;
+				int LA18_0 = input.LA(1);
+				if ( (LA18_0==ID||LA18_0==SOMETHING) ) {
+					int LA18_1 = input.LA(2);
+					if ( (LA18_1==SEPARATOR) ) {
+						alt18=1;
 					}
 
 				}
 
-				switch (alt17) {
+				switch (alt18) {
 				case 1 :
 					
 					{
-					set44=input.LT(1);
+					set46=input.LT(1);
 					if ( input.LA(1)==ID||input.LA(1)==SOMETHING ) {
 						input.consume();
-						adaptor.addChild(root_0, (Object)adaptor.create(set44));
+						adaptor.addChild(root_0, (Object)adaptor.create(set46));
 						state.errorRecovery=false;
 					}
 					else {
 						MismatchedSetException mse = new MismatchedSetException(null,input);
 						throw mse;
 					}
-					SEPARATOR45=(Token)match(input,SEPARATOR,FOLLOW_SEPARATOR_in_typeRest484); 
-					SEPARATOR45_tree = (Object)adaptor.create(SEPARATOR45);
-					adaptor.addChild(root_0, SEPARATOR45_tree);
+					SEPARATOR47=(Token)match(input,SEPARATOR,FOLLOW_SEPARATOR_in_typeRest506); 
+					SEPARATOR47_tree = (Object)adaptor.create(SEPARATOR47);
+					adaptor.addChild(root_0, SEPARATOR47_tree);
 
 					}
 					break;
 
 				default :
-					break loop17;
+					break loop18;
 				}
 			}
 
-			set46=input.LT(1);
+			set48=input.LT(1);
 			if ( input.LA(1)==ID||input.LA(1)==SOMETHING ) {
 				input.consume();
-				adaptor.addChild(root_0, (Object)adaptor.create(set46));
+				adaptor.addChild(root_0, (Object)adaptor.create(set48));
 				state.errorRecovery=false;
 			}
 			else {
@@ -957,65 +982,65 @@ public class TypeDescriptorParser extends Parser {
 				throw mse;
 			}
 			
-			loop19:
+			loop20:
 			while (true) {
-				int alt19=2;
-				int LA19_0 = input.LA(1);
-				if ( (LA19_0==ANYTHING) ) {
-					alt19=1;
+				int alt20=2;
+				int LA20_0 = input.LA(1);
+				if ( (LA20_0==ANYTHING) ) {
+					alt20=1;
 				}
 
-				switch (alt19) {
+				switch (alt20) {
 				case 1 :
 					
 					{
-					ANYTHING47=(Token)match(input,ANYTHING,FOLLOW_ANYTHING_in_typeRest497); 
-					ANYTHING47_tree = (Object)adaptor.create(ANYTHING47);
-					adaptor.addChild(root_0, ANYTHING47_tree);
+					ANYTHING49=(Token)match(input,ANYTHING,FOLLOW_ANYTHING_in_typeRest519); 
+					ANYTHING49_tree = (Object)adaptor.create(ANYTHING49);
+					adaptor.addChild(root_0, ANYTHING49_tree);
 
 					
-					loop18:
+					loop19:
 					while (true) {
-						int alt18=2;
-						int LA18_0 = input.LA(1);
-						if ( (LA18_0==ID||LA18_0==SOMETHING) ) {
-							int LA18_1 = input.LA(2);
-							if ( (LA18_1==SEPARATOR) ) {
-								alt18=1;
+						int alt19=2;
+						int LA19_0 = input.LA(1);
+						if ( (LA19_0==ID||LA19_0==SOMETHING) ) {
+							int LA19_1 = input.LA(2);
+							if ( (LA19_1==SEPARATOR) ) {
+								alt19=1;
 							}
 
 						}
 
-						switch (alt18) {
+						switch (alt19) {
 						case 1 :
 							
 							{
-							set48=input.LT(1);
+							set50=input.LT(1);
 							if ( input.LA(1)==ID||input.LA(1)==SOMETHING ) {
 								input.consume();
-								adaptor.addChild(root_0, (Object)adaptor.create(set48));
+								adaptor.addChild(root_0, (Object)adaptor.create(set50));
 								state.errorRecovery=false;
 							}
 							else {
 								MismatchedSetException mse = new MismatchedSetException(null,input);
 								throw mse;
 							}
-							SEPARATOR49=(Token)match(input,SEPARATOR,FOLLOW_SEPARATOR_in_typeRest508); 
-							SEPARATOR49_tree = (Object)adaptor.create(SEPARATOR49);
-							adaptor.addChild(root_0, SEPARATOR49_tree);
+							SEPARATOR51=(Token)match(input,SEPARATOR,FOLLOW_SEPARATOR_in_typeRest530); 
+							SEPARATOR51_tree = (Object)adaptor.create(SEPARATOR51);
+							adaptor.addChild(root_0, SEPARATOR51_tree);
 
 							}
 							break;
 
 						default :
-							break loop18;
+							break loop19;
 						}
 					}
 
-					set50=input.LT(1);
+					set52=input.LT(1);
 					if ( input.LA(1)==ID||input.LA(1)==SOMETHING ) {
 						input.consume();
-						adaptor.addChild(root_0, (Object)adaptor.create(set50));
+						adaptor.addChild(root_0, (Object)adaptor.create(set52));
 						state.errorRecovery=false;
 					}
 					else {
@@ -1026,7 +1051,7 @@ public class TypeDescriptorParser extends Parser {
 					break;
 
 				default :
-					break loop19;
+					break loop20;
 				}
 			}
 
@@ -1066,15 +1091,15 @@ public class TypeDescriptorParser extends Parser {
 
 		Object root_0 = null;
 
-		Token ANNOTATION51=null;
-		Token WHITESPACE53=null;
-		Token ANNOTATION54=null;
-		ParserRuleReturnScope type52 =null;
-		ParserRuleReturnScope type55 =null;
+		Token ANNOTATION53=null;
+		Token WHITESPACE55=null;
+		Token ANNOTATION56=null;
+		ParserRuleReturnScope type54 =null;
+		ParserRuleReturnScope type57 =null;
 
-		Object ANNOTATION51_tree=null;
-		Object WHITESPACE53_tree=null;
-		Object ANNOTATION54_tree=null;
+		Object ANNOTATION53_tree=null;
+		Object WHITESPACE55_tree=null;
+		Object ANNOTATION56_tree=null;
 
 		try {
 			
@@ -1083,46 +1108,46 @@ public class TypeDescriptorParser extends Parser {
 			root_0 = (Object)adaptor.nil();
 
 
-			ANNOTATION51=(Token)match(input,ANNOTATION,FOLLOW_ANNOTATION_in_annotations529); 
-			ANNOTATION51_tree = (Object)adaptor.create(ANNOTATION51);
-			root_0 = (Object)adaptor.becomeRoot(ANNOTATION51_tree, root_0);
+			ANNOTATION53=(Token)match(input,ANNOTATION,FOLLOW_ANNOTATION_in_annotations551); 
+			ANNOTATION53_tree = (Object)adaptor.create(ANNOTATION53);
+			root_0 = (Object)adaptor.becomeRoot(ANNOTATION53_tree, root_0);
 
-			pushFollow(FOLLOW_type_in_annotations532);
-			type52=type();
+			pushFollow(FOLLOW_type_in_annotations554);
+			type54=type();
 			state._fsp--;
 
-			adaptor.addChild(root_0, type52.getTree());
+			adaptor.addChild(root_0, type54.getTree());
 
 			
-			loop20:
+			loop21:
 			while (true) {
-				int alt20=2;
-				int LA20_0 = input.LA(1);
-				if ( (LA20_0==WHITESPACE) ) {
-					int LA20_1 = input.LA(2);
-					if ( (LA20_1==ANNOTATION) ) {
-						alt20=1;
+				int alt21=2;
+				int LA21_0 = input.LA(1);
+				if ( (LA21_0==WHITESPACE) ) {
+					int LA21_1 = input.LA(2);
+					if ( (LA21_1==ANNOTATION) ) {
+						alt21=1;
 					}
 
 				}
 
-				switch (alt20) {
+				switch (alt21) {
 				case 1 :
 					
 					{
-					WHITESPACE53=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_annotations535); 
-					ANNOTATION54=(Token)match(input,ANNOTATION,FOLLOW_ANNOTATION_in_annotations538); 
-					pushFollow(FOLLOW_type_in_annotations541);
-					type55=type();
+					WHITESPACE55=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_annotations557); 
+					ANNOTATION56=(Token)match(input,ANNOTATION,FOLLOW_ANNOTATION_in_annotations560); 
+					pushFollow(FOLLOW_type_in_annotations563);
+					type57=type();
 					state._fsp--;
 
-					adaptor.addChild(root_0, type55.getTree());
+					adaptor.addChild(root_0, type57.getTree());
 
 					}
 					break;
 
 				default :
-					break loop20;
+					break loop21;
 				}
 			}
 
@@ -1162,14 +1187,14 @@ public class TypeDescriptorParser extends Parser {
 
 		Object root_0 = null;
 
-		Token WHITESPACE56=null;
 		Token WHITESPACE58=null;
-		Token EOF59=null;
-		ParserRuleReturnScope orExpression57 =null;
+		Token WHITESPACE60=null;
+		Token EOF61=null;
+		ParserRuleReturnScope orExpression59 =null;
 
-		Object WHITESPACE56_tree=null;
 		Object WHITESPACE58_tree=null;
-		Object EOF59_tree=null;
+		Object WHITESPACE60_tree=null;
+		Object EOF61_tree=null;
 
 		try {
 			
@@ -1177,28 +1202,6 @@ public class TypeDescriptorParser extends Parser {
 			{
 			root_0 = (Object)adaptor.nil();
 
-
-			
-			int alt21=2;
-			int LA21_0 = input.LA(1);
-			if ( (LA21_0==WHITESPACE) ) {
-				alt21=1;
-			}
-			switch (alt21) {
-				case 1 :
-					
-					{
-					WHITESPACE56=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_start552); 
-					}
-					break;
-
-			}
-
-			pushFollow(FOLLOW_orExpression_in_start556);
-			orExpression57=orExpression();
-			state._fsp--;
-
-			adaptor.addChild(root_0, orExpression57.getTree());
 
 			
 			int alt22=2;
@@ -1210,13 +1213,35 @@ public class TypeDescriptorParser extends Parser {
 				case 1 :
 					
 					{
-					WHITESPACE58=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_start558); 
+					WHITESPACE58=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_start574); 
 					}
 					break;
 
 			}
 
-			EOF59=(Token)match(input,EOF,FOLLOW_EOF_in_start562); 
+			pushFollow(FOLLOW_orExpression_in_start578);
+			orExpression59=orExpression();
+			state._fsp--;
+
+			adaptor.addChild(root_0, orExpression59.getTree());
+
+			
+			int alt23=2;
+			int LA23_0 = input.LA(1);
+			if ( (LA23_0==WHITESPACE) ) {
+				alt23=1;
+			}
+			switch (alt23) {
+				case 1 :
+					
+					{
+					WHITESPACE60=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_start580); 
+					}
+					break;
+
+			}
+
+			EOF61=(Token)match(input,EOF,FOLLOW_EOF_in_start584); 
 			}
 
 			retval.stop = input.LT(-1);
@@ -1253,15 +1278,15 @@ public class TypeDescriptorParser extends Parser {
 
 		Object root_0 = null;
 
-		Token WHITESPACE61=null;
-		Token OR62=null;
 		Token WHITESPACE63=null;
-		ParserRuleReturnScope andExpression60 =null;
-		ParserRuleReturnScope andExpression64 =null;
+		Token OR64=null;
+		Token WHITESPACE65=null;
+		ParserRuleReturnScope andExpression62 =null;
+		ParserRuleReturnScope andExpression66 =null;
 
-		Object WHITESPACE61_tree=null;
-		Object OR62_tree=null;
 		Object WHITESPACE63_tree=null;
+		Object OR64_tree=null;
+		Object WHITESPACE65_tree=null;
 
 		try {
 			
@@ -1270,46 +1295,46 @@ public class TypeDescriptorParser extends Parser {
 			root_0 = (Object)adaptor.nil();
 
 
-			pushFollow(FOLLOW_andExpression_in_orExpression572);
-			andExpression60=andExpression();
+			pushFollow(FOLLOW_andExpression_in_orExpression594);
+			andExpression62=andExpression();
 			state._fsp--;
 
-			adaptor.addChild(root_0, andExpression60.getTree());
+			adaptor.addChild(root_0, andExpression62.getTree());
 
 			
-			loop23:
+			loop24:
 			while (true) {
-				int alt23=2;
-				int LA23_0 = input.LA(1);
-				if ( (LA23_0==WHITESPACE) ) {
-					int LA23_1 = input.LA(2);
-					if ( (LA23_1==OR) ) {
-						alt23=1;
+				int alt24=2;
+				int LA24_0 = input.LA(1);
+				if ( (LA24_0==WHITESPACE) ) {
+					int LA24_1 = input.LA(2);
+					if ( (LA24_1==OR) ) {
+						alt24=1;
 					}
 
 				}
 
-				switch (alt23) {
+				switch (alt24) {
 				case 1 :
 					
 					{
-					WHITESPACE61=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_orExpression575); 
-					OR62=(Token)match(input,OR,FOLLOW_OR_in_orExpression578); 
-					OR62_tree = (Object)adaptor.create(OR62);
-					root_0 = (Object)adaptor.becomeRoot(OR62_tree, root_0);
+					WHITESPACE63=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_orExpression597); 
+					OR64=(Token)match(input,OR,FOLLOW_OR_in_orExpression600); 
+					OR64_tree = (Object)adaptor.create(OR64);
+					root_0 = (Object)adaptor.becomeRoot(OR64_tree, root_0);
 
-					WHITESPACE63=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_orExpression581); 
-					pushFollow(FOLLOW_andExpression_in_orExpression584);
-					andExpression64=andExpression();
+					WHITESPACE65=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_orExpression603); 
+					pushFollow(FOLLOW_andExpression_in_orExpression606);
+					andExpression66=andExpression();
 					state._fsp--;
 
-					adaptor.addChild(root_0, andExpression64.getTree());
+					adaptor.addChild(root_0, andExpression66.getTree());
 
 					}
 					break;
 
 				default :
-					break loop23;
+					break loop24;
 				}
 			}
 
@@ -1349,15 +1374,15 @@ public class TypeDescriptorParser extends Parser {
 
 		Object root_0 = null;
 
-		Token WHITESPACE66=null;
-		Token AND67=null;
 		Token WHITESPACE68=null;
-		ParserRuleReturnScope booleanExpression65 =null;
-		ParserRuleReturnScope booleanExpression69 =null;
+		Token AND69=null;
+		Token WHITESPACE70=null;
+		ParserRuleReturnScope booleanExpression67 =null;
+		ParserRuleReturnScope booleanExpression71 =null;
 
-		Object WHITESPACE66_tree=null;
-		Object AND67_tree=null;
 		Object WHITESPACE68_tree=null;
+		Object AND69_tree=null;
+		Object WHITESPACE70_tree=null;
 
 		try {
 			
@@ -1366,46 +1391,46 @@ public class TypeDescriptorParser extends Parser {
 			root_0 = (Object)adaptor.nil();
 
 
-			pushFollow(FOLLOW_booleanExpression_in_andExpression595);
-			booleanExpression65=booleanExpression();
+			pushFollow(FOLLOW_booleanExpression_in_andExpression617);
+			booleanExpression67=booleanExpression();
 			state._fsp--;
 
-			adaptor.addChild(root_0, booleanExpression65.getTree());
+			adaptor.addChild(root_0, booleanExpression67.getTree());
 
 			
-			loop24:
+			loop25:
 			while (true) {
-				int alt24=2;
-				int LA24_0 = input.LA(1);
-				if ( (LA24_0==WHITESPACE) ) {
-					int LA24_1 = input.LA(2);
-					if ( (LA24_1==AND) ) {
-						alt24=1;
+				int alt25=2;
+				int LA25_0 = input.LA(1);
+				if ( (LA25_0==WHITESPACE) ) {
+					int LA25_1 = input.LA(2);
+					if ( (LA25_1==AND) ) {
+						alt25=1;
 					}
 
 				}
 
-				switch (alt24) {
+				switch (alt25) {
 				case 1 :
 					
 					{
-					WHITESPACE66=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_andExpression598); 
-					AND67=(Token)match(input,AND,FOLLOW_AND_in_andExpression601); 
-					AND67_tree = (Object)adaptor.create(AND67);
-					root_0 = (Object)adaptor.becomeRoot(AND67_tree, root_0);
+					WHITESPACE68=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_andExpression620); 
+					AND69=(Token)match(input,AND,FOLLOW_AND_in_andExpression623); 
+					AND69_tree = (Object)adaptor.create(AND69);
+					root_0 = (Object)adaptor.becomeRoot(AND69_tree, root_0);
 
-					WHITESPACE68=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_andExpression604); 
-					pushFollow(FOLLOW_booleanExpression_in_andExpression607);
-					booleanExpression69=booleanExpression();
+					WHITESPACE70=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_andExpression626); 
+					pushFollow(FOLLOW_booleanExpression_in_andExpression629);
+					booleanExpression71=booleanExpression();
 					state._fsp--;
 
-					adaptor.addChild(root_0, booleanExpression69.getTree());
+					adaptor.addChild(root_0, booleanExpression71.getTree());
 
 					}
 					break;
 
 				default :
-					break loop24;
+					break loop25;
 				}
 			}
 
@@ -1445,39 +1470,39 @@ public class TypeDescriptorParser extends Parser {
 
 		Object root_0 = null;
 
-		ParserRuleReturnScope expression70 =null;
-		ParserRuleReturnScope notExpression71 =null;
+		ParserRuleReturnScope expression72 =null;
+		ParserRuleReturnScope notExpression73 =null;
 
 
 		try {
 			
-			int alt25=2;
-			int LA25_0 = input.LA(1);
-			if ( (LA25_0==ANNOTATION||(LA25_0 >= HAVING && LA25_0 <= ID)||LA25_0==OPENING||LA25_0==SOMETHING) ) {
-				alt25=1;
+			int alt26=2;
+			int LA26_0 = input.LA(1);
+			if ( (LA26_0==ANNOTATION||(LA26_0 >= HAVING && LA26_0 <= ID)||LA26_0==OPENING||LA26_0==SOMETHING) ) {
+				alt26=1;
 			}
-			else if ( (LA25_0==NOT) ) {
-				alt25=2;
+			else if ( (LA26_0==NOT) ) {
+				alt26=2;
 			}
 
 			else {
 				NoViableAltException nvae =
-					new NoViableAltException("", 25, 0, input);
+					new NoViableAltException("", 26, 0, input);
 				throw nvae;
 			}
 
-			switch (alt25) {
+			switch (alt26) {
 				case 1 :
 					
 					{
 					root_0 = (Object)adaptor.nil();
 
 
-					pushFollow(FOLLOW_expression_in_booleanExpression620);
-					expression70=expression();
+					pushFollow(FOLLOW_expression_in_booleanExpression642);
+					expression72=expression();
 					state._fsp--;
 
-					adaptor.addChild(root_0, expression70.getTree());
+					adaptor.addChild(root_0, expression72.getTree());
 
 					}
 					break;
@@ -1487,11 +1512,11 @@ public class TypeDescriptorParser extends Parser {
 					root_0 = (Object)adaptor.nil();
 
 
-					pushFollow(FOLLOW_notExpression_in_booleanExpression625);
-					notExpression71=notExpression();
+					pushFollow(FOLLOW_notExpression_in_booleanExpression647);
+					notExpression73=notExpression();
 					state._fsp--;
 
-					adaptor.addChild(root_0, notExpression71.getTree());
+					adaptor.addChild(root_0, notExpression73.getTree());
 
 					}
 					break;
@@ -1531,12 +1556,12 @@ public class TypeDescriptorParser extends Parser {
 
 		Object root_0 = null;
 
-		Token NOT72=null;
-		Token WHITESPACE73=null;
-		ParserRuleReturnScope expression74 =null;
+		Token NOT74=null;
+		Token WHITESPACE75=null;
+		ParserRuleReturnScope expression76 =null;
 
-		Object NOT72_tree=null;
-		Object WHITESPACE73_tree=null;
+		Object NOT74_tree=null;
+		Object WHITESPACE75_tree=null;
 
 		try {
 			
@@ -1545,31 +1570,31 @@ public class TypeDescriptorParser extends Parser {
 			root_0 = (Object)adaptor.nil();
 
 
-			NOT72=(Token)match(input,NOT,FOLLOW_NOT_in_notExpression636); 
-			NOT72_tree = (Object)adaptor.create(NOT72);
-			root_0 = (Object)adaptor.becomeRoot(NOT72_tree, root_0);
+			NOT74=(Token)match(input,NOT,FOLLOW_NOT_in_notExpression658); 
+			NOT74_tree = (Object)adaptor.create(NOT74);
+			root_0 = (Object)adaptor.becomeRoot(NOT74_tree, root_0);
 
 			
-			int alt26=2;
-			int LA26_0 = input.LA(1);
-			if ( (LA26_0==WHITESPACE) ) {
-				alt26=1;
+			int alt27=2;
+			int LA27_0 = input.LA(1);
+			if ( (LA27_0==WHITESPACE) ) {
+				alt27=1;
 			}
-			switch (alt26) {
+			switch (alt27) {
 				case 1 :
 					
 					{
-					WHITESPACE73=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_notExpression639); 
+					WHITESPACE75=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_notExpression661); 
 					}
 					break;
 
 			}
 
-			pushFollow(FOLLOW_expression_in_notExpression643);
-			expression74=expression();
+			pushFollow(FOLLOW_expression_in_notExpression665);
+			expression76=expression();
 			state._fsp--;
 
-			adaptor.addChild(root_0, expression74.getTree());
+			adaptor.addChild(root_0, expression76.getTree());
 
 			}
 
@@ -1607,47 +1632,47 @@ public class TypeDescriptorParser extends Parser {
 
 		Object root_0 = null;
 
-		Token OPENING76=null;
-		Token WHITESPACE77=null;
+		Token OPENING78=null;
 		Token WHITESPACE79=null;
-		Token CLOSING80=null;
-		ParserRuleReturnScope selector75 =null;
-		ParserRuleReturnScope orExpression78 =null;
+		Token WHITESPACE81=null;
+		Token CLOSING82=null;
+		ParserRuleReturnScope selector77 =null;
+		ParserRuleReturnScope orExpression80 =null;
 
-		Object OPENING76_tree=null;
-		Object WHITESPACE77_tree=null;
+		Object OPENING78_tree=null;
 		Object WHITESPACE79_tree=null;
-		Object CLOSING80_tree=null;
+		Object WHITESPACE81_tree=null;
+		Object CLOSING82_tree=null;
 
 		try {
 			
-			int alt29=2;
-			int LA29_0 = input.LA(1);
-			if ( (LA29_0==ANNOTATION||(LA29_0 >= HAVING && LA29_0 <= ID)||LA29_0==SOMETHING) ) {
-				alt29=1;
+			int alt30=2;
+			int LA30_0 = input.LA(1);
+			if ( (LA30_0==ANNOTATION||(LA30_0 >= HAVING && LA30_0 <= ID)||LA30_0==SOMETHING) ) {
+				alt30=1;
 			}
-			else if ( (LA29_0==OPENING) ) {
-				alt29=2;
+			else if ( (LA30_0==OPENING) ) {
+				alt30=2;
 			}
 
 			else {
 				NoViableAltException nvae =
-					new NoViableAltException("", 29, 0, input);
+					new NoViableAltException("", 30, 0, input);
 				throw nvae;
 			}
 
-			switch (alt29) {
+			switch (alt30) {
 				case 1 :
 					
 					{
 					root_0 = (Object)adaptor.nil();
 
 
-					pushFollow(FOLLOW_selector_in_expression654);
-					selector75=selector();
+					pushFollow(FOLLOW_selector_in_expression676);
+					selector77=selector();
 					state._fsp--;
 
-					adaptor.addChild(root_0, selector75.getTree());
+					adaptor.addChild(root_0, selector77.getTree());
 
 					}
 					break;
@@ -1657,29 +1682,7 @@ public class TypeDescriptorParser extends Parser {
 					root_0 = (Object)adaptor.nil();
 
 
-					OPENING76=(Token)match(input,OPENING,FOLLOW_OPENING_in_expression659); 
-					
-					int alt27=2;
-					int LA27_0 = input.LA(1);
-					if ( (LA27_0==WHITESPACE) ) {
-						alt27=1;
-					}
-					switch (alt27) {
-						case 1 :
-							
-							{
-							WHITESPACE77=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_expression662); 
-							}
-							break;
-
-					}
-
-					pushFollow(FOLLOW_orExpression_in_expression666);
-					orExpression78=orExpression();
-					state._fsp--;
-
-					adaptor.addChild(root_0, orExpression78.getTree());
-
+					OPENING78=(Token)match(input,OPENING,FOLLOW_OPENING_in_expression681); 
 					
 					int alt28=2;
 					int LA28_0 = input.LA(1);
@@ -1690,13 +1693,35 @@ public class TypeDescriptorParser extends Parser {
 						case 1 :
 							
 							{
-							WHITESPACE79=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_expression668); 
+							WHITESPACE79=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_expression684); 
 							}
 							break;
 
 					}
 
-					CLOSING80=(Token)match(input,CLOSING,FOLLOW_CLOSING_in_expression672); 
+					pushFollow(FOLLOW_orExpression_in_expression688);
+					orExpression80=orExpression();
+					state._fsp--;
+
+					adaptor.addChild(root_0, orExpression80.getTree());
+
+					
+					int alt29=2;
+					int LA29_0 = input.LA(1);
+					if ( (LA29_0==WHITESPACE) ) {
+						alt29=1;
+					}
+					switch (alt29) {
+						case 1 :
+							
+							{
+							WHITESPACE81=(Token)match(input,WHITESPACE,FOLLOW_WHITESPACE_in_expression690); 
+							}
+							break;
+
+					}
+
+					CLOSING82=(Token)match(input,CLOSING,FOLLOW_CLOSING_in_expression694); 
 					}
 					break;
 
@@ -1723,84 +1748,86 @@ public class TypeDescriptorParser extends Parser {
 
 
 
-	public static final BitSet FOLLOW_typeRest_in_type269 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_type_in_clazz277 = new BitSet(new long[]{0x0000000000000082L});
-	public static final BitSet FOLLOW_CHILD_in_clazz280 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_annotations_in_selector290 = new BitSet(new long[]{0x0000000000400000L});
-	public static final BitSet FOLLOW_WHITESPACE_in_selector292 = new BitSet(new long[]{0x0000000000100800L});
-	public static final BitSet FOLLOW_clazz_in_selector294 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_clazz_in_selector309 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_HAVING_in_selector322 = new BitSet(new long[]{0x0000000000400000L});
-	public static final BitSet FOLLOW_WHITESPACE_in_selector325 = new BitSet(new long[]{0x0000000000020000L});
-	public static final BitSet FOLLOW_PROPERTY_in_selector328 = new BitSet(new long[]{0x0000000000404000L});
-	public static final BitSet FOLLOW_WHITESPACE_in_selector331 = new BitSet(new long[]{0x0000000000004000L});
-	public static final BitSet FOLLOW_OPENING_in_selector335 = new BitSet(new long[]{0x0000000000500800L});
-	public static final BitSet FOLLOW_WHITESPACE_in_selector338 = new BitSet(new long[]{0x0000000000100800L});
-	public static final BitSet FOLLOW_clazz_in_selector342 = new BitSet(new long[]{0x0000000000400000L});
-	public static final BitSet FOLLOW_WHITESPACE_in_selector344 = new BitSet(new long[]{0x0000000000100800L});
-	public static final BitSet FOLLOW_set_in_selector347 = new BitSet(new long[]{0x0000000000400100L});
-	public static final BitSet FOLLOW_WHITESPACE_in_selector353 = new BitSet(new long[]{0x0000000000000100L});
-	public static final BitSet FOLLOW_CLOSING_in_selector357 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_HAVING_in_selector363 = new BitSet(new long[]{0x0000000000400000L});
-	public static final BitSet FOLLOW_WHITESPACE_in_selector366 = new BitSet(new long[]{0x0000000000001000L});
-	public static final BitSet FOLLOW_METHOD_in_selector369 = new BitSet(new long[]{0x0000000000404000L});
-	public static final BitSet FOLLOW_WHITESPACE_in_selector372 = new BitSet(new long[]{0x0000000000004000L});
-	public static final BitSet FOLLOW_OPENING_in_selector376 = new BitSet(new long[]{0x0000000000500820L});
-	public static final BitSet FOLLOW_WHITESPACE_in_selector379 = new BitSet(new long[]{0x0000000000100820L});
-	public static final BitSet FOLLOW_annotations_in_selector384 = new BitSet(new long[]{0x0000000000400000L});
-	public static final BitSet FOLLOW_WHITESPACE_in_selector386 = new BitSet(new long[]{0x0000000000100800L});
-	public static final BitSet FOLLOW_clazz_in_selector391 = new BitSet(new long[]{0x0000000000400000L});
-	public static final BitSet FOLLOW_WHITESPACE_in_selector393 = new BitSet(new long[]{0x0000000000100800L});
-	public static final BitSet FOLLOW_set_in_selector396 = new BitSet(new long[]{0x0000000000404000L});
-	public static final BitSet FOLLOW_WHITESPACE_in_selector402 = new BitSet(new long[]{0x0000000000004000L});
-	public static final BitSet FOLLOW_OPENING_in_selector406 = new BitSet(new long[]{0x0000000000500940L});
-	public static final BitSet FOLLOW_WHITESPACE_in_selector409 = new BitSet(new long[]{0x0000000000100940L});
-	public static final BitSet FOLLOW_methodParameters_in_selector414 = new BitSet(new long[]{0x0000000000400100L});
-	public static final BitSet FOLLOW_WHITESPACE_in_selector416 = new BitSet(new long[]{0x0000000000000100L});
-	public static final BitSet FOLLOW_ANYTHING_in_selector422 = new BitSet(new long[]{0x0000000000000100L});
-	public static final BitSet FOLLOW_CLOSING_in_selector427 = new BitSet(new long[]{0x0000000000400100L});
-	public static final BitSet FOLLOW_WHITESPACE_in_selector430 = new BitSet(new long[]{0x0000000000000100L});
-	public static final BitSet FOLLOW_CLOSING_in_selector434 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_clazz_in_methodParameters447 = new BitSet(new long[]{0x0000000000400202L});
-	public static final BitSet FOLLOW_WHITESPACE_in_methodParameters450 = new BitSet(new long[]{0x0000000000000200L});
-	public static final BitSet FOLLOW_COMMA_in_methodParameters454 = new BitSet(new long[]{0x0000000000500800L});
-	public static final BitSet FOLLOW_WHITESPACE_in_methodParameters457 = new BitSet(new long[]{0x0000000000100800L});
-	public static final BitSet FOLLOW_clazz_in_methodParameters461 = new BitSet(new long[]{0x0000000000400202L});
-	public static final BitSet FOLLOW_set_in_typeRest476 = new BitSet(new long[]{0x0000000000080000L});
-	public static final BitSet FOLLOW_SEPARATOR_in_typeRest484 = new BitSet(new long[]{0x0000000000100800L});
-	public static final BitSet FOLLOW_set_in_typeRest488 = new BitSet(new long[]{0x0000000000000042L});
-	public static final BitSet FOLLOW_ANYTHING_in_typeRest497 = new BitSet(new long[]{0x0000000000100800L});
-	public static final BitSet FOLLOW_set_in_typeRest500 = new BitSet(new long[]{0x0000000000080000L});
-	public static final BitSet FOLLOW_SEPARATOR_in_typeRest508 = new BitSet(new long[]{0x0000000000100800L});
-	public static final BitSet FOLLOW_set_in_typeRest512 = new BitSet(new long[]{0x0000000000000042L});
-	public static final BitSet FOLLOW_ANNOTATION_in_annotations529 = new BitSet(new long[]{0x0000000000100800L});
-	public static final BitSet FOLLOW_type_in_annotations532 = new BitSet(new long[]{0x0000000000400002L});
-	public static final BitSet FOLLOW_WHITESPACE_in_annotations535 = new BitSet(new long[]{0x0000000000000020L});
-	public static final BitSet FOLLOW_ANNOTATION_in_annotations538 = new BitSet(new long[]{0x0000000000100800L});
-	public static final BitSet FOLLOW_type_in_annotations541 = new BitSet(new long[]{0x0000000000400002L});
-	public static final BitSet FOLLOW_WHITESPACE_in_start552 = new BitSet(new long[]{0x0000000000106C20L});
-	public static final BitSet FOLLOW_orExpression_in_start556 = new BitSet(new long[]{0x0000000000400000L});
-	public static final BitSet FOLLOW_WHITESPACE_in_start558 = new BitSet(new long[]{0x0000000000000000L});
-	public static final BitSet FOLLOW_EOF_in_start562 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_andExpression_in_orExpression572 = new BitSet(new long[]{0x0000000000400002L});
-	public static final BitSet FOLLOW_WHITESPACE_in_orExpression575 = new BitSet(new long[]{0x0000000000008000L});
-	public static final BitSet FOLLOW_OR_in_orExpression578 = new BitSet(new long[]{0x0000000000400000L});
-	public static final BitSet FOLLOW_WHITESPACE_in_orExpression581 = new BitSet(new long[]{0x0000000000106C20L});
-	public static final BitSet FOLLOW_andExpression_in_orExpression584 = new BitSet(new long[]{0x0000000000400002L});
-	public static final BitSet FOLLOW_booleanExpression_in_andExpression595 = new BitSet(new long[]{0x0000000000400002L});
-	public static final BitSet FOLLOW_WHITESPACE_in_andExpression598 = new BitSet(new long[]{0x0000000000000010L});
-	public static final BitSet FOLLOW_AND_in_andExpression601 = new BitSet(new long[]{0x0000000000400000L});
-	public static final BitSet FOLLOW_WHITESPACE_in_andExpression604 = new BitSet(new long[]{0x0000000000106C20L});
-	public static final BitSet FOLLOW_booleanExpression_in_andExpression607 = new BitSet(new long[]{0x0000000000400002L});
-	public static final BitSet FOLLOW_expression_in_booleanExpression620 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_notExpression_in_booleanExpression625 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_NOT_in_notExpression636 = new BitSet(new long[]{0x0000000000504C20L});
-	public static final BitSet FOLLOW_WHITESPACE_in_notExpression639 = new BitSet(new long[]{0x0000000000104C20L});
-	public static final BitSet FOLLOW_expression_in_notExpression643 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_selector_in_expression654 = new BitSet(new long[]{0x0000000000000002L});
-	public static final BitSet FOLLOW_OPENING_in_expression659 = new BitSet(new long[]{0x0000000000506C20L});
-	public static final BitSet FOLLOW_WHITESPACE_in_expression662 = new BitSet(new long[]{0x0000000000106C20L});
-	public static final BitSet FOLLOW_orExpression_in_expression666 = new BitSet(new long[]{0x0000000000400100L});
-	public static final BitSet FOLLOW_WHITESPACE_in_expression668 = new BitSet(new long[]{0x0000000000000100L});
-	public static final BitSet FOLLOW_CLOSING_in_expression672 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_typeRest_in_type283 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_type_in_clazz291 = new BitSet(new long[]{0x0000000000000082L});
+	public static final BitSet FOLLOW_CHILD_in_clazz294 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_annotations_in_selector304 = new BitSet(new long[]{0x0000000000400000L});
+	public static final BitSet FOLLOW_WHITESPACE_in_selector306 = new BitSet(new long[]{0x0000000000100800L});
+	public static final BitSet FOLLOW_clazz_in_selector308 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_clazz_in_selector323 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_HAVING_in_selector336 = new BitSet(new long[]{0x0000000000400000L});
+	public static final BitSet FOLLOW_WHITESPACE_in_selector339 = new BitSet(new long[]{0x0000000000020000L});
+	public static final BitSet FOLLOW_PROPERTY_in_selector342 = new BitSet(new long[]{0x0000000000404000L});
+	public static final BitSet FOLLOW_WHITESPACE_in_selector345 = new BitSet(new long[]{0x0000000000004000L});
+	public static final BitSet FOLLOW_OPENING_in_selector349 = new BitSet(new long[]{0x0000000000500820L});
+	public static final BitSet FOLLOW_WHITESPACE_in_selector352 = new BitSet(new long[]{0x0000000000100820L});
+	public static final BitSet FOLLOW_annotations_in_selector357 = new BitSet(new long[]{0x0000000000400000L});
+	public static final BitSet FOLLOW_WHITESPACE_in_selector359 = new BitSet(new long[]{0x0000000000100800L});
+	public static final BitSet FOLLOW_clazz_in_selector364 = new BitSet(new long[]{0x0000000000400000L});
+	public static final BitSet FOLLOW_WHITESPACE_in_selector366 = new BitSet(new long[]{0x0000000000100800L});
+	public static final BitSet FOLLOW_set_in_selector369 = new BitSet(new long[]{0x0000000000400100L});
+	public static final BitSet FOLLOW_WHITESPACE_in_selector375 = new BitSet(new long[]{0x0000000000000100L});
+	public static final BitSet FOLLOW_CLOSING_in_selector379 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_HAVING_in_selector385 = new BitSet(new long[]{0x0000000000400000L});
+	public static final BitSet FOLLOW_WHITESPACE_in_selector388 = new BitSet(new long[]{0x0000000000001000L});
+	public static final BitSet FOLLOW_METHOD_in_selector391 = new BitSet(new long[]{0x0000000000404000L});
+	public static final BitSet FOLLOW_WHITESPACE_in_selector394 = new BitSet(new long[]{0x0000000000004000L});
+	public static final BitSet FOLLOW_OPENING_in_selector398 = new BitSet(new long[]{0x0000000000500820L});
+	public static final BitSet FOLLOW_WHITESPACE_in_selector401 = new BitSet(new long[]{0x0000000000100820L});
+	public static final BitSet FOLLOW_annotations_in_selector406 = new BitSet(new long[]{0x0000000000400000L});
+	public static final BitSet FOLLOW_WHITESPACE_in_selector408 = new BitSet(new long[]{0x0000000000100800L});
+	public static final BitSet FOLLOW_clazz_in_selector413 = new BitSet(new long[]{0x0000000000400000L});
+	public static final BitSet FOLLOW_WHITESPACE_in_selector415 = new BitSet(new long[]{0x0000000000100800L});
+	public static final BitSet FOLLOW_set_in_selector418 = new BitSet(new long[]{0x0000000000404000L});
+	public static final BitSet FOLLOW_WHITESPACE_in_selector424 = new BitSet(new long[]{0x0000000000004000L});
+	public static final BitSet FOLLOW_OPENING_in_selector428 = new BitSet(new long[]{0x0000000000500940L});
+	public static final BitSet FOLLOW_WHITESPACE_in_selector431 = new BitSet(new long[]{0x0000000000100940L});
+	public static final BitSet FOLLOW_methodParameters_in_selector436 = new BitSet(new long[]{0x0000000000400100L});
+	public static final BitSet FOLLOW_WHITESPACE_in_selector438 = new BitSet(new long[]{0x0000000000000100L});
+	public static final BitSet FOLLOW_ANYTHING_in_selector444 = new BitSet(new long[]{0x0000000000000100L});
+	public static final BitSet FOLLOW_CLOSING_in_selector449 = new BitSet(new long[]{0x0000000000400100L});
+	public static final BitSet FOLLOW_WHITESPACE_in_selector452 = new BitSet(new long[]{0x0000000000000100L});
+	public static final BitSet FOLLOW_CLOSING_in_selector456 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_clazz_in_methodParameters469 = new BitSet(new long[]{0x0000000000400202L});
+	public static final BitSet FOLLOW_WHITESPACE_in_methodParameters472 = new BitSet(new long[]{0x0000000000000200L});
+	public static final BitSet FOLLOW_COMMA_in_methodParameters476 = new BitSet(new long[]{0x0000000000500800L});
+	public static final BitSet FOLLOW_WHITESPACE_in_methodParameters479 = new BitSet(new long[]{0x0000000000100800L});
+	public static final BitSet FOLLOW_clazz_in_methodParameters483 = new BitSet(new long[]{0x0000000000400202L});
+	public static final BitSet FOLLOW_set_in_typeRest498 = new BitSet(new long[]{0x0000000000080000L});
+	public static final BitSet FOLLOW_SEPARATOR_in_typeRest506 = new BitSet(new long[]{0x0000000000100800L});
+	public static final BitSet FOLLOW_set_in_typeRest510 = new BitSet(new long[]{0x0000000000000042L});
+	public static final BitSet FOLLOW_ANYTHING_in_typeRest519 = new BitSet(new long[]{0x0000000000100800L});
+	public static final BitSet FOLLOW_set_in_typeRest522 = new BitSet(new long[]{0x0000000000080000L});
+	public static final BitSet FOLLOW_SEPARATOR_in_typeRest530 = new BitSet(new long[]{0x0000000000100800L});
+	public static final BitSet FOLLOW_set_in_typeRest534 = new BitSet(new long[]{0x0000000000000042L});
+	public static final BitSet FOLLOW_ANNOTATION_in_annotations551 = new BitSet(new long[]{0x0000000000100800L});
+	public static final BitSet FOLLOW_type_in_annotations554 = new BitSet(new long[]{0x0000000000400002L});
+	public static final BitSet FOLLOW_WHITESPACE_in_annotations557 = new BitSet(new long[]{0x0000000000000020L});
+	public static final BitSet FOLLOW_ANNOTATION_in_annotations560 = new BitSet(new long[]{0x0000000000100800L});
+	public static final BitSet FOLLOW_type_in_annotations563 = new BitSet(new long[]{0x0000000000400002L});
+	public static final BitSet FOLLOW_WHITESPACE_in_start574 = new BitSet(new long[]{0x0000000000106C20L});
+	public static final BitSet FOLLOW_orExpression_in_start578 = new BitSet(new long[]{0x0000000000400000L});
+	public static final BitSet FOLLOW_WHITESPACE_in_start580 = new BitSet(new long[]{0x0000000000000000L});
+	public static final BitSet FOLLOW_EOF_in_start584 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_andExpression_in_orExpression594 = new BitSet(new long[]{0x0000000000400002L});
+	public static final BitSet FOLLOW_WHITESPACE_in_orExpression597 = new BitSet(new long[]{0x0000000000008000L});
+	public static final BitSet FOLLOW_OR_in_orExpression600 = new BitSet(new long[]{0x0000000000400000L});
+	public static final BitSet FOLLOW_WHITESPACE_in_orExpression603 = new BitSet(new long[]{0x0000000000106C20L});
+	public static final BitSet FOLLOW_andExpression_in_orExpression606 = new BitSet(new long[]{0x0000000000400002L});
+	public static final BitSet FOLLOW_booleanExpression_in_andExpression617 = new BitSet(new long[]{0x0000000000400002L});
+	public static final BitSet FOLLOW_WHITESPACE_in_andExpression620 = new BitSet(new long[]{0x0000000000000010L});
+	public static final BitSet FOLLOW_AND_in_andExpression623 = new BitSet(new long[]{0x0000000000400000L});
+	public static final BitSet FOLLOW_WHITESPACE_in_andExpression626 = new BitSet(new long[]{0x0000000000106C20L});
+	public static final BitSet FOLLOW_booleanExpression_in_andExpression629 = new BitSet(new long[]{0x0000000000400002L});
+	public static final BitSet FOLLOW_expression_in_booleanExpression642 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_notExpression_in_booleanExpression647 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_NOT_in_notExpression658 = new BitSet(new long[]{0x0000000000504C20L});
+	public static final BitSet FOLLOW_WHITESPACE_in_notExpression661 = new BitSet(new long[]{0x0000000000104C20L});
+	public static final BitSet FOLLOW_expression_in_notExpression665 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_selector_in_expression676 = new BitSet(new long[]{0x0000000000000002L});
+	public static final BitSet FOLLOW_OPENING_in_expression681 = new BitSet(new long[]{0x0000000000506C20L});
+	public static final BitSet FOLLOW_WHITESPACE_in_expression684 = new BitSet(new long[]{0x0000000000106C20L});
+	public static final BitSet FOLLOW_orExpression_in_expression688 = new BitSet(new long[]{0x0000000000400100L});
+	public static final BitSet FOLLOW_WHITESPACE_in_expression690 = new BitSet(new long[]{0x0000000000000100L});
+	public static final BitSet FOLLOW_CLOSING_in_expression694 = new BitSet(new long[]{0x0000000000000002L});
 }

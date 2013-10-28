@@ -48,8 +48,6 @@ PARAMS	:	'PARAMS';
 
 ID  	:	('a'..'z'|'A'..'Z'|'$'|'_') ('a' .. 'z' | 'A' .. 'Z' | '$' | '_' | '0' .. '9')*;
 
-EXTENDED_ID  	:	('a'..'z'|'A'..'Z'|'$'|'_'|'?') ('a' .. 'z' | 'A' .. 'Z' | '$' | '_' | '0' .. '9' | '?' | '*')*;
-
 COMMA	:	',';
 
 type	:	{root_0 = (Object)adaptor.becomeRoot((Object)adaptor.create(TYPE, "TYPE"), root_0);} typeRest;
@@ -58,8 +56,8 @@ clazz	:	type (CHILD |);
 
 selector:	annotations WHITESPACE clazz -> ^(SELECT annotations clazz)
 	|	clazz -> ^(SELECT clazz)
-	|	HAVING! WHITESPACE! PROPERTY^ WHITESPACE!? OPENING! WHITESPACE!? (annotations WHITESPACE!)? clazz WHITESPACE! (EXTENDED_ID|SOMETHING) WHITESPACE!? CLOSING!
-	|	HAVING! WHITESPACE! METHOD^ WHITESPACE!? OPENING! WHITESPACE!? (annotations WHITESPACE!)? clazz WHITESPACE! (EXTENDED_ID|SOMETHING) WHITESPACE!? OPENING! WHITESPACE!? (methodParameters WHITESPACE!? | ANYTHING |) CLOSING! WHITESPACE!? CLOSING!;
+	|	HAVING! WHITESPACE! PROPERTY^ WHITESPACE!? OPENING! WHITESPACE!? (annotations WHITESPACE!)? clazz WHITESPACE! (ID|SOMETHING) WHITESPACE!? CLOSING!
+	|	HAVING! WHITESPACE! METHOD^ WHITESPACE!? OPENING! WHITESPACE!? (annotations WHITESPACE!)? clazz WHITESPACE! (ID|SOMETHING) WHITESPACE!? OPENING! WHITESPACE!? (methodParameters WHITESPACE!? | ANYTHING |) CLOSING! WHITESPACE!? CLOSING!;
 
 methodParameters
 	:	{root_0 = (Object)adaptor.becomeRoot((Object)adaptor.create(PARAMS, "PARAMS"), root_0);} (clazz (WHITESPACE!? COMMA! WHITESPACE!? clazz)*)

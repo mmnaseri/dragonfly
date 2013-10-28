@@ -4,6 +4,7 @@ import com.agileapes.couteau.basics.api.Filter;
 import com.agileapes.couteau.basics.api.Transformer;
 import com.agileapes.couteau.basics.api.impl.CastingTransformer;
 import com.agileapes.couteau.basics.api.impl.NegatingFilter;
+import com.agileapes.dragonfly.annotations.MappedColumn;
 import com.agileapes.dragonfly.error.ExpressionParseError;
 import com.agileapes.dragonfly.ext.ExtensionExpressionParser;
 import com.agileapes.dragonfly.ext.impl.parser.*;
@@ -180,7 +181,22 @@ public class DefaultExtensionExpressionParser implements ExtensionExpressionPars
     }
 
     public Filter<Class<?>> getProperty(List<CommonTree> items) {
-        return new HavingPropertyFilter(getType(items), getIdentifier(items));
+        return new HavingPropertyFilter(getAnnotations(items), getType(items), getIdentifier(items));
+    }
+
+    public class MyClass {
+
+        @MappedColumn
+        public Long getIdentifier() {
+            return 0l;
+        }
+
+    }
+
+    public static void main(String[] args) throws Exception {
+        final DefaultExtensionExpressionParser parser = new DefaultExtensionExpressionParser();
+        final Filter<Class<?>> filter = parser.parse("having property(@*..MappedColumn Long identifiers)");
+        System.out.println(filter.accepts(MyClass.class));
     }
 
 }
