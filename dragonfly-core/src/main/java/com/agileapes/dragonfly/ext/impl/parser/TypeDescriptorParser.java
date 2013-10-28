@@ -1,8 +1,10 @@
 package com.agileapes.dragonfly.ext.impl.parser;
 
 import org.antlr.runtime.*;
-
-import org.antlr.runtime.tree.*;
+import org.antlr.runtime.tree.CommonTreeAdaptor;
+import org.antlr.runtime.tree.RewriteRuleSubtreeStream;
+import org.antlr.runtime.tree.RewriteRuleTokenStream;
+import org.antlr.runtime.tree.TreeAdaptor;
 
 
 @SuppressWarnings("all")
