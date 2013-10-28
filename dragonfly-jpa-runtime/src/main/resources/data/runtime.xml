@@ -67,4 +67,6 @@
 
     <bean class="com.agileapes.dragonfly.events.CallbackResolver"/>
 
+    <bean class="com.agileapes.dragonfly.tools.PostStartupInspector"/>
+
 </beans>

@@ -37,7 +37,8 @@ public class TableMetadataCopier<E> {
         final ArrayList<SequenceMetadata> sequences = new ArrayList<SequenceMetadata>();
         final ArrayList<StoredProcedureMetadata> storedProcedures = new ArrayList<StoredProcedureMetadata>();
         final ArrayList<ReferenceMetadata<E, ?>> foreignReferences = new ArrayList<ReferenceMetadata<E, ?>>();
-        final ResolvedTableMetadata<E> metadata = new ResolvedTableMetadata<E>(tableMetadata.getEntityType(), tableMetadata.getSchema(), tableMetadata.getName(), constraints, columns, namedQueries, sequences, storedProcedures, foreignReferences);
+        final ColumnMetadata versionColumn = tableMetadata.getVersionColumn() == null ? null : with(columns).find(new ColumnNameFilter(tableMetadata.getVersionColumn().getName()));
+        final ResolvedTableMetadata<E> metadata = new ResolvedTableMetadata<E>(tableMetadata.getEntityType(), tableMetadata.getSchema(), tableMetadata.getName(), constraints, columns, namedQueries, sequences, storedProcedures, foreignReferences, versionColumn);
         final Transformer<ColumnMetadata, ColumnMetadata> columnTransformer = new Transformer<ColumnMetadata, ColumnMetadata>() {
             @Override
             public ColumnMetadata map(ColumnMetadata input) {

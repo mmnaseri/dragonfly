@@ -1,7 +1,7 @@
 package com.agileapes.dragonfly.tools;
 
 import com.agileapes.couteau.basics.api.Filter;
-import com.agileapes.dragonfly.metadata.ResolvedRepresentationColumnMetadata;
+import com.agileapes.dragonfly.metadata.impl.ResolvedRepresentationColumnMetadata;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)

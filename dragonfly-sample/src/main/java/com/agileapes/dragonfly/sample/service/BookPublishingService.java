@@ -33,7 +33,7 @@ public class BookPublishingService {
     public void execute() {
         final StopWatch stopWatch = new StopWatch();
         final Set<Thread> threads = new HashSet<Thread>();
-        final int benchmarkSize = 100;
+        final int benchmarkSize = 50;
         for (int i = 0; i < benchmarkSize; i ++) {
             threads.add(new Thread(new Runnable() {
                 @Override

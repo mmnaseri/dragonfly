@@ -34,4 +34,6 @@ public interface TableMetadata<E> extends Metadata {
 
     Collection<StoredProcedureMetadata> getProcedures();
 
+    ColumnMetadata getVersionColumn();
+
 }

@@ -57,6 +57,11 @@ public class UnresolvedTableMetadata<E> extends AbstractTableMetadata<E> {
     }
 
     @Override
+    public ColumnMetadata getVersionColumn() {
+        throw new MetadataCollectionError("Metadata is not available", new UnresolvedTableMetadataError(getEntityType()));
+    }
+
+    @Override
     public PrimaryKeyConstraintMetadata getPrimaryKey() {
         throw new MetadataCollectionError("Metadata is not available", new UnresolvedTableMetadataError(getEntityType()));
     }

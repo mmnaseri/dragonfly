@@ -22,11 +22,12 @@ public class ResolvedTableMetadata<E> extends AbstractTableMetadata<E> {
     private final Collection<ColumnMetadata> columns;
     private final Collection<SequenceMetadata> sequences;
     private final Collection<StoredProcedureMetadata> procedures;
+    private final ColumnMetadata versionColumn;
     private PrimaryKeyConstraintMetadata primaryKey = null;
     private final Collection<NamedQueryMetadata> namedQueries;
     private final Collection<ReferenceMetadata<E, ?>> foreignReferences;
 
-    public ResolvedTableMetadata(Class<E> entityType, String schema, String name, Collection<ConstraintMetadata> constraints, Collection<ColumnMetadata> columns, Collection<NamedQueryMetadata> namedQueries, Collection<SequenceMetadata> sequences, Collection<StoredProcedureMetadata> storedProcedures, Collection<ReferenceMetadata<E, ?>> foreignReferences) {
+    public ResolvedTableMetadata(Class<E> entityType, String schema, String name, Collection<ConstraintMetadata> constraints, Collection<ColumnMetadata> columns, Collection<NamedQueryMetadata> namedQueries, Collection<SequenceMetadata> sequences, Collection<StoredProcedureMetadata> storedProcedures, Collection<ReferenceMetadata<E, ?>> foreignReferences, ColumnMetadata versionColumn) {
         super(entityType);
         this.schema = schema;
         this.name = name;
@@ -36,6 +37,7 @@ public class ResolvedTableMetadata<E> extends AbstractTableMetadata<E> {
         this.sequences = sequences;
         this.procedures = storedProcedures;
         this.foreignReferences = foreignReferences;
+        this.versionColumn = versionColumn;
         for (ColumnMetadata column : columns) {
             if (column instanceof ResolvedColumnMetadata) {
                 ResolvedColumnMetadata metadata = (ResolvedColumnMetadata) column;
@@ -93,6 +95,11 @@ public class ResolvedTableMetadata<E> extends AbstractTableMetadata<E> {
     @Override
     public Collection<StoredProcedureMetadata> getProcedures() {
         return procedures;
+    }
+
+    @Override
+    public ColumnMetadata getVersionColumn() {
+        return versionColumn;
     }
 
     @Override

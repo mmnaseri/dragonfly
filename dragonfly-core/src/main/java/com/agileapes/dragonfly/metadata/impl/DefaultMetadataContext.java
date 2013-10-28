@@ -161,7 +161,7 @@ public class DefaultMetadataContext extends DefaultMetadataRegistry implements M
                         columns.add(secondColumn);
                         final List<ConstraintMetadata> constraints = new ArrayList<ConstraintMetadata>();
                         //noinspection unchecked
-                        final ResolvedTableMetadata metadata = new ResolvedTableMetadata(ManyToManyMiddleEntity.class, schema, middleTableName, constraints, columns, Collections.<NamedQueryMetadata>emptyList(), Collections.<SequenceMetadata>emptyList(), Collections.<StoredProcedureMetadata>emptyList(), new HashSet<ReferenceMetadata<Object, ?>>());
+                        final ResolvedTableMetadata metadata = new ResolvedTableMetadata(ManyToManyMiddleEntity.class, schema, middleTableName, constraints, columns, Collections.<NamedQueryMetadata>emptyList(), Collections.<SequenceMetadata>emptyList(), Collections.<StoredProcedureMetadata>emptyList(), new HashSet<ReferenceMetadata<Object, ?>>(), null);
                         constraints.add(new UniqueConstraintMetadata(metadata, columns));
                         constraints.add(new ForeignKeyConstraintMetadata(metadata, firstColumn));
                         constraints.add(new ForeignKeyConstraintMetadata(metadata, secondColumn));

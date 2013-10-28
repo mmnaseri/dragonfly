@@ -8,10 +8,7 @@ import com.agileapes.couteau.reflection.util.ClassUtils;
 import com.agileapes.dragonfly.cg.StaticNamingPolicy;
 import com.agileapes.dragonfly.data.DataAccess;
 import com.agileapes.dragonfly.data.DataAccessSession;
-import com.agileapes.dragonfly.entity.EntityFactory;
-import com.agileapes.dragonfly.entity.EntityHandlerContext;
-import com.agileapes.dragonfly.entity.InitializedEntity;
-import com.agileapes.dragonfly.entity.ModifiableEntityContext;
+import com.agileapes.dragonfly.entity.*;
 import com.agileapes.dragonfly.metadata.MetadataRegistry;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.security.DataSecurityManager;
@@ -52,7 +49,8 @@ public class DefaultEntityContext implements ModifiableEntityContext {
 
     @Override
     public <E> E getInstance(TableMetadata<E> tableMetadata) {
-        final EntityProxy<E> entityProxy = new EntityProxy<E>(securityManager, tableMetadata, handlerContext.getHandler(tableMetadata.getEntityType()), dataAccess, session, this);
+        final EntityHandler<E> entityHandler = handlerContext.getHandler(tableMetadata.getEntityType());
+        final EntityProxy<E> entityProxy = new EntityProxy<E>(securityManager, tableMetadata, entityHandler, dataAccess, session, this);
         if (interfaces.containsKey(tableMetadata.getEntityType())) {
             final Map<Class<?>, Class<?>> classMap = interfaces.get(tableMetadata.getEntityType());
             for (Map.Entry<Class<?>, Class<?>> entry : classMap.entrySet()) {
@@ -111,11 +109,6 @@ public class DefaultEntityContext implements ModifiableEntityContext {
             return key.equals(initializedEntity.getToken());
         }
         return false;
-    }
-
-    @Override
-    public EntityHandlerContext getHandlerContext() {
-        return null;
     }
 
     public void setDataAccess(DataAccess dataAccess) {

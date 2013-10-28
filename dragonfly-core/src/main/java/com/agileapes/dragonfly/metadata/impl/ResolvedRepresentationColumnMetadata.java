@@ -1,5 +1,8 @@
-package com.agileapes.dragonfly.metadata;
+package com.agileapes.dragonfly.metadata.impl;
 
+import com.agileapes.dragonfly.metadata.ColumnMetadata;
+import com.agileapes.dragonfly.metadata.TableMetadata;
+import com.agileapes.dragonfly.metadata.ValueGenerationType;
 import com.agileapes.dragonfly.metadata.impl.ResolvedColumnMetadata;
 
 /**

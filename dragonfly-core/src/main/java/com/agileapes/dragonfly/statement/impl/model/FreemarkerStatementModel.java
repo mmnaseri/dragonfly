@@ -38,6 +38,8 @@ public class FreemarkerStatementModel implements TemplateHashModel {
         items.put("isNotReference", new NonForeignKeyFilterMethod());
         items.put("isReference", new ForeignKeyFilterMethod());
         items.put("isSet", new ValueColumnSelectorMethod(value));
+        items.put("isVersion", new VersionColumnSelectorMethod());
+        items.put("isNotVersion", new NonVersionColumnSelectorMethod());
         items.put("escape", new EscapeMethod(dialect.getIdentifierEscapeCharacter()));
         items.put("quote", new QuoteMethod(dialect.getStringEscapeCharacter()));
         items.put("type", new TypeResolverMethod(dialect));

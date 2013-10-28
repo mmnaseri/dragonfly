@@ -1,0 +1,65 @@
+package com.agileapes.dragonfly.tools;
+
+import com.agileapes.couteau.context.contract.OrderedBean;
+import com.agileapes.dragonfly.data.impl.TableKeyGeneratorEntity;
+import com.agileapes.dragonfly.error.EntityDefinitionError;
+import com.agileapes.dragonfly.metadata.ColumnMetadata;
+import com.agileapes.dragonfly.metadata.MetadataContext;
+import com.agileapes.dragonfly.metadata.MetadataContextPostProcessor;
+import com.agileapes.dragonfly.metadata.TableMetadata;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import java.util.Collection;
+
+/**
+ * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
+ * @since 1.0 (2013/10/28, 14:01)
+ */
+public class PostStartupInspector implements MetadataContextPostProcessor, OrderedBean {
+
+    private static final Log log = LogFactory.getLog(PostStartupInspector.class);
+
+    @Override
+    public void postProcessMetadataContext(MetadataContext metadataContext) {
+        final Collection<Class<?>> entityTypes = metadataContext.getEntityTypes();
+        for (Class<?> entityType : entityTypes) {
+            checkEntity(metadataContext.getTableMetadata(entityType));
+        }
+    }
+
+    private void checkEntity(TableMetadata<?> tableMetadata) {
+        if (TableKeyGeneratorEntity.class.equals(tableMetadata.getEntityType())) {
+            return;
+        }
+        findPrimitiveTypeColumns(tableMetadata);
+        findEntityWithoutIdentifier(tableMetadata);
+        findEntityWithVersionWithoutPrimaryKey(tableMetadata);
+    }
+
+    private void findEntityWithVersionWithoutPrimaryKey(TableMetadata<?> tableMetadata) {
+        if (tableMetadata.getVersionColumn() != null && !tableMetadata.hasPrimaryKey()) {
+            log.error("Optimistic locking will not work without primary key identifier", new EntityDefinitionError("Entities without a primary key cannot have a version column"));
+        }
+    }
+
+    private void findEntityWithoutIdentifier(TableMetadata<?> tableMetadata) {
+        if (!tableMetadata.hasPrimaryKey()) {
+            log.warn("No primary key has been defined for entity: " + tableMetadata.getEntityType().getCanonicalName());
+        }
+    }
+
+    private void findPrimitiveTypeColumns(TableMetadata<?> tableMetadata) {
+        for (ColumnMetadata columnMetadata : tableMetadata.getColumns()) {
+            if (columnMetadata.getPropertyType().isPrimitive()) {
+                log.warn("Column has primitive type: " + columnMetadata.getPropertyType().getCanonicalName() + " in " + tableMetadata.getEntityType().getCanonicalName() + "." + columnMetadata.getName());
+            }
+        }
+    }
+
+    @Override
+    public int getOrder() {
+        return LOWEST_PRECEDENCE;
+    }
+
+}

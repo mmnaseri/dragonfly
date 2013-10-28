@@ -124,10 +124,15 @@ public interface EntityHandler<E> {
      * Saves all relations which refer to the entity
      * @param entity        the entity that is to be saved
      * @param dataAccess    the data access for the save
-     * @param entityContext
+     * @param entityContext the context through which the entity was initialized
      */
     void saveDependentRelations(E entity, DataAccess dataAccess, EntityContext entityContext);
 
     Map<TableMetadata<?>, Set<ManyToManyMiddleEntity>> getManyToManyRelatedObjects(E entity);
 
+    void incrementVersion(E entity);
+
+    void initializeVersion(E entity);
+
+    boolean isLockable();
 }

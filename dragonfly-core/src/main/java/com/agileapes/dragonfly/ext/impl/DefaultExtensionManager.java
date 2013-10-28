@@ -70,7 +70,7 @@ public class DefaultExtensionManager implements ExtensionManager {
                                 //noinspection unchecked
                                 return new ImmutableReferenceMetadata<E, Object>(input.getDeclaringClass(), input.getPropertyName(), input. isRelationOwner(), tableMetadata, (TableMetadata<Object>) input.getForeignTable(), input.getForeignColumn(), input.getRelationType(), input.getCascadeMetadata(), input.isLazy());
                             }
-                        }).list()).list());
+                        }).list()).list(), tableMetadata.getVersionColumn());
             }
         }, new EntityDefinitionInterceptor() {
             @Override

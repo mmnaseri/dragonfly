@@ -31,6 +31,8 @@ import com.agileapes.dragonfly.tools.ColumnPropertyFilter;
 import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.sql.Types;
 import java.util.*;
 
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
@@ -652,6 +654,68 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
                     }
                 });
         return map;
+    }
+
+    @Override
+    public void incrementVersion(E entity) {
+        final ColumnMetadata versionColumn = tableMetadata.getVersionColumn();
+        if (!isLockable()) {
+            return;
+        }
+        final BeanWrapper<E> wrapper = new MethodBeanWrapper<E>(entity);
+        try {
+            Object version = wrapper.getPropertyValue(versionColumn.getPropertyName());
+            if (version == null) {
+                return;
+            }
+            final Class<?> versionType = ReflectionUtils.mapType(versionColumn.getPropertyType());
+            if (Long.class.isAssignableFrom(versionType)) {
+                version = ((Long) version + 1L);
+            } else if (Integer.class.isAssignableFrom(versionType)) {
+                version = ((Integer) version + 1);
+            } else if (Short.class.isAssignableFrom(versionType)) {
+                version = ((Short) version + 1);
+            } else if (Types.TIMESTAMP == versionColumn.getType()) {
+                version = new Timestamp(new Date().getTime());
+            } else {
+                throw new EntityDefinitionError("Unsupported version type: " + versionType.getCanonicalName());
+            }
+            wrapper.setPropertyValue(versionColumn.getPropertyName(), version);
+        } catch (Exception e) {
+            throw new EntityDefinitionError("Version property has not been properly defined", e);
+        }
+    }
+
+    @Override
+    public void initializeVersion(E entity) {
+        final ColumnMetadata versionColumn = tableMetadata.getVersionColumn();
+        if (!isLockable()) {
+            return;
+        }
+        final BeanWrapper<E> wrapper = new MethodBeanWrapper<E>(entity);
+        try {
+            Object version;
+            final Class<?> versionType = ReflectionUtils.mapType(versionColumn.getPropertyType());
+            if (Long.class.isAssignableFrom(versionType)) {
+                version = 0L;
+            } else if (Integer.class.isAssignableFrom(versionType)) {
+                version = 0;
+            } else if (Short.class.isAssignableFrom(versionType)) {
+                version = 0;
+            } else if (Types.TIMESTAMP == versionColumn.getType()) {
+                version = new Timestamp(new Date().getTime());
+            } else {
+                throw new EntityDefinitionError("Unsupported version type: " + versionType.getCanonicalName());
+            }
+            wrapper.setPropertyValue(versionColumn.getPropertyName(), version);
+        } catch (Exception e) {
+            throw new EntityDefinitionError("Version property has not been properly defined", e);
+        }
+    }
+
+    @Override
+    public boolean isLockable() {
+        return tableMetadata.getVersionColumn() != null;
     }
 
 }

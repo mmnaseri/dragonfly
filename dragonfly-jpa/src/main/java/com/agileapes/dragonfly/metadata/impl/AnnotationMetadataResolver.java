@@ -26,6 +26,7 @@ import java.math.BigInteger;
 import java.sql.Time;
 import java.sql.Types;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 import static com.agileapes.couteau.reflection.util.ReflectionUtils.withMethods;
@@ -72,6 +73,7 @@ public class AnnotationMetadataResolver implements MetadataResolver {
         }
         final Collection<SequenceMetadata> sequences = new HashSet<SequenceMetadata>();
         final HashSet<ConstraintMetadata> constraints = new HashSet<ConstraintMetadata>();
+        final AtomicReference<ColumnMetadata> versionColumn = new AtomicReference<ColumnMetadata>();
         //noinspection unchecked
         final Collection<ColumnMetadata> tableColumns = withMethods(entityType)
         .keep(new AnnotatedElementFilter(Column.class, JoinColumn.class))
@@ -115,6 +117,19 @@ public class AnnotationMetadataResolver implements MetadataResolver {
                     final ImmutableReferenceMetadata<E, Object> reference = new ImmutableReferenceMetadata<E, Object>(declaringClass, columnMetadata.getPropertyName(), true, null, null, null, relationType, cascadeMetadata, isLazy);
                     reference.setForeignColumn(foreignColumn);
                     foreignReferences.add(reference);
+                }
+                if (method.isAnnotationPresent(Version.class)) {
+                    if (versionColumn.get() != null) {
+                        throw new EntityDefinitionError("More than one column has been defined for entity: " + entityType);
+                    }
+                    if (column != null) {
+                        if (columnMetadata.isNullable()) {
+                            throw new EntityDefinitionError("Version column cannot be nullable: " + entityType.getCanonicalName() + "." + columnMetadata.getName());
+                        }
+                        versionColumn.set(columnMetadata);
+                    } else {
+                        throw new EntityDefinitionError("Only local columns can be used for optimistic locking");
+                    }
                 }
                 return columnMetadata;
             }
@@ -163,7 +178,7 @@ public class AnnotationMetadataResolver implements MetadataResolver {
                 foreignReferences.add(reference);
             }
         });
-        //Handling one-to-one's where the entity is not the owner of the relationship
+        //Handling one-to-one relations where the entity is not the owner of the relationship
         //noinspection unchecked
         withMethods(entityType)
         .keep(new GetterMethodFilter())
@@ -215,7 +230,7 @@ public class AnnotationMetadataResolver implements MetadataResolver {
             final SequenceGenerator annotation = entityType.getAnnotation(SequenceGenerator.class);
             sequences.add(new DefaultSequenceMetadata(annotation.name(), annotation.initialValue(), annotation.allocationSize()));
         }
-        final ResolvedTableMetadata<E> tableMetadata = new ResolvedTableMetadata<E>(entityType, schema, tableName, constraints, tableColumns, namedQueries, sequences, storedProcedures, foreignReferences);
+        final ResolvedTableMetadata<E> tableMetadata = new ResolvedTableMetadata<E>(entityType, schema, tableName, constraints, tableColumns, namedQueries, sequences, storedProcedures, foreignReferences, versionColumn.get());
         if (!keyColumns.isEmpty()) {
             constraints.add(new PrimaryKeyConstraintMetadata(tableMetadata, with(keyColumns).transform(new Transformer<String, ColumnMetadata>() {
                 @Override

@@ -439,6 +439,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         }
         initializationContext.lock();
         initializedEntity.setMap(values);
+        entityHandler.incrementVersion(enhancedEntity);
         entityHandler.loadEagerRelations(enhancedEntity, values, initializationContext);
         final TableMetadata<E> tableMetadata = session.getMetadataRegistry().getTableMetadata(entityHandler.getEntityType());
         final BeanWrapper<E> wrapper = new MethodBeanWrapper<E>(enhancedEntity);
@@ -691,6 +692,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         saveQueue.put(entity, enhancedEntity);
         final InitializedEntity<E> initializedEntity = getInitializedEntity(enhancedEntity);
         initializedEntity.freeze();
+        entityHandler.initializeVersion(enhancedEntity);
         final Map<String, Object> sequenceValues = new HashMap<String, Object>();
         sequenceValues.putAll(session.getDatabaseDialect().loadTableValues(session.getMetadataRegistry().getTableMetadata(TableKeyGeneratorEntity.class), session.getMetadataRegistry().getTableMetadata(entityHandler.getEntityType()), session));
         sequenceValues.putAll(session.getDatabaseDialect().loadSequenceValues(session.getMetadataRegistry().getTableMetadata(entityHandler.getEntityType())));
@@ -712,6 +714,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
                 }
             }
         }
+        entityHandler.incrementVersion(enhancedEntity);
         if (!isInBatchMode()) {
             cleanUpStatement(preparedStatement);
         }
@@ -806,7 +809,11 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         }
         final PreparedStatement preparedStatement = internalExecuteUpdate(entityHandler.getEntityType(), Statements.Manipulation.UPDATE, values);
         try {
-            eventHandler.afterUpdate(enhancedEntity, preparedStatement.getUpdateCount() > 0);
+            final boolean updated = preparedStatement.getUpdateCount() > 0;
+            if (entityHandler.isLockable() && !updated) {
+                throw new OptimisticLockingFailureError(entityHandler.getEntityType());
+            }
+            eventHandler.afterUpdate(enhancedEntity, updated);
         } catch (SQLException e) {
             throw new UnsuccessfulOperationError("Failed to count the number of updated elements", e);
         }

@@ -183,7 +183,7 @@ public class EntityProxy<E> extends SecuredInterfaceInterceptor implements DataA
     }
 
     @Override
-    public void setOriginalCopy(E originalCopy) {
+    public synchronized void setOriginalCopy(E originalCopy) {
         this.originalCopy = originalCopy;
     }
 
