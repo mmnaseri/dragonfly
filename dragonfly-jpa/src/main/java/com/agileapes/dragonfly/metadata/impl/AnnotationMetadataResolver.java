@@ -71,6 +71,14 @@ public class AnnotationMetadataResolver implements MetadataResolver {
                 storedProcedures.add(getStoredProcedureMetadata(procedure));
             }
         }
+        //noinspection unchecked
+        if (!withMethods(entityType)
+                .keep(new GetterMethodFilter())
+                .keep(new AnnotatedElementFilter(Column.class, JoinColumn.class))
+                .keep(new AnnotatedElementFilter(Transient.class))
+                .isEmpty()) {
+            throw new EntityDefinitionError("Entity cannot have transient columns: " + entityType.getCanonicalName());
+        }
         final Collection<SequenceMetadata> sequences = new HashSet<SequenceMetadata>();
         final HashSet<ConstraintMetadata> constraints = new HashSet<ConstraintMetadata>();
         final AtomicReference<ColumnMetadata> versionColumn = new AtomicReference<ColumnMetadata>();
