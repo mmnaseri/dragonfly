@@ -5,6 +5,7 @@ import com.agileapes.dragonfly.error.UnresolvedTableMetadataError;
 import com.agileapes.dragonfly.metadata.*;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
@@ -58,6 +59,11 @@ public class UnresolvedTableMetadata<E> extends AbstractTableMetadata<E> {
 
     @Override
     public ColumnMetadata getVersionColumn() {
+        throw new MetadataCollectionError("Metadata is not available", new UnresolvedTableMetadataError(getEntityType()));
+    }
+
+    @Override
+    public List<OrderMetadata> getOrdering() {
         throw new MetadataCollectionError("Metadata is not available", new UnresolvedTableMetadataError(getEntityType()));
     }
 

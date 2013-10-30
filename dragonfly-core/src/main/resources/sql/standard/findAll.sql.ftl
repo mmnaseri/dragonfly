@@ -1,1 +1,1 @@
-SELECT * FROM ${qualify(table)};
+SELECT * FROM ${qualify(table)}<#if table.ordering?size &gt; 0> ORDER BY <#list table.ordering as ordering>${qualify(ordering.column)} ${ordering.order}<#if ordering_has_next>, </#if></#list></#if>;

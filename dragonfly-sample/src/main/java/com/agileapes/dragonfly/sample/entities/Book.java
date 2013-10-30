@@ -1,5 +1,6 @@
 package com.agileapes.dragonfly.sample.entities;
 
+import com.agileapes.dragonfly.annotations.Order;
 import com.agileapes.dragonfly.annotations.StoredProcedure;
 
 import javax.persistence.*;
@@ -25,6 +26,7 @@ public class Book {
     private Long key;
 
     @Column
+    @Order
     public String getTitle() {
         return title;
     }

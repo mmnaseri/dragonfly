@@ -7,6 +7,7 @@ import com.agileapes.couteau.reflection.util.ReflectionUtils;
 import com.agileapes.couteau.reflection.util.assets.AnnotatedElementFilter;
 import com.agileapes.couteau.reflection.util.assets.GetterMethodFilter;
 import com.agileapes.couteau.reflection.util.assets.MethodReturnTypeFilter;
+import com.agileapes.dragonfly.annotations.Order;
 import com.agileapes.dragonfly.annotations.StoredProcedure;
 import com.agileapes.dragonfly.annotations.StoredProcedureParameter;
 import com.agileapes.dragonfly.annotations.StoredProcedures;
@@ -238,7 +239,28 @@ public class AnnotationMetadataResolver implements MetadataResolver {
             final SequenceGenerator annotation = entityType.getAnnotation(SequenceGenerator.class);
             sequences.add(new DefaultSequenceMetadata(annotation.name(), annotation.initialValue(), annotation.allocationSize()));
         }
-        final ResolvedTableMetadata<E> tableMetadata = new ResolvedTableMetadata<E>(entityType, schema, tableName, constraints, tableColumns, namedQueries, sequences, storedProcedures, foreignReferences, versionColumn.get());
+        //finding orderings
+        //noinspection unchecked
+        final List<OrderMetadata> ordering = withMethods(entityType)
+                .keep(new AnnotatedElementFilter(Column.class))
+                .keep(new AnnotatedElementFilter(Order.class))
+                .sort(new Comparator<Method>() {
+                    @Override
+                    public int compare(Method firstMethod, Method secondMethod) {
+                        final Order first = firstMethod.getAnnotation(Order.class);
+                        final Order second = secondMethod.getAnnotation(Order.class);
+                        return ((Integer) first.priority()).compareTo(second.priority());
+                    }
+                })
+                .transform(new Transformer<Method, OrderMetadata>() {
+                    @Override
+                    public OrderMetadata map(Method input) {
+                        final Column column = input.getAnnotation(Column.class);
+                        String columnName = column.name().isEmpty() ? ReflectionUtils.getPropertyName(input.getName()) : column.name();
+                        return new ImmutableOrderMetadata(getColumnMetadata(columnName, tableColumns, entityType), input.getAnnotation(Order.class).value().toString());
+                    }
+                }).list();
+        final ResolvedTableMetadata<E> tableMetadata = new ResolvedTableMetadata<E>(entityType, schema, tableName, constraints, tableColumns, namedQueries, sequences, storedProcedures, foreignReferences, versionColumn.get(), ordering);
         if (!keyColumns.isEmpty()) {
             constraints.add(new PrimaryKeyConstraintMetadata(tableMetadata, with(keyColumns).transform(new Transformer<String, ColumnMetadata>() {
                 @Override

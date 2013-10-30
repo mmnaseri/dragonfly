@@ -3,6 +3,7 @@ package com.agileapes.dragonfly.metadata;
 import com.agileapes.dragonfly.metadata.impl.PrimaryKeyConstraintMetadata;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
@@ -35,5 +36,7 @@ public interface TableMetadata<E> extends Metadata {
     Collection<StoredProcedureMetadata> getProcedures();
 
     ColumnMetadata getVersionColumn();
+
+    List<OrderMetadata> getOrdering();
 
 }

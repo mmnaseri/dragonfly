@@ -7,6 +7,7 @@ import com.agileapes.dragonfly.tools.ConstraintTypeFilter;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 
@@ -23,11 +24,12 @@ public class ResolvedTableMetadata<E> extends AbstractTableMetadata<E> {
     private final Collection<SequenceMetadata> sequences;
     private final Collection<StoredProcedureMetadata> procedures;
     private final ColumnMetadata versionColumn;
+    private final List<OrderMetadata> ordering;
     private PrimaryKeyConstraintMetadata primaryKey = null;
     private final Collection<NamedQueryMetadata> namedQueries;
     private final Collection<ReferenceMetadata<E, ?>> foreignReferences;
 
-    public ResolvedTableMetadata(Class<E> entityType, String schema, String name, Collection<ConstraintMetadata> constraints, Collection<ColumnMetadata> columns, Collection<NamedQueryMetadata> namedQueries, Collection<SequenceMetadata> sequences, Collection<StoredProcedureMetadata> storedProcedures, Collection<ReferenceMetadata<E, ?>> foreignReferences, ColumnMetadata versionColumn) {
+    public ResolvedTableMetadata(Class<E> entityType, String schema, String name, Collection<ConstraintMetadata> constraints, Collection<ColumnMetadata> columns, Collection<NamedQueryMetadata> namedQueries, Collection<SequenceMetadata> sequences, Collection<StoredProcedureMetadata> storedProcedures, Collection<ReferenceMetadata<E, ?>> foreignReferences, ColumnMetadata versionColumn, List<OrderMetadata> ordering) {
         super(entityType);
         this.schema = schema;
         this.name = name;
@@ -38,6 +40,7 @@ public class ResolvedTableMetadata<E> extends AbstractTableMetadata<E> {
         this.procedures = storedProcedures;
         this.foreignReferences = foreignReferences;
         this.versionColumn = versionColumn;
+        this.ordering = ordering == null ? Collections.<OrderMetadata>emptyList() : ordering;
         for (ColumnMetadata column : columns) {
             if (column instanceof ResolvedColumnMetadata) {
                 ResolvedColumnMetadata metadata = (ResolvedColumnMetadata) column;
@@ -100,6 +103,11 @@ public class ResolvedTableMetadata<E> extends AbstractTableMetadata<E> {
     @Override
     public ColumnMetadata getVersionColumn() {
         return versionColumn;
+    }
+
+    @Override
+    public List<OrderMetadata> getOrdering() {
+        return ordering;
     }
 
     @Override

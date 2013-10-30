@@ -38,7 +38,13 @@ public class TableMetadataCopier<E> {
         final ArrayList<StoredProcedureMetadata> storedProcedures = new ArrayList<StoredProcedureMetadata>();
         final ArrayList<ReferenceMetadata<E, ?>> foreignReferences = new ArrayList<ReferenceMetadata<E, ?>>();
         final ColumnMetadata versionColumn = tableMetadata.getVersionColumn() == null ? null : with(columns).find(new ColumnNameFilter(tableMetadata.getVersionColumn().getName()));
-        final ResolvedTableMetadata<E> metadata = new ResolvedTableMetadata<E>(tableMetadata.getEntityType(), tableMetadata.getSchema(), tableMetadata.getName(), constraints, columns, namedQueries, sequences, storedProcedures, foreignReferences, versionColumn);
+        final List<OrderMetadata> ordering = with(tableMetadata.getOrdering()).transform(new Transformer<OrderMetadata, OrderMetadata>() {
+            @Override
+            public OrderMetadata map(OrderMetadata input) {
+                return new ImmutableOrderMetadata(with(columns).find(new ColumnNameFilter(input.getColumn().getName())), input.getOrder());
+            }
+        }).list();
+        final ResolvedTableMetadata<E> metadata = new ResolvedTableMetadata<E>(tableMetadata.getEntityType(), tableMetadata.getSchema(), tableMetadata.getName(), constraints, columns, namedQueries, sequences, storedProcedures, foreignReferences, versionColumn, ordering);
         final Transformer<ColumnMetadata, ColumnMetadata> columnTransformer = new Transformer<ColumnMetadata, ColumnMetadata>() {
             @Override
             public ColumnMetadata map(ColumnMetadata input) {

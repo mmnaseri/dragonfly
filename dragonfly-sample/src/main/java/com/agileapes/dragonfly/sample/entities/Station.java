@@ -1,5 +1,6 @@
 package com.agileapes.dragonfly.sample.entities;
 
+import com.agileapes.dragonfly.annotations.Order;
 import com.agileapes.dragonfly.sample.assets.StationUpdateMonitor;
 import com.agileapes.dragonfly.sample.ext.ManualIdentity;
 
@@ -26,6 +27,7 @@ public class Station {
     private Integer version;
 
     @Column
+    @Order
     public String getName() {
         return name;
     }
