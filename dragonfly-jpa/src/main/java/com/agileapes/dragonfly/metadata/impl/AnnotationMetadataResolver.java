@@ -16,6 +16,7 @@ import com.agileapes.dragonfly.error.NoSuchColumnError;
 import com.agileapes.dragonfly.error.UnsupportedColumnTypeError;
 import com.agileapes.dragonfly.metadata.*;
 import com.agileapes.dragonfly.tools.ColumnNameFilter;
+import com.agileapes.dragonfly.tools.ColumnPropertyFilter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -257,7 +258,14 @@ public class AnnotationMetadataResolver implements MetadataResolver {
                     public OrderMetadata map(Method input) {
                         final Column column = input.getAnnotation(Column.class);
                         String columnName = column.name().isEmpty() ? ReflectionUtils.getPropertyName(input.getName()) : column.name();
-                        return new ImmutableOrderMetadata(getColumnMetadata(columnName, tableColumns, entityType), input.getAnnotation(Order.class).value().toString());
+                        ColumnMetadata columnMetadata = with(tableColumns).find(new ColumnNameFilter(columnName));
+                        if (columnMetadata == null) {
+                            columnMetadata = with(tableColumns).find(new ColumnPropertyFilter(columnName));
+                        }
+                        if (columnMetadata == null) {
+                            throw new NoSuchColumnError(entityType, columnName);
+                        }
+                        return new ImmutableOrderMetadata(columnMetadata, input.getAnnotation(Order.class).value().toString());
                     }
                 }).list();
         final ResolvedTableMetadata<E> tableMetadata = new ResolvedTableMetadata<E>(entityType, schema, tableName, constraints, tableColumns, namedQueries, sequences, storedProcedures, foreignReferences, versionColumn.get(), ordering);
