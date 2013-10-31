@@ -2,6 +2,9 @@ package com.agileapes.dragonfly.metadata.impl;
 
 import com.agileapes.dragonfly.metadata.*;
 
+import java.util.Collections;
+import java.util.List;
+
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/12, 0:17)
@@ -11,6 +14,7 @@ public class ImmutableReferenceMetadata<S, D> implements ReferenceMetadata<S, D>
     private final String propertyName;
     private final boolean owner;
     private final Class<?> declaringClass;
+    private final List<OrderMetadata> ordering;
     private ColumnMetadata foreignColumn;
     private TableMetadata<S> localTable;
     private TableMetadata<D> foreignTable;
@@ -18,7 +22,7 @@ public class ImmutableReferenceMetadata<S, D> implements ReferenceMetadata<S, D>
     private final boolean lazy;
     private final CascadeMetadata cascadeMetadata;
 
-    public ImmutableReferenceMetadata(Class<?> declaringClass, String propertyName, boolean owner, TableMetadata<S> localTable, TableMetadata<D> foreignTable, ColumnMetadata foreignColumn, RelationType relationType, CascadeMetadata cascadeMetadata, boolean lazy) {
+    public ImmutableReferenceMetadata(Class<?> declaringClass, String propertyName, boolean owner, TableMetadata<S> localTable, TableMetadata<D> foreignTable, ColumnMetadata foreignColumn, RelationType relationType, CascadeMetadata cascadeMetadata, boolean lazy, List<OrderMetadata> ordering) {
         this.localTable = localTable;
         this.foreignTable = foreignTable;
         this.relationType = relationType;
@@ -28,6 +32,7 @@ public class ImmutableReferenceMetadata<S, D> implements ReferenceMetadata<S, D>
         this.propertyName = propertyName;
         this.owner = owner;
         this.declaringClass = declaringClass;
+        this.ordering = new DefaultResultOrderMetadata(ordering == null ? Collections.<OrderMetadata>emptyList() : ordering);
     }
 
     @Override
@@ -75,6 +80,11 @@ public class ImmutableReferenceMetadata<S, D> implements ReferenceMetadata<S, D>
         return declaringClass;
     }
 
+    @Override
+    public List<OrderMetadata> getOrdering() {
+        return ordering;
+    }
+
     public void setLocalTable(TableMetadata<S> localTable) {
         this.localTable = localTable;
     }
@@ -84,4 +94,5 @@ public class ImmutableReferenceMetadata<S, D> implements ReferenceMetadata<S, D>
         //noinspection unchecked
         this.foreignTable = (TableMetadata<D>) foreignColumn.getTable();
     }
+
 }

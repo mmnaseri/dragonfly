@@ -40,7 +40,7 @@ public class ResolvedTableMetadata<E> extends AbstractTableMetadata<E> {
         this.procedures = storedProcedures;
         this.foreignReferences = foreignReferences;
         this.versionColumn = versionColumn;
-        this.ordering = ordering == null ? Collections.<OrderMetadata>emptyList() : ordering;
+        this.ordering = new DefaultResultOrderMetadata(ordering == null ? Collections.<OrderMetadata>emptyList() : ordering);
         for (ColumnMetadata column : columns) {
             if (column instanceof ResolvedColumnMetadata) {
                 ResolvedColumnMetadata metadata = (ResolvedColumnMetadata) column;

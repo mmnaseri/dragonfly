@@ -48,7 +48,7 @@ public class ImmutableStatement implements Statement {
         this.dynamic = dynamic;
         this.parameters = parameters;
         this.type = type;
-        preparator = parameters ? new DefaultStatementPreparator(false) : null;
+        this.preparator = parameters ? new DefaultStatementPreparator(false) : null;
     }
 
     @Override

@@ -124,7 +124,7 @@ public class AnnotationMetadataResolver implements MetadataResolver {
                     final RelationType relationType = getRelationType(method);
                     final CascadeMetadata cascadeMetadata = getCascadeMetadata(method);
                     final boolean isLazy = determineLaziness(method);
-                    final ImmutableReferenceMetadata<E, Object> reference = new ImmutableReferenceMetadata<E, Object>(declaringClass, columnMetadata.getPropertyName(), true, null, null, null, relationType, cascadeMetadata, isLazy);
+                    final ImmutableReferenceMetadata<E, Object> reference = new ImmutableReferenceMetadata<E, Object>(declaringClass, columnMetadata.getPropertyName(), true, null, null, null, relationType, cascadeMetadata, isLazy, null);
                     reference.setForeignColumn(foreignColumn);
                     foreignReferences.add(reference);
                 }
@@ -183,7 +183,7 @@ public class AnnotationMetadataResolver implements MetadataResolver {
                 }
                 //noinspection unchecked
                 final UnresolvedColumnMetadata foreignColumn = new UnresolvedColumnMetadata(foreignColumnName, new UnresolvedTableMetadata<Object>((Class<Object>) foreignEntity));
-                final ImmutableReferenceMetadata<E, Object> reference = new ImmutableReferenceMetadata<E, Object>(ReflectionUtils.getDeclaringClass(method), propertyName, false, null, null, null, getRelationType(method), getCascadeMetadata(method), determineLaziness(method));
+                final ImmutableReferenceMetadata<E, Object> reference = new ImmutableReferenceMetadata<E, Object>(ReflectionUtils.getDeclaringClass(method), propertyName, false, null, null, null, getRelationType(method), getCascadeMetadata(method), determineLaziness(method), null);
                 reference.setForeignColumn(foreignColumn);
                 foreignReferences.add(reference);
             }
@@ -200,7 +200,7 @@ public class AnnotationMetadataResolver implements MetadataResolver {
                 final OneToOne annotation = method.getAnnotation(OneToOne.class);
                 Class<?> foreignEntity = annotation.targetEntity().equals(void.class) ? method.getReturnType() : annotation.targetEntity();
                 final String propertyName = ReflectionUtils.getPropertyName(method.getName());
-                final ImmutableReferenceMetadata<E, Object> reference = new ImmutableReferenceMetadata<E, Object>(ReflectionUtils.getDeclaringClass(method), propertyName, false, null, null, null, getRelationType(method), getCascadeMetadata(method), determineLaziness(method));
+                final ImmutableReferenceMetadata<E, Object> reference = new ImmutableReferenceMetadata<E, Object>(ReflectionUtils.getDeclaringClass(method), propertyName, false, null, null, null, getRelationType(method), getCascadeMetadata(method), determineLaziness(method), null);
                 String foreignColumnName = annotation.mappedBy();
                 if (foreignColumnName.isEmpty()) {
                     //noinspection unchecked
@@ -334,7 +334,7 @@ public class AnnotationMetadataResolver implements MetadataResolver {
                                     foreignProperty = ReflectionUtils.getPropertyName(methods.get(0).getName());
                                 }
                                 //noinspection unchecked
-                                foreignReferences.add(new ImmutableReferenceMetadata<E, Object>(ReflectionUtils.getDeclaringClass(method), ReflectionUtils.getPropertyName(method.getName()), false, tableMetadata, null, new UnresolvedColumnMetadata(foreignProperty, new UnresolvedTableMetadata<Object>((Class<Object>) foreignEntity)), RelationType.MANY_TO_MANY, getCascadeMetadata(method), determineLaziness(method)));
+                                foreignReferences.add(new ImmutableReferenceMetadata<E, Object>(ReflectionUtils.getDeclaringClass(method), ReflectionUtils.getPropertyName(method.getName()), false, tableMetadata, null, new UnresolvedColumnMetadata(foreignProperty, new UnresolvedTableMetadata<Object>((Class<Object>) foreignEntity)), RelationType.MANY_TO_MANY, getCascadeMetadata(method), determineLaziness(method), null));
                             }
                         }
                 );

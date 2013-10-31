@@ -68,7 +68,7 @@ public class DefaultExtensionManager implements ExtensionManager {
                             @Override
                             public ReferenceMetadata<E, ?> map(ReferenceMetadata<Object, ?> input) {
                                 //noinspection unchecked
-                                return new ImmutableReferenceMetadata<E, Object>(input.getDeclaringClass(), input.getPropertyName(), input. isRelationOwner(), tableMetadata, (TableMetadata<Object>) input.getForeignTable(), input.getForeignColumn(), input.getRelationType(), input.getCascadeMetadata(), input.isLazy());
+                                return new ImmutableReferenceMetadata<E, Object>(input.getDeclaringClass(), input.getPropertyName(), input. isRelationOwner(), tableMetadata, (TableMetadata<Object>) input.getForeignTable(), input.getForeignColumn(), input.getRelationType(), input.getCascadeMetadata(), input.isLazy(), input.getOrdering());
                             }
                         }).list()).list(), tableMetadata.getVersionColumn(),
                         with(tableMetadata.getOrdering()).add(metadata.getOrdering()).list());
