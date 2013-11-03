@@ -2,7 +2,6 @@ package com.agileapes.dragonfly.sample.service;
 
 import com.agileapes.dragonfly.data.DataAccess;
 import com.agileapes.dragonfly.error.OptimisticLockingFailureError;
-import com.agileapes.dragonfly.sample.entities.Person;
 import com.agileapes.dragonfly.sample.entities.Station;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -44,12 +43,6 @@ public class EventCallbackService {
         }
         if (!error) {
             throw new Error("Expected optimistic locking to fail");
-        }
-        final Person sample = new Person();
-        dataAccess.save(sample);
-        final List<Person> people = dataAccess.findAll(Person.class);
-        for (Person person : people) {
-            person.getThings();
         }
     }
 
