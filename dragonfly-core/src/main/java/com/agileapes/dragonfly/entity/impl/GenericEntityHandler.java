@@ -223,7 +223,7 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
                                   } catch (Exception e) {
                                       throw new EntityPreparationError("Could not set relation property " + reference.getForeignTable().getEntityType().getCanonicalName() + "." + reference.getForeignColumn().getPropertyName(), e);
                                   }
-                                  final List<Object> objects = initializationContext.getDataAccess().find(foreignEntity);
+                                  final List<Object> objects = initializationContext.getDataAccess().find(foreignEntity, reference.getOrdering().toString());
                                   final Object propertyValue;
                                   if (reference.getRelationType().getForeignCardinality() == 1) {
                                       if (objects.isEmpty()) {
@@ -319,7 +319,7 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
             }
             try {
                 final Collection<Object> newCollection = ReflectionUtils.getCollection(wrapper.getPropertyType(referenceMetadata.getPropertyName()));
-                newCollection.addAll(dataAccess.find(foreignEntity));
+                newCollection.addAll(dataAccess.find(foreignEntity, referenceMetadata.getOrdering().toString()));
                 wrapper.setPropertyValue(referenceMetadata.getPropertyName(), newCollection);
             } catch (Exception e) {
                 throw new EntityPreparationError("Failed to prepare entity", e);
