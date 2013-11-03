@@ -177,6 +177,16 @@ public class DelegatingDataAccess implements PartialDataAccess, EventHandlerCont
     }
 
     @Override
+    public <E> List<E> find(E sample, final String order) {
+        return (List<E>) given(new SampledDataOperation(dataAccess, OperationType.FIND, sample, new AbstractDefaultDataCallback<SampledDataOperation>() {
+            @Override
+            public Object execute(SampledDataOperation operation) {
+                return dataAccess.find(operation.getSample(), order);
+            }
+        })).execute();
+    }
+
+    @Override
     public <E, K extends Serializable> E find(Class<E> entityType, K key) {
         return (E) given(new IdentifiableDataOperation(dataAccess, OperationType.FIND, entityType, key, new AbstractDefaultDataCallback<IdentifiableDataOperation>() {
             @Override
@@ -192,6 +202,16 @@ public class DelegatingDataAccess implements PartialDataAccess, EventHandlerCont
             @Override
             public Object execute(TypedDataOperation operation) {
                 return dataAccess.findAll(operation.getEntityType());
+            }
+        })).execute();
+    }
+
+    @Override
+    public <E> List<E> findAll(Class<E> entityType, final String order) {
+        return (List<E>) given(new TypedDataOperation(dataAccess, OperationType.FIND, entityType, new AbstractDefaultDataCallback<TypedDataOperation>() {
+            @Override
+            public Object execute(TypedDataOperation operation) {
+                return dataAccess.findAll(operation.getEntityType(), order);
             }
         })).execute();
     }

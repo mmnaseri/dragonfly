@@ -52,6 +52,9 @@ public class Main {
         stopWatch.start("event-callback");
         context.getBean(EventCallbackService.class).execute();
         stopWatch.stop();
+        stopWatch.start("ordering");
+        context.getBean(OrderingService.class).execute();
+        stopWatch.stop();
         System.out.println(stopWatch.prettyPrint());
     }
 

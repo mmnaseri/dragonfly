@@ -1,6 +1,7 @@
 package com.agileapes.dragonfly.sample.entities;
 
 import com.agileapes.dragonfly.annotations.Order;
+import com.agileapes.dragonfly.annotations.Ordering;
 import com.agileapes.dragonfly.sample.assets.StationUpdateMonitor;
 import com.agileapes.dragonfly.sample.ext.ManualIdentity;
 
@@ -27,7 +28,7 @@ public class Station {
     private Integer version;
 
     @Column
-    @Order
+    @Order(priority = 2, value = Ordering.DESCENDING)
     public String getName() {
         return name;
     }
@@ -39,6 +40,7 @@ public class Station {
     @Column
     @Id
     @GeneratedValue
+    @Order(priority = 1)
     public Long getId() {
         return id;
     }

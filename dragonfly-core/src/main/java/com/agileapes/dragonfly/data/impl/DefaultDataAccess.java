@@ -14,10 +14,7 @@ import com.agileapes.couteau.reflection.error.BeanInstantiationException;
 import com.agileapes.couteau.reflection.util.ReflectionUtils;
 import com.agileapes.dragonfly.annotations.ParameterMode;
 import com.agileapes.dragonfly.annotations.Partial;
-import com.agileapes.dragonfly.data.BatchOperation;
-import com.agileapes.dragonfly.data.DataAccess;
-import com.agileapes.dragonfly.data.DataAccessSession;
-import com.agileapes.dragonfly.data.PartialDataAccess;
+import com.agileapes.dragonfly.data.*;
 import com.agileapes.dragonfly.entity.*;
 import com.agileapes.dragonfly.entity.impl.*;
 import com.agileapes.dragonfly.error.*;
@@ -230,11 +227,11 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     }
 
     private PreparedStatement internalExecuteUpdate(Class<?> entityType, Statements.Manipulation statement, Map<String, Object> values) {
-        return internalExecuteUpdate(getStatement(entityType, statement, StatementType.INSERT, StatementType.DELETE, StatementType.UPDATE), values);
+        return internalExecuteUpdate(getStatement(entityType, statement, null, StatementType.INSERT, StatementType.DELETE, StatementType.UPDATE), values);
     }
 
     private PreparedStatement internalExecuteUpdate(Class<?> entityType, String statement, Map<String, Object> values) {
-        return internalExecuteUpdate(getStatement(entityType, statement, StatementType.INSERT, StatementType.DELETE, StatementType.UPDATE), values);
+        return internalExecuteUpdate(getStatement(entityType, statement, null, StatementType.INSERT, StatementType.DELETE, StatementType.UPDATE), values);
     }
 
     private PreparedStatement internalExecuteUpdate(Statement statement, Map<String, Object> values) {
@@ -300,17 +297,17 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
      * Internal query methods
      */
 
-    private <E> List<E> internalExecuteQuery(Class<E> entityType, Statements.Manipulation statement) {
-        return internalExecuteQuery(entityType, statement, Collections.<String, Object>emptyMap());
+    private <E> List<E> internalExecuteQuery(Class<E> entityType, Statements.Manipulation statement, ResultOrderMetadata ordering) {
+        return internalExecuteQuery(entityType, statement, Collections.<String, Object>emptyMap(), ordering);
     }
 
-    private <E> List<E> internalExecuteQuery(Class<E> entityType, Statements.Manipulation statement, Map<String, Object> values) {
-        return internalExecuteQuery(entityType, STATEMENTS.get(statement), values);
+    private <E> List<E> internalExecuteQuery(Class<E> entityType, Statements.Manipulation statement, Map<String, Object> values, ResultOrderMetadata ordering) {
+        return internalExecuteQuery(entityType, STATEMENTS.get(statement), values, ordering);
     }
 
-    private <E> List<E> internalExecuteQuery(Class<E> entityType, String statementName, Map<String, Object> values) {
+    private <E> List<E> internalExecuteQuery(Class<E> entityType, String statementName, Map<String, Object> values, ResultOrderMetadata ordering) {
         final EntityHandler<E> entityHandler = entityHandlerContext.getHandler(entityType);
-        final List<Map<String, Object>> maps = internalExecuteUntypedQuery(entityType, statementName, values);
+        final List<Map<String, Object>> maps = internalExecuteUntypedQuery(entityType, statementName, values, ordering);
         final ArrayList<E> result = new ArrayList<E>();
         for (Map<String, Object> entityMap : maps) {
             final E instance = entityContext.getInstance(entityType);
@@ -328,15 +325,15 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         return result;
     }
 
-    private <E> List<Map<String, Object>> internalExecuteUntypedQuery(Class<E> entityType, Statements.Manipulation statement, Map<String, Object> values) {
-        return internalExecuteUntypedQuery(entityType, STATEMENTS.get(statement), values);
+    private <E> List<Map<String, Object>> internalExecuteUntypedQuery(Class<E> entityType, Statements.Manipulation statement, Map<String, Object> values, ResultOrderMetadata ordering) {
+        return internalExecuteUntypedQuery(entityType, STATEMENTS.get(statement), values, ordering);
     }
 
-    private <E> List<Map<String, Object>> internalExecuteUntypedQuery(Class<E> entityType, String statementName, Map<String, Object> values) {
+    private <E> List<Map<String, Object>> internalExecuteUntypedQuery(Class<E> entityType, String statementName, Map<String, Object> values, ResultOrderMetadata ordering) {
         if (isInBatchMode() && !statementName.startsWith("count")) {
             throw new BatchOperationInterruptedError("Batch operation interrupted by query");
         }
-        final Statement statement = getStatement(entityType, statementName, StatementType.QUERY);
+        final Statement statement = getStatement(entityType, statementName, ordering, StatementType.QUERY);
         final Connection connection = openConnection();
         final PreparedStatement preparedStatement = openStatement(statement.prepare(connection, null, values));
         final ArrayList<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
@@ -359,7 +356,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         if (isInBatchMode() && localCounts.get().contains(result)) {
             return (Long) with(localCounts.get()).find(new EqualityFilter<LocalOperationResult>(result)).getResult();
         }
-        final List<Map<String, Object>> list = internalExecuteUntypedQuery(entityType, statement, values);
+        final List<Map<String, Object>> list = internalExecuteUntypedQuery(entityType, statement, values, null);
         if (list.size() != 1) {
             throw new UnsuccessfulOperationError("Failed to execute statement");
         }
@@ -380,14 +377,24 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
      * Internal statement access methods
      */
 
-    private Statement getStatement(Class<?> entityType, Statements.Manipulation statement, StatementType... expected) {
-        return getStatement(entityType, STATEMENTS.get(statement), expected);
+    private Statement getStatement(Class<?> entityType, Statements.Manipulation statement, ResultOrderMetadata ordering, StatementType... expected) {
+        return getStatement(entityType, STATEMENTS.get(statement), ordering, expected);
     }
 
-    private Statement getStatement(Class<?> entityType, String statementName, StatementType... expected) {
+    private Statement getStatement(Class<?> entityType, final String statementName, ResultOrderMetadata ordering, StatementType... expected) {
         Statement result;
         try {
-            result = session.getStatementRegistry(entityType).get(statementName);
+            if (ordering == null) {
+                result = session.getStatementRegistry(entityType).get(statementName);
+            } else {
+                final StatementBuilder statementBuilder = session.getDatabaseDialect().getStatementBuilderContext().getManipulationStatementBuilder(with(STATEMENTS.keySet()).find(new Filter<Statements.Manipulation>() {
+                    @Override
+                    public boolean accepts(Statements.Manipulation item) {
+                        return STATEMENTS.get(item).equals(statementName);
+                    }
+                }));
+                result = statementBuilder.getStatement(session.getMetadataRegistry().getTableMetadata(entityType), ordering);
+            }
         } catch (RegistryException e) {
             throw new UnrecognizedQueryError(entityType, statementName);
         }
@@ -462,7 +469,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
                                 try {
                                     middleEntityWrapper.setPropertyValue(with(middleTable.getColumns()).find(new ColumnNameFilter(tableMetadata.getName())).getPropertyName(), enhancedEntity);
                                     final Collection<Object> collection = ReflectionUtils.getCollection(wrapper.getPropertyType(reference.getPropertyName()));
-                                    collection.addAll(helper.find(middleEntity, new PreparationCallback() {
+                                    collection.addAll(helper.find(middleEntity, new EntityPreparationCallback() {
                                         @Override
                                         public void prepare(Object entity, Map<String, Object> values) {
                                             prepareEntity(entity, values);
@@ -600,7 +607,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     @Override
     public <E> List<Map<String, Object>> executeUntypedQuery(Class<E> entityType, String queryName, Map<String, Object> values) {
         final ArrayList<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
-        final Statement statement = getStatement(entityType, queryName, StatementType.QUERY);
+        final Statement statement = getStatement(entityType, queryName, null, StatementType.QUERY);
         final Connection connection = openConnection();
         final PreparedStatement preparedStatement = openStatement(statement.prepare(connection, null, values));
         final ResultSet resultSet;
@@ -629,7 +636,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
             throw new PartialEntityDefinitionError("Expected to find @Partial on " + resultType.getCanonicalName());
         }
         final Partial annotation = resultType.getAnnotation(Partial.class);
-        final Statement statement = getStatement(annotation.targetEntity(), annotation.query(), StatementType.INSERT, StatementType.DELETE, StatementType.UPDATE);
+        final Statement statement = getStatement(annotation.targetEntity(), annotation.query(), null, StatementType.INSERT, StatementType.DELETE, StatementType.UPDATE);
         final PreparedStatement preparedStatement = openStatement(statement.prepare(openConnection(), mapCreator, sample));
         try {
             final int affectedRows = preparedStatement.executeUpdate();
@@ -978,12 +985,23 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
 
     @Override
     public <E> List<E> find(E sample) {
+        return find(sample, null);
+    }
+
+    @Override
+    public <E> List<E> find(E sample, String order) {
         final E enhancedEntity = getEnhancedEntity(sample);
         final InitializedEntity<E> initializedEntity = getInitializedEntity(enhancedEntity);
         initializedEntity.freeze();
         final EntityHandler<E> entityHandler = entityHandlerContext.getHandler(sample);
+        final ResultOrderMetadata ordering;
+        if (order != null) {
+            ordering = new OrderExpressionParser(session.getMetadataRegistry().getTableMetadata(entityHandler.getEntityType())).map(order);
+        } else {
+            ordering = null;
+        }
         eventHandler.beforeFind(enhancedEntity);
-        final List<E> found = internalExecuteQuery(entityHandler.getEntityType(), Statements.Manipulation.FIND_LIKE, MapTools.prefixKeys(entityHandler.toMap(enhancedEntity), "value."));
+        final List<E> found = internalExecuteQuery(entityHandler.getEntityType(), Statements.Manipulation.FIND_LIKE, MapTools.prefixKeys(entityHandler.toMap(enhancedEntity), "value."), ordering);
         eventHandler.afterFind(enhancedEntity, found);
         initializedEntity.unfreeze();
         return found;
@@ -998,7 +1016,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         final EntityHandler<E> entityHandler = entityHandlerContext.getHandler(entityType);
         entityHandler.setKey(instance, key);
         final Map<String, Object> map = MapTools.prefixKeys(entityHandler.toMap(instance), "value.");
-        final List<E> list = internalExecuteQuery(entityType, Statements.Manipulation.FIND_ONE, map);
+        final List<E> list = internalExecuteQuery(entityType, Statements.Manipulation.FIND_ONE, map, null);
         final E result;
         if (list.isEmpty()) {
             result = null;
@@ -1013,9 +1031,20 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
 
     @Override
     public <E> List<E> findAll(Class<E> entityType) {
+        return findAll(entityType, null);
+    }
+
+    @Override
+    public <E> List<E> findAll(Class<E> entityType, String order) {
         final EntityHandler<E> entityHandler = entityHandlerContext.getHandler(entityType);
+        final ResultOrderMetadata ordering;
+        if (order != null) {
+            ordering = new OrderExpressionParser(session.getMetadataRegistry().getTableMetadata(entityHandler.getEntityType())).map(order);
+        } else {
+            ordering = null;
+        }
         eventHandler.beforeFindAll(entityType);
-        final List<E> found = internalExecuteQuery(entityHandler.getEntityType(), Statements.Manipulation.FIND_ALL);
+        final List<E> found = internalExecuteQuery(entityHandler.getEntityType(), Statements.Manipulation.FIND_ALL, ordering);
         eventHandler.afterFindAll(entityType, found);
         return found;
     }
@@ -1041,7 +1070,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     @Override
     public <E> List<E> executeQuery(Class<E> entityType, String queryName, Map<String, Object> values) {
         eventHandler.beforeExecuteQuery(entityType, queryName, values);
-        final List<E> list = internalExecuteQuery(entityType, queryName, values);
+        final List<E> list = internalExecuteQuery(entityType, queryName, values, null);
         eventHandler.afterExecuteQuery(entityType, queryName, values, list);
         return list;
     }
@@ -1051,7 +1080,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         final E enhancedEntity = getEnhancedEntity(sample);
         final EntityHandler<E> entityHandler = entityHandlerContext.getHandler(enhancedEntity);
         eventHandler.beforeExecuteQuery(enhancedEntity, queryName);
-        final List<E> list = internalExecuteQuery(entityHandler.getEntityType(), queryName, MapTools.prefixKeys(entityHandler.toMap(enhancedEntity), "value."));
+        final List<E> list = internalExecuteQuery(entityHandler.getEntityType(), queryName, MapTools.prefixKeys(entityHandler.toMap(enhancedEntity), "value."), null);
         eventHandler.afterExecuteQuery(enhancedEntity, queryName, list);
         return list;
     }
@@ -1092,7 +1121,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
             }
         }
         securityManager.checkAccess(new StoredProcedureSubject(procedureMetadata, parameters));
-        final ProcedureCallStatement statement = (ProcedureCallStatement) getStatement(entityType, "call." + procedureName, StatementType.CALL);
+        final ProcedureCallStatement statement = (ProcedureCallStatement) getStatement(entityType, "call." + procedureName, null, StatementType.CALL);
         final Map<String, Object> values = new HashMap<String, Object>();
         for (int i = 0; i < parameters.length; i++) {
             values.put("value.parameter" + i, parameters[i] instanceof Reference ? ((Reference<?>) parameters[i]).getValue() : parameters[i]);

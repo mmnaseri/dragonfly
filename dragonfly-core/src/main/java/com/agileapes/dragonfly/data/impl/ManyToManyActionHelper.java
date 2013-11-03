@@ -1,6 +1,7 @@
 package com.agileapes.dragonfly.data.impl;
 
 import com.agileapes.couteau.basics.api.impl.NegatingFilter;
+import com.agileapes.dragonfly.data.EntityPreparationCallback;
 import com.agileapes.dragonfly.entity.*;
 import com.agileapes.dragonfly.entity.impl.DefaultEntityMapCreator;
 import com.agileapes.dragonfly.entity.impl.DefaultMapEntityCreator;
@@ -119,7 +120,7 @@ public class ManyToManyActionHelper {
         }
     }
 
-    public List<Object> find(ManyToManyMiddleEntity entity, PreparationCallback callback) {
+    public List<Object> find(ManyToManyMiddleEntity entity, EntityPreparationCallback callback) {
         try {
             final List<Object> result = new ArrayList<Object>();
             final ResultSet resultSet = getPreparedSelectStatement(entity).executeQuery();

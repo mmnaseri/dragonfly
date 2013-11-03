@@ -24,32 +24,36 @@ import java.util.Map;
 public class SecuredDataAccess extends DefaultDataAccess implements PartialDataAccess, EventHandlerContext {
 
     private static final Map<Integer, MethodDescriptor> methodDescriptors = new HashMap<Integer, MethodDescriptor>();
+    private static final Annotation[] NO_ANNOTATIONS = new Annotation[0];
+
     static {
-        methodDescriptors.put(3, new ImmutableMethodDescriptor(DefaultDataAccess.class, Object.class, "find", new Class[]{Class.class, Serializable.class}, new Annotation[0]));
-        methodDescriptors.put(4, new ImmutableMethodDescriptor(DefaultDataAccess.class, List.class, "find", new Class[]{Object.class}, new Annotation[0]));
-        methodDescriptors.put(5, new ImmutableMethodDescriptor(DefaultDataAccess.class, void.class, "save", new Class[]{Object.class}, new Annotation[0]));
-        methodDescriptors.put(6, new ImmutableMethodDescriptor(DefaultDataAccess.class, void.class, "delete", new Class[]{Class.class, Serializable.class}, new Annotation[0]));
-        methodDescriptors.put(7, new ImmutableMethodDescriptor(DefaultDataAccess.class, void.class, "delete", new Class[]{Object.class}, new Annotation[0]));
-        methodDescriptors.put(8, new ImmutableMethodDescriptor(DefaultDataAccess.class, void.class, "truncate", new Class[]{Class.class}, new Annotation[0]));
-        methodDescriptors.put(9, new ImmutableMethodDescriptor(DefaultDataAccess.class, boolean.class, "has", new Class[]{Object.class}, new Annotation[0]));
-        methodDescriptors.put(10, new ImmutableMethodDescriptor(DefaultDataAccess.class, void.class, "deleteAll", new Class[]{Class.class}, new Annotation[0]));
-        methodDescriptors.put(11, new ImmutableMethodDescriptor(DefaultDataAccess.class, List.class, "findAll", new Class[]{Class.class}, new Annotation[0]));
-        methodDescriptors.put(12, new ImmutableMethodDescriptor(DefaultDataAccess.class, List.class, "call", new Class[]{Class.class, String.class, Object[].class}, new Annotation[0]));
-        methodDescriptors.put(13, new ImmutableMethodDescriptor(DefaultDataAccess.class, int.class, "executeUpdate", new Class[]{Object.class, String.class}, new Annotation[0]));
-        methodDescriptors.put(14, new ImmutableMethodDescriptor(DefaultDataAccess.class, int.class, "executeUpdate", new Class[]{Class.class, String.class, Map.class}, new Annotation[0]));
-        methodDescriptors.put(15, new ImmutableMethodDescriptor(DefaultDataAccess.class, int.class, "executeUpdate", new Class[]{Object.class}, new Annotation[0]));
-        methodDescriptors.put(16, new ImmutableMethodDescriptor(DefaultDataAccess.class, List.class, "executeQuery", new Class[]{Class.class, String.class, Map.class}, new Annotation[0]));
-        methodDescriptors.put(17, new ImmutableMethodDescriptor(DefaultDataAccess.class, List.class, "executeQuery", new Class[]{Object.class}, new Annotation[0]));
-        methodDescriptors.put(18, new ImmutableMethodDescriptor(DefaultDataAccess.class, List.class, "executeQuery", new Class[]{Class.class}, new Annotation[0]));
-        methodDescriptors.put(19, new ImmutableMethodDescriptor(DefaultDataAccess.class, List.class, "executeQuery", new Class[]{Class.class, Map.class}, new Annotation[0]));
-        methodDescriptors.put(20, new ImmutableMethodDescriptor(DefaultDataAccess.class, List.class, "executeQuery", new Class[]{Object.class, String.class}, new Annotation[0]));
-        methodDescriptors.put(21, new ImmutableMethodDescriptor(DefaultDataAccess.class, void.class, "addInterface", new Class[]{Class.class, Class.class}, new Annotation[0]));
-        methodDescriptors.put(22, new ImmutableMethodDescriptor(DefaultDataAccess.class, void.class, "addHandler", new Class[]{DataAccessEventHandler.class}, new Annotation[0]));
-        methodDescriptors.put(23, new ImmutableMethodDescriptor(DefaultDataAccess.class, List.class, "executeUntypedQuery", new Class[]{Class.class, String.class, Map.class}, new Annotation[0]));
-        methodDescriptors.put(24, new ImmutableMethodDescriptor(DefaultDataAccess.class, long.class, "countAll", new Class[]{Class.class}, new Annotation[0]));
-        methodDescriptors.put(25, new ImmutableMethodDescriptor(DefaultDataAccess.class, long.class, "count", new Class[]{Object.class}, new Annotation[0]));
-        methodDescriptors.put(26, new ImmutableMethodDescriptor(DefaultDataAccess.class, boolean.class, "exists", new Class[]{Object.class}, new Annotation[0]));
-        methodDescriptors.put(27, new ImmutableMethodDescriptor(DefaultDataAccess.class, boolean.class, "exists", new Class[]{Class.class, Serializable.class}, new Annotation[0]));
+        methodDescriptors.put(3, new ImmutableMethodDescriptor(DefaultDataAccess.class, Object.class, "find", new Class[]{Class.class, Serializable.class}, NO_ANNOTATIONS));
+        methodDescriptors.put(4, new ImmutableMethodDescriptor(DefaultDataAccess.class, List.class, "find", new Class[]{Object.class}, NO_ANNOTATIONS));
+        methodDescriptors.put(5, new ImmutableMethodDescriptor(DefaultDataAccess.class, void.class, "save", new Class[]{Object.class}, NO_ANNOTATIONS));
+        methodDescriptors.put(6, new ImmutableMethodDescriptor(DefaultDataAccess.class, void.class, "delete", new Class[]{Class.class, Serializable.class}, NO_ANNOTATIONS));
+        methodDescriptors.put(7, new ImmutableMethodDescriptor(DefaultDataAccess.class, void.class, "delete", new Class[]{Object.class}, NO_ANNOTATIONS));
+        methodDescriptors.put(8, new ImmutableMethodDescriptor(DefaultDataAccess.class, void.class, "truncate", new Class[]{Class.class}, NO_ANNOTATIONS));
+        methodDescriptors.put(9, new ImmutableMethodDescriptor(DefaultDataAccess.class, boolean.class, "has", new Class[]{Object.class}, NO_ANNOTATIONS));
+        methodDescriptors.put(10, new ImmutableMethodDescriptor(DefaultDataAccess.class, void.class, "deleteAll", new Class[]{Class.class}, NO_ANNOTATIONS));
+        methodDescriptors.put(11, new ImmutableMethodDescriptor(DefaultDataAccess.class, List.class, "findAll", new Class[]{Class.class}, NO_ANNOTATIONS));
+        methodDescriptors.put(12, new ImmutableMethodDescriptor(DefaultDataAccess.class, List.class, "call", new Class[]{Class.class, String.class, Object[].class}, NO_ANNOTATIONS));
+        methodDescriptors.put(13, new ImmutableMethodDescriptor(DefaultDataAccess.class, int.class, "executeUpdate", new Class[]{Object.class, String.class}, NO_ANNOTATIONS));
+        methodDescriptors.put(14, new ImmutableMethodDescriptor(DefaultDataAccess.class, int.class, "executeUpdate", new Class[]{Class.class, String.class, Map.class}, NO_ANNOTATIONS));
+        methodDescriptors.put(15, new ImmutableMethodDescriptor(DefaultDataAccess.class, int.class, "executeUpdate", new Class[]{Object.class}, NO_ANNOTATIONS));
+        methodDescriptors.put(16, new ImmutableMethodDescriptor(DefaultDataAccess.class, List.class, "executeQuery", new Class[]{Class.class, String.class, Map.class}, NO_ANNOTATIONS));
+        methodDescriptors.put(17, new ImmutableMethodDescriptor(DefaultDataAccess.class, List.class, "executeQuery", new Class[]{Object.class}, NO_ANNOTATIONS));
+        methodDescriptors.put(18, new ImmutableMethodDescriptor(DefaultDataAccess.class, List.class, "executeQuery", new Class[]{Class.class}, NO_ANNOTATIONS));
+        methodDescriptors.put(19, new ImmutableMethodDescriptor(DefaultDataAccess.class, List.class, "executeQuery", new Class[]{Class.class, Map.class}, NO_ANNOTATIONS));
+        methodDescriptors.put(20, new ImmutableMethodDescriptor(DefaultDataAccess.class, List.class, "executeQuery", new Class[]{Object.class, String.class}, NO_ANNOTATIONS));
+        methodDescriptors.put(21, new ImmutableMethodDescriptor(DefaultDataAccess.class, void.class, "addInterface", new Class[]{Class.class, Class.class}, NO_ANNOTATIONS));
+        methodDescriptors.put(22, new ImmutableMethodDescriptor(DefaultDataAccess.class, void.class, "addHandler", new Class[]{DataAccessEventHandler.class}, NO_ANNOTATIONS));
+        methodDescriptors.put(23, new ImmutableMethodDescriptor(DefaultDataAccess.class, List.class, "executeUntypedQuery", new Class[]{Class.class, String.class, Map.class}, NO_ANNOTATIONS));
+        methodDescriptors.put(24, new ImmutableMethodDescriptor(DefaultDataAccess.class, long.class, "countAll", new Class[]{Class.class}, NO_ANNOTATIONS));
+        methodDescriptors.put(25, new ImmutableMethodDescriptor(DefaultDataAccess.class, long.class, "count", new Class[]{Object.class}, NO_ANNOTATIONS));
+        methodDescriptors.put(26, new ImmutableMethodDescriptor(DefaultDataAccess.class, boolean.class, "exists", new Class[]{Object.class}, NO_ANNOTATIONS));
+        methodDescriptors.put(27, new ImmutableMethodDescriptor(DefaultDataAccess.class, boolean.class, "exists", new Class[]{Class.class, Serializable.class}, NO_ANNOTATIONS));
+        methodDescriptors.put(28, new ImmutableMethodDescriptor(DefaultDataAccess.class, List.class, "find", new Class[]{Object.class, String.class}, NO_ANNOTATIONS));
+        methodDescriptors.put(29, new ImmutableMethodDescriptor(DefaultDataAccess.class, List.class, "findAll", new Class[]{Class.class, String.class}, NO_ANNOTATIONS));
     }
 
     private final DataSecurityManager securityManager;
@@ -218,4 +222,13 @@ public class SecuredDataAccess extends DefaultDataAccess implements PartialDataA
         return super.hashCode();
     }
 
+    @Override
+    public <E> List<E> find(E sample, String order) {
+        return super.find(sample, order);
+    }
+
+    @Override
+    public <E> List<E> findAll(Class<E> entityType, String order) {
+        return super.findAll(entityType, order);
+    }
 }

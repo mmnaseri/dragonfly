@@ -90,6 +90,8 @@ public interface DataAccess {
      */
     <E> List<E> find(E sample);
 
+    <E> List<E> find(E sample, String order);
+
     /**
      * Attempts to find a single entry in the database matching the given type and having
      * the designated key.
@@ -111,6 +113,8 @@ public interface DataAccess {
      * @return a list of all available items
      */
     <E> List<E> findAll(Class<E> entityType);
+
+    <E> List<E> findAll(Class<E> entityType, String order);
 
     /**
      * Executes the named query for the item, injecting values as necessary from the

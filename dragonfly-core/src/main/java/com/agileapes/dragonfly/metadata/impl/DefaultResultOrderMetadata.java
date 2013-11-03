@@ -1,9 +1,12 @@
 package com.agileapes.dragonfly.metadata.impl;
 
+import com.agileapes.couteau.basics.api.Transformer;
 import com.agileapes.dragonfly.metadata.OrderMetadata;
 import com.agileapes.dragonfly.metadata.ResultOrderMetadata;
 
 import java.util.*;
+
+import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
@@ -143,4 +146,15 @@ public class DefaultResultOrderMetadata implements ResultOrderMetadata {
     public List<OrderMetadata> subList(int fromIndex, int toIndex) {
         return ordering.subList(fromIndex, toIndex);
     }
+
+    @Override
+    public String toString() {
+        return with(ordering).transform(new Transformer<OrderMetadata, String>() {
+            @Override
+            public String map(OrderMetadata input) {
+                return input.getColumn().getName() + " " + input.getOrder();
+            }
+        }).join(", ");
+    }
+
 }
