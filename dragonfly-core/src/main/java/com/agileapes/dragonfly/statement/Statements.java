@@ -38,6 +38,7 @@ public class Statements {
         INSERT,
         UPDATE,
         TRUNCATE,
+        LOAD_MANY_TO_MANY,
         CALL
     }
 

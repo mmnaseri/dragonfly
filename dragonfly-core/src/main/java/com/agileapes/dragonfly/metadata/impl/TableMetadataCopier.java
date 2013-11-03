@@ -41,7 +41,7 @@ public class TableMetadataCopier<E> {
         final List<OrderMetadata> ordering = with(tableMetadata.getOrdering()).transform(new Transformer<OrderMetadata, OrderMetadata>() {
             @Override
             public OrderMetadata map(OrderMetadata input) {
-                return new ImmutableOrderMetadata(with(columns).find(new ColumnNameFilter(input.getColumn().getName())), input.getOrder());
+                return new DefaultOrderMetadata(with(columns).find(new ColumnNameFilter(input.getColumn().getName())), input.getOrder());
             }
         }).list();
         final ResolvedTableMetadata<E> metadata = new ResolvedTableMetadata<E>(tableMetadata.getEntityType(), tableMetadata.getSchema(), tableMetadata.getName(), constraints, columns, namedQueries, sequences, storedProcedures, foreignReferences, versionColumn, ordering);

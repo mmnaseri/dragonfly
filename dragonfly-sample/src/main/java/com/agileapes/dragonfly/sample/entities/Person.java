@@ -78,6 +78,7 @@ public class Person {
     }
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "owner", cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
+    @OrderBy("name,description DESC")
     public Collection<Thing> getThings() {
         return things;
     }

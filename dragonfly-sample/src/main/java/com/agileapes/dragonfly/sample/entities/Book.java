@@ -36,6 +36,7 @@ public class Book {
     }
 
     @ManyToMany(mappedBy = "books", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OrderBy("name")
     public Collection<Author> getAuthors() {
         return authors;
     }

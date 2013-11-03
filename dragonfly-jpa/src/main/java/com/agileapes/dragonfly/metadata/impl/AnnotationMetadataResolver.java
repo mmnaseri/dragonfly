@@ -181,9 +181,10 @@ public class AnnotationMetadataResolver implements MetadataResolver {
                         foreignColumnName = ReflectionUtils.getPropertyName(foreignMethod.getName());
                     }
                 }
+                final List<OrderMetadata> ordering = getOrdering(foreignEntity, method.getAnnotation(OrderBy.class));
                 //noinspection unchecked
                 final UnresolvedColumnMetadata foreignColumn = new UnresolvedColumnMetadata(foreignColumnName, new UnresolvedTableMetadata<Object>((Class<Object>) foreignEntity));
-                final ImmutableReferenceMetadata<E, Object> reference = new ImmutableReferenceMetadata<E, Object>(ReflectionUtils.getDeclaringClass(method), propertyName, false, null, null, null, getRelationType(method), getCascadeMetadata(method), determineLaziness(method), null);
+                final ImmutableReferenceMetadata<E, Object> reference = new ImmutableReferenceMetadata<E, Object>(ReflectionUtils.getDeclaringClass(method), propertyName, false, null, null, null, getRelationType(method), getCascadeMetadata(method), determineLaziness(method), ordering);
                 reference.setForeignColumn(foreignColumn);
                 foreignReferences.add(reference);
             }
@@ -265,7 +266,7 @@ public class AnnotationMetadataResolver implements MetadataResolver {
                         if (columnMetadata == null) {
                             throw new NoSuchColumnError(entityType, columnName);
                         }
-                        return new ImmutableOrderMetadata(columnMetadata, input.getAnnotation(Order.class).value().toString());
+                        return new DefaultOrderMetadata(columnMetadata, input.getAnnotation(Order.class).value().toString());
                     }
                 }).list();
         final ResolvedTableMetadata<E> tableMetadata = new ResolvedTableMetadata<E>(entityType, schema, tableName, constraints, tableColumns, namedQueries, sequences, storedProcedures, foreignReferences, versionColumn.get(), ordering);
@@ -333,12 +334,37 @@ public class AnnotationMetadataResolver implements MetadataResolver {
                                     }
                                     foreignProperty = ReflectionUtils.getPropertyName(methods.get(0).getName());
                                 }
+                                final List<OrderMetadata> ordering = getOrdering(foreignEntity, method.getAnnotation(OrderBy.class));
                                 //noinspection unchecked
-                                foreignReferences.add(new ImmutableReferenceMetadata<E, Object>(ReflectionUtils.getDeclaringClass(method), ReflectionUtils.getPropertyName(method.getName()), false, tableMetadata, null, new UnresolvedColumnMetadata(foreignProperty, new UnresolvedTableMetadata<Object>((Class<Object>) foreignEntity)), RelationType.MANY_TO_MANY, getCascadeMetadata(method), determineLaziness(method), null));
+                                foreignReferences.add(new ImmutableReferenceMetadata<E, Object>(ReflectionUtils.getDeclaringClass(method), ReflectionUtils.getPropertyName(method.getName()), false, tableMetadata, null, new UnresolvedColumnMetadata(foreignProperty, new UnresolvedTableMetadata<Object>((Class<Object>) foreignEntity)), RelationType.MANY_TO_MANY, getCascadeMetadata(method), determineLaziness(method), ordering));
                             }
                         }
                 );
         return tableMetadata;
+    }
+
+    private List<OrderMetadata> getOrdering(final Class<?> foreignEntity, OrderBy annotation) {
+        if (annotation == null) {
+            return null;
+        }
+        final String expression = annotation.value();
+        return with(expression.trim().split("\\s*,\\s*"))
+                .transform(new Transformer<String, OrderMetadata>() {
+                    @Override
+                    public OrderMetadata map(String input) {
+                        final String[] split = input.split("\\s+");
+                        if (split.length > 2) {
+                            throw new EntityDefinitionError("Invalid order specification: " + input);
+                        }
+                        //noinspection unchecked
+                        final String order = (split.length == 2 ? split[1] : "ASC").toUpperCase();
+                        if (!order.matches("ASC|DESC")) {
+                            throw new EntityDefinitionError("Invalid order specification: " + input);
+                        }
+                        return new DefaultOrderMetadata(new UnresolvedColumnMetadata(split[0], new UnresolvedTableMetadata<Object>((Class<Object>) foreignEntity)), order);
+                    }
+                })
+                .list();
     }
 
     private static boolean determineLaziness(Method method) {

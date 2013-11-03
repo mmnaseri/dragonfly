@@ -1,5 +1,7 @@
 package com.agileapes.dragonfly.data.impl;
 
+import com.agileapes.dragonfly.metadata.ReferenceMetadata;
+
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/10/3, 2:06)
@@ -8,6 +10,7 @@ public class ManyToManyMiddleEntity {
 
     private Object first;
     private Object second;
+    private ReferenceMetadata<?, ?> referenceMetadata;
 
     public Object getFirst() {
         return first;
@@ -27,6 +30,14 @@ public class ManyToManyMiddleEntity {
 
     public boolean isComplete() {
         return first != null && second != null;
+    }
+
+    public ReferenceMetadata<?, ?> getReferenceMetadata() {
+        return referenceMetadata;
+    }
+
+    public void setReferenceMetadata(ReferenceMetadata<?, ?> referenceMetadata) {
+        this.referenceMetadata = referenceMetadata;
     }
 
 }

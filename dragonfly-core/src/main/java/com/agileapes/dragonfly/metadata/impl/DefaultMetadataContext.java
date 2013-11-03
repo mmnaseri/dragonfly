@@ -10,6 +10,7 @@ import com.agileapes.dragonfly.data.impl.TableKeyGeneratorEntity;
 import com.agileapes.dragonfly.error.*;
 import com.agileapes.dragonfly.metadata.*;
 import com.agileapes.dragonfly.tools.ColumnNameFilter;
+import com.agileapes.dragonfly.tools.ColumnPropertyFilter;
 import com.agileapes.dragonfly.tools.DatabaseUtils;
 
 import java.util.*;
@@ -114,6 +115,12 @@ public class DefaultMetadataContext extends DefaultMetadataRegistry implements M
                 ((ResolvedColumnMetadata) columnMetadata).setForeignReference(resolvedColumn);
             }
             for (ReferenceMetadata<?, ?> referenceMetadata : metadata.getForeignReferences()) {
+                //finally we settle by resolving all column references for reference orderings
+                for (OrderMetadata orderMetadata : referenceMetadata.getOrdering()) {
+                    if (orderMetadata.getColumn() instanceof UnresolvedColumnMetadata) {
+                        ((DefaultOrderMetadata) orderMetadata).setColumn(resolveColumn(map, tableMetadata, (UnresolvedColumnMetadata) orderMetadata.getColumn()));
+                    }
+                }
                 if (RelationType.MANY_TO_MANY.equals(referenceMetadata.getRelationType())) {
                     final ManyToManyDescriptor key = new ManyToManyDescriptor(metadata.getEntityType(), referenceMetadata.getPropertyName(), referenceMetadata.getForeignColumn().getTable().getEntityType(), referenceMetadata.getForeignColumn().getName());
                     final TableMetadata<?> foreignTable = manyToManyMiddleTables.get(with(manyToManyMiddleTables.keySet()).find(new EqualityFilter<ManyToManyDescriptor>(key)));
@@ -186,10 +193,14 @@ public class DefaultMetadataContext extends DefaultMetadataRegistry implements M
             }
             resolvedColumn = primaryKey.getColumns().iterator().next();
         } else {
-            resolvedColumn = with(foreignTable.getColumns()).keep(new ColumnNameFilter(foreignColumn.getName())).first();
-            if (resolvedColumn == null) {
+            ColumnMetadata columnMetadata = with(foreignTable.getColumns()).find(new ColumnNameFilter(foreignColumn.getName()));
+            if (columnMetadata == null) {
+                columnMetadata = with(foreignTable.getColumns()).find(new ColumnPropertyFilter(foreignColumn.getName()));
+            }
+            if (columnMetadata == null) {
                 throw new NoSuchColumnError(foreignTable.getEntityType(), foreignColumn.getName());
             }
+            resolvedColumn = columnMetadata;
         }
         return resolvedColumn;
     }

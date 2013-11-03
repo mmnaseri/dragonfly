@@ -26,33 +26,30 @@ public abstract class GenericDatabaseDialect implements DatabaseDialect {
     public GenericDatabaseDialect() {
         final Configuration configuration = FreemarkerUtils.getConfiguration(getClass(), "/sql/standard");
         statementBuilderContext = new FreemarkerStatementBuilderContext();
-        statementBuilderContext.register(Statements.Definition.CREATE_FOREIGN_KEY, new FreemarkerStatementBuilder(configuration, "createForeignKey.sql.ftl", getDatabaseDialect()));
-        statementBuilderContext.register(Statements.Definition.CREATE_PRIMARY_KEY, new FreemarkerStatementBuilder(configuration, "createPrimaryKey.sql.ftl", getDatabaseDialect()));
-        statementBuilderContext.register(Statements.Definition.CREATE_UNIQUE_CONSTRAINT, new FreemarkerStatementBuilder(configuration, "createUniqueConstraint.sql.ftl", getDatabaseDialect()));
-        statementBuilderContext.register(Statements.Definition.CREATE_TABLE, new FreemarkerStatementBuilder(configuration, "createTable.sql.ftl", getDatabaseDialect()));
-        statementBuilderContext.register(Statements.Definition.DROP_FOREIGN_KEY, new FreemarkerStatementBuilder(configuration, "dropForeignKey.sql.ftl", getDatabaseDialect()));
-        statementBuilderContext.register(Statements.Definition.DROP_PRIMARY_KEY, new FreemarkerStatementBuilder(configuration, "dropPrimaryKey.sql.ftl", getDatabaseDialect()));
-        statementBuilderContext.register(Statements.Definition.DROP_TABLE, new FreemarkerStatementBuilder(configuration, "dropTable.sql.ftl", getDatabaseDialect()));
-        statementBuilderContext.register(Statements.Definition.DROP_UNIQUE_CONSTRAINT, new FreemarkerStatementBuilder(configuration, "dropUniqueConstraint.sql.ftl", getDatabaseDialect()));
-        statementBuilderContext.register(Statements.Manipulation.DELETE_ALL, new FreemarkerStatementBuilder(configuration, "deleteAll.sql.ftl", getDatabaseDialect()));
-        statementBuilderContext.register(Statements.Manipulation.DELETE_ONE, new FreemarkerStatementBuilder(configuration, "deleteByKey.sql.ftl", getDatabaseDialect()));
-        statementBuilderContext.register(Statements.Manipulation.DELETE_LIKE, new FreemarkerStatementBuilder(configuration, "deleteBySample.sql.ftl", getDatabaseDialect()));
-        statementBuilderContext.register(Statements.Manipulation.DELETE_DEPENDENCIES, new FreemarkerStatementBuilder(configuration, "deleteDependencies.sql.ftl", getDatabaseDialect()));
-        statementBuilderContext.register(Statements.Manipulation.DELETE_DEPENDENTS, new FreemarkerStatementBuilder(configuration, "deleteDependents.sql.ftl", getDatabaseDialect()));
-        statementBuilderContext.register(Statements.Manipulation.FIND_ALL, new FreemarkerStatementBuilder(configuration, "findAll.sql.ftl", getDatabaseDialect()));
-        statementBuilderContext.register(Statements.Manipulation.FIND_ONE, new FreemarkerStatementBuilder(configuration, "findByKey.sql.ftl", getDatabaseDialect()));
-        statementBuilderContext.register(Statements.Manipulation.FIND_LIKE, new FreemarkerStatementBuilder(configuration, "findBySample.sql.ftl", getDatabaseDialect()));
-        statementBuilderContext.register(Statements.Manipulation.COUNT_ALL, new FreemarkerStatementBuilder(configuration, "countAll.sql.ftl", getDatabaseDialect()));
-        statementBuilderContext.register(Statements.Manipulation.COUNT_ONE, new FreemarkerStatementBuilder(configuration, "countByKey.sql.ftl", getDatabaseDialect()));
-        statementBuilderContext.register(Statements.Manipulation.COUNT_LIKE, new FreemarkerStatementBuilder(configuration, "countBySample.sql.ftl", getDatabaseDialect()));
-        statementBuilderContext.register(Statements.Manipulation.INSERT, new FreemarkerStatementBuilder(configuration, "insert.sql.ftl", getDatabaseDialect()));
-        statementBuilderContext.register(Statements.Manipulation.UPDATE, new FreemarkerStatementBuilder(configuration, "updateBySample.sql.ftl", getDatabaseDialect()));
-        statementBuilderContext.register(Statements.Manipulation.TRUNCATE, new FreemarkerStatementBuilder(configuration, "truncate.sql.ftl", getDatabaseDialect()));
-        statementBuilderContext.register(Statements.Manipulation.CALL, new FreemarkerStatementBuilder(configuration, "callProcedure.sql.ftl", getDatabaseDialect()));
-    }
-
-    protected DatabaseDialect getDatabaseDialect() {
-        return this;
+        statementBuilderContext.register(Statements.Definition.CREATE_FOREIGN_KEY, new FreemarkerStatementBuilder(configuration, "createForeignKey.sql.ftl", this));
+        statementBuilderContext.register(Statements.Definition.CREATE_PRIMARY_KEY, new FreemarkerStatementBuilder(configuration, "createPrimaryKey.sql.ftl", this));
+        statementBuilderContext.register(Statements.Definition.CREATE_UNIQUE_CONSTRAINT, new FreemarkerStatementBuilder(configuration, "createUniqueConstraint.sql.ftl", this));
+        statementBuilderContext.register(Statements.Definition.CREATE_TABLE, new FreemarkerStatementBuilder(configuration, "createTable.sql.ftl", this));
+        statementBuilderContext.register(Statements.Definition.DROP_FOREIGN_KEY, new FreemarkerStatementBuilder(configuration, "dropForeignKey.sql.ftl", this));
+        statementBuilderContext.register(Statements.Definition.DROP_PRIMARY_KEY, new FreemarkerStatementBuilder(configuration, "dropPrimaryKey.sql.ftl", this));
+        statementBuilderContext.register(Statements.Definition.DROP_TABLE, new FreemarkerStatementBuilder(configuration, "dropTable.sql.ftl", this));
+        statementBuilderContext.register(Statements.Definition.DROP_UNIQUE_CONSTRAINT, new FreemarkerStatementBuilder(configuration, "dropUniqueConstraint.sql.ftl", this));
+        statementBuilderContext.register(Statements.Manipulation.DELETE_ALL, new FreemarkerStatementBuilder(configuration, "deleteAll.sql.ftl", this));
+        statementBuilderContext.register(Statements.Manipulation.DELETE_ONE, new FreemarkerStatementBuilder(configuration, "deleteByKey.sql.ftl", this));
+        statementBuilderContext.register(Statements.Manipulation.DELETE_LIKE, new FreemarkerStatementBuilder(configuration, "deleteBySample.sql.ftl", this));
+        statementBuilderContext.register(Statements.Manipulation.DELETE_DEPENDENCIES, new FreemarkerStatementBuilder(configuration, "deleteDependencies.sql.ftl", this));
+        statementBuilderContext.register(Statements.Manipulation.DELETE_DEPENDENTS, new FreemarkerStatementBuilder(configuration, "deleteDependents.sql.ftl", this));
+        statementBuilderContext.register(Statements.Manipulation.FIND_ALL, new FreemarkerStatementBuilder(configuration, "findAll.sql.ftl", this));
+        statementBuilderContext.register(Statements.Manipulation.FIND_ONE, new FreemarkerStatementBuilder(configuration, "findByKey.sql.ftl", this));
+        statementBuilderContext.register(Statements.Manipulation.FIND_LIKE, new FreemarkerStatementBuilder(configuration, "findBySample.sql.ftl", this));
+        statementBuilderContext.register(Statements.Manipulation.COUNT_ALL, new FreemarkerStatementBuilder(configuration, "countAll.sql.ftl", this));
+        statementBuilderContext.register(Statements.Manipulation.COUNT_ONE, new FreemarkerStatementBuilder(configuration, "countByKey.sql.ftl", this));
+        statementBuilderContext.register(Statements.Manipulation.COUNT_LIKE, new FreemarkerStatementBuilder(configuration, "countBySample.sql.ftl", this));
+        statementBuilderContext.register(Statements.Manipulation.INSERT, new FreemarkerStatementBuilder(configuration, "insert.sql.ftl", this));
+        statementBuilderContext.register(Statements.Manipulation.UPDATE, new FreemarkerStatementBuilder(configuration, "updateBySample.sql.ftl", this));
+        statementBuilderContext.register(Statements.Manipulation.TRUNCATE, new FreemarkerStatementBuilder(configuration, "truncate.sql.ftl", this));
+        statementBuilderContext.register(Statements.Manipulation.CALL, new FreemarkerStatementBuilder(configuration, "callProcedure.sql.ftl", this));
+        statementBuilderContext.register(Statements.Manipulation.LOAD_MANY_TO_MANY, new FreemarkerStatementBuilder(configuration, "loadManyToMany.sql.ftl", this));
     }
 
     @Override

@@ -2,7 +2,6 @@ package com.agileapes.dragonfly.entity.impl;
 
 import com.agileapes.couteau.basics.api.Filter;
 import com.agileapes.couteau.basics.api.Processor;
-import com.agileapes.couteau.basics.api.Transformer;
 import com.agileapes.couteau.basics.api.impl.NegatingFilter;
 import com.agileapes.couteau.reflection.beans.BeanAccessor;
 import com.agileapes.couteau.reflection.beans.BeanWrapper;
@@ -360,7 +359,7 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
             }
         } else if (referenceMetadata.getRelationType().equals(RelationType.MANY_TO_MANY)) {
             final Connection connection = session.getConnection();
-            final ManyToManyActionHelper helper = new ManyToManyActionHelper(new DefaultStatementPreparator(false), connection, session.getDatabaseDialect().getStatementBuilderContext(), referenceMetadata.getForeignColumn().getTable(), tableMetadata);
+            final ManyToManyActionHelper helper = new ManyToManyActionHelper(new DefaultStatementPreparator(false), connection, session.getDatabaseDialect().getStatementBuilderContext(), referenceMetadata.getForeignColumn().getTable(), tableMetadata, referenceMetadata, entityContext);
             final ManyToManyMiddleEntity middleEntity = new ManyToManyMiddleEntity();
             final BeanWrapper<ManyToManyMiddleEntity> middleEntityWrapper = new MethodBeanWrapper<ManyToManyMiddleEntity>(middleEntity);
             try {
@@ -368,7 +367,8 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
             } catch (Exception e) {
                 throw new EntityPreparationError("Failed to prepare entity", e);
             }
-            final List<Serializable> list = helper.find(middleEntity);
+            //look up lazy foreign relations
+            final List<Object> list = helper.find(middleEntity, null);
             helper.close();
             try {
                 connection.close();
@@ -376,12 +376,7 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
                 throw new EntityPreparationError("Failed to commit changes to the database", e);
             }
             try {
-                wrapper.setPropertyValue(referenceMetadata.getPropertyName(), with(list).transform(new Transformer<Serializable, Object>() {
-                    @Override
-                    public Object map(Serializable key) {
-                        return dataAccess.find(with(referenceMetadata.getForeignTable().getColumns()).find(new NegatingFilter<ColumnMetadata>(new ColumnNameFilter(tableMetadata.getName()))).getForeignReference().getTable().getEntityType(), key);
-                    }
-                }).list());
+                wrapper.setPropertyValue(referenceMetadata.getPropertyName(), list);
             } catch (Exception e) {
                 throw new EntityPreparationError("Failed to prepare entity", e);
             }
@@ -645,6 +640,7 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
                                 final BeanWrapper<ManyToManyMiddleEntity> wrapper = new MethodBeanWrapper<ManyToManyMiddleEntity>(middleEntity);
                                 wrapper.setPropertyValue(with(foreignTable.getColumns()).find(columnNameFilter).getPropertyName(), entity);
                                 wrapper.setPropertyValue(with(foreignTable.getColumns()).find(new NegatingFilter<ColumnMetadata>(columnNameFilter)).getPropertyName(), item);
+                                middleEntity.setReferenceMetadata(input);
                                 entities.add(middleEntity);
                             }
                             map.put(foreignTable, entities);

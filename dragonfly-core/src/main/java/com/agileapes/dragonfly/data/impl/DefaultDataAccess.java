@@ -1,10 +1,10 @@
 package com.agileapes.dragonfly.data.impl;
 
+import com.agileapes.couteau.basics.api.Cache;
 import com.agileapes.couteau.basics.api.Filter;
 import com.agileapes.couteau.basics.api.Processor;
-import com.agileapes.couteau.basics.api.Transformer;
 import com.agileapes.couteau.basics.api.impl.EqualityFilter;
-import com.agileapes.couteau.basics.api.impl.NegatingFilter;
+import com.agileapes.couteau.basics.api.impl.SimpleDataDispenser;
 import com.agileapes.couteau.context.error.RegistryException;
 import com.agileapes.couteau.reflection.beans.BeanInitializer;
 import com.agileapes.couteau.reflection.beans.BeanWrapper;
@@ -456,18 +456,18 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
                             public void process(ReferenceMetadata<E, ?> reference) {
                                 final Connection connection = openConnection();
                                 final TableMetadata<?> middleTable = reference.getForeignTable();
-                                final ManyToManyActionHelper helper = new ManyToManyActionHelper(statementPreparator, connection, session.getDatabaseDialect().getStatementBuilderContext(), middleTable, tableMetadata);
+                                final ManyToManyActionHelper helper = new ManyToManyActionHelper(statementPreparator, connection, session.getDatabaseDialect().getStatementBuilderContext(), middleTable, tableMetadata, reference, entityContext);
                                 final ManyToManyMiddleEntity middleEntity = new ManyToManyMiddleEntity();
                                 final BeanWrapper<ManyToManyMiddleEntity> middleEntityWrapper = new MethodBeanWrapper<ManyToManyMiddleEntity>(middleEntity);
                                 try {
                                     middleEntityWrapper.setPropertyValue(with(middleTable.getColumns()).find(new ColumnNameFilter(tableMetadata.getName())).getPropertyName(), enhancedEntity);
                                     final Collection<Object> collection = ReflectionUtils.getCollection(wrapper.getPropertyType(reference.getPropertyName()));
-                                    collection.addAll(with(helper.find(middleEntity)).transform(new Transformer<Serializable, Object>() {
+                                    collection.addAll(helper.find(middleEntity, new PreparationCallback() {
                                         @Override
-                                        public Object map(Serializable input) {
-                                            return find(with(middleTable.getColumns()).find(new NegatingFilter<ColumnMetadata>(new ColumnNameFilter(tableMetadata.getName()))).getForeignReference().getTable().getEntityType(), input);
+                                        public void prepare(Object entity, Map<String, Object> values) {
+                                            prepareEntity(entity, values);
                                         }
-                                    }).list());
+                                    }));
                                     wrapper.setPropertyValue(reference.getPropertyName(), collection);
                                 } catch (Exception e) {
                                     throw new EntityInitializationError(entityHandler.getEntityType(), e);
@@ -736,21 +736,23 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         return enhancedEntity;
     }
 
-    private <E> void saveDependents(EntityHandler<E> entityHandler, E entity) {
+    private <E> void saveDependents(final EntityHandler<E> entityHandler, E entity) {
         entityHandler.saveDependentRelations(entity, this, entityContext);
         final Map<TableMetadata<?>, Set<ManyToManyMiddleEntity>> relatedObjects = entityHandler.getManyToManyRelatedObjects(entity);
         final Connection connection = openConnection();
         try {
-            final Map<TableMetadata<?>, ManyToManyActionHelper> helpers = new HashMap<TableMetadata<?>, ManyToManyActionHelper>();
-            for (TableMetadata<?> tableMetadata : relatedObjects.keySet()) {
-                helpers.put(tableMetadata, new ManyToManyActionHelper(statementPreparator, connection, session.getDatabaseDialect().getStatementBuilderContext(), tableMetadata, session.getMetadataRegistry().getTableMetadata(entityHandler.getEntityType())));
-            }
+            final Cache<TableMetadata<?>, ManyToManyActionHelper> helpers = new SimpleDataDispenser<TableMetadata<?>, ManyToManyActionHelper>() {
+                @Override
+                protected ManyToManyActionHelper produce(TableMetadata<?> tableMetadata) {
+                    return new ManyToManyActionHelper(statementPreparator, connection, session.getDatabaseDialect().getStatementBuilderContext(), tableMetadata, session.getMetadataRegistry().getTableMetadata(entityHandler.getEntityType()), null, entityContext);
+                }
+            };
             for (Map.Entry<TableMetadata<?>, Set<ManyToManyMiddleEntity>> entry : relatedObjects.entrySet()) {
                 if (entry.getValue().isEmpty()) {
                     continue;
                 }
                 final ManyToManyMiddleEntity someRelation = entry.getValue().iterator().next();
-                final ManyToManyActionHelper helper = helpers.get(entry.getKey());
+                final ManyToManyActionHelper helper = helpers.read(entry.getKey());
                 helper.delete(someRelation);
                 if (entry.getValue().size() == 1 && !someRelation.isComplete()) {
                     helper.close();
@@ -879,7 +881,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
                             @Override
                             public void process(ReferenceMetadata<E, ?> reference) {
                                 final TableMetadata<?> middleTable = reference.getForeignTable();
-                                final ManyToManyActionHelper helper = new ManyToManyActionHelper(statementPreparator, connection, session.getDatabaseDialect().getStatementBuilderContext(), middleTable, tableMetadata);
+                                final ManyToManyActionHelper helper = new ManyToManyActionHelper(statementPreparator, connection, session.getDatabaseDialect().getStatementBuilderContext(), middleTable, tableMetadata, reference, entityContext);
                                 final ManyToManyMiddleEntity middleEntity = new ManyToManyMiddleEntity();
                                 final BeanWrapper<ManyToManyMiddleEntity> middleEntityWrapper = new MethodBeanWrapper<ManyToManyMiddleEntity>(middleEntity);
                                 try {
@@ -887,11 +889,11 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
                                 } catch (Exception e) {
                                     throw new EntityInitializationError(entityHandler.getEntityType(), e);
                                 }
-                                final List<Serializable> found = helper.find(middleEntity);
+                                //delete foreign relations by cascading
+                                final List<Object> found = helper.find(middleEntity, null);
                                 helper.delete(middleEntity);
-                                for (Serializable key : found) {
-                                    final Class<?> foreignEntityType = with(middleTable.getColumns()).find(new NegatingFilter<ColumnMetadata>(new ColumnNameFilter(tableMetadata.getName()))).getForeignReference().getTable().getEntityType();
-                                    delete(foreignEntityType, key);
+                                for (Object instance : found) {
+                                    delete(instance);
                                 }
                             }
                         }
