@@ -23,8 +23,6 @@ import com.agileapes.dragonfly.events.EventHandlerContext;
 import com.agileapes.dragonfly.events.impl.CompositeDataAccessEventHandler;
 import com.agileapes.dragonfly.metadata.*;
 import com.agileapes.dragonfly.metadata.impl.ColumnMappingMetadataCollector;
-import com.agileapes.dragonfly.security.DataSecurityManager;
-import com.agileapes.dragonfly.security.impl.StoredProcedureSubject;
 import com.agileapes.dragonfly.statement.Statement;
 import com.agileapes.dragonfly.statement.StatementBuilder;
 import com.agileapes.dragonfly.statement.StatementType;
@@ -45,6 +43,28 @@ import java.util.concurrent.ConcurrentHashMap;
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 
 /**
+ * <p>This class is the default implementation of the {@link DataAccess} interface.</p>
+ *
+ * <p>Some of the capabilities of the current implementation include:</p>
+ *
+ * <ul>
+ *     <li>Highly traceable logging.</li>
+ *     <li>Stacking batch operations of the same type together.</li>
+ *     <li>Deferring deduction of the keys of inserted entities in batch operations.</li>
+ *     <li>Connection piggy-backing for statements executed within the same thread.</li>
+ *     <li>Support for complex event handler and extension points.</li>
+ *     <li>Caching of delete statements for many-to-many relations within each thread.</li>
+ *     <li>Freezing the element count view during batch operations until batch operations
+ *     are successfully committed.</li>
+ *     <li>Caching of initialized entities, until their persistent properties are modified
+ *     externally.</li>
+ *     <li>Support for operations on partial entities.</li>
+ * </ul>
+ *
+ * <p><strong>NB</strong> This implementation of the data access interface does not provide
+ * security measures. To use a secured version, you should instantiate {@link SecuredDataAccess},
+ * instead.</p>
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/20, 23:29)
  */
@@ -72,7 +92,6 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     }
 
     private final DataAccessSession session;
-    private final DataSecurityManager securityManager;
     private final EntityContext entityContext;
     private final EntityHandlerContext entityHandlerContext;
     private final BeanInitializer beanInitializer;
@@ -95,9 +114,8 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     private final ThreadLocal<Set<LocalOperationResult>> localCounts;
     private final ThreadLocal<Stack<PreparedStatement>> localStatements;
 
-    public DefaultDataAccess(DataAccessSession session, DataSecurityManager securityManager, EntityContext entityContext, EntityHandlerContext entityHandlerContext, boolean autoInitialize) {
+    public DefaultDataAccess(DataAccessSession session, EntityContext entityContext, EntityHandlerContext entityHandlerContext, boolean autoInitialize) {
         this.session = session;
-        this.securityManager = securityManager;
         this.entityContext = entityContext;
         this.entityHandlerContext = entityHandlerContext;
         this.beanInitializer = new ConstructorBeanInitializer();
@@ -1120,7 +1138,6 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
                 }
             }
         }
-        securityManager.checkAccess(new StoredProcedureSubject(procedureMetadata, parameters));
         final ProcedureCallStatement statement = (ProcedureCallStatement) getStatement(entityType, "call." + procedureName, null, StatementType.CALL);
         final Map<String, Object> values = new HashMap<String, Object>();
         for (int i = 0; i < parameters.length; i++) {

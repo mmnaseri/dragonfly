@@ -6,6 +6,8 @@ import com.agileapes.dragonfly.data.impl.op.SampledDataOperation;
 import com.agileapes.dragonfly.data.impl.op.TypedDataOperation;
 
 /**
+ * This callback will respond to operations performed on a certain types.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/26, 17:09)
  */

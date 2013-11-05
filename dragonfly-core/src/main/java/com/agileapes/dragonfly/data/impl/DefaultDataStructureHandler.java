@@ -27,6 +27,9 @@ import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 import static com.agileapes.dragonfly.statement.Statements.Definition.*;
 
 /**
+ * This class helps with managing of data structures for the database. It assumes a relational
+ * setting for the target data source.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/8, 14:31)
  */

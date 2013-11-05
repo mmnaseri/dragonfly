@@ -7,6 +7,8 @@ import com.agileapes.dragonfly.data.OperationType;
 import java.io.Serializable;
 
 /**
+ * This class represents an operation with a key and an entity type.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/26, 2:34)
  */

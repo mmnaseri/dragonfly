@@ -10,6 +10,9 @@ import java.sql.Types;
 import java.util.*;
 
 /**
+ * This is an entity designated for generation of keys that are to be automatically maintained
+ * through the {@link ValueGenerationType#TABLE} strategy.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/26, 17:58)
  */

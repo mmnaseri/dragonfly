@@ -13,7 +13,6 @@ import com.agileapes.couteau.enhancer.api.NamingPolicy;
 public class StaticNamingPolicy implements NamingPolicy {
 
     private final String name;
-//    private final SynchronizedIdentifierDispenser<Class<?>> identifierDispenser = new SynchronizedIdentifierDispenser<Class<?>>();
 
     public StaticNamingPolicy(String name) {
         this.name = name;

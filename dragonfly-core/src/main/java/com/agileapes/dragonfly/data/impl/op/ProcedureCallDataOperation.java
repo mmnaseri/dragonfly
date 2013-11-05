@@ -5,6 +5,9 @@ import com.agileapes.dragonfly.data.DataCallback;
 import com.agileapes.dragonfly.data.OperationType;
 
 /**
+ * This operation represents a procedure call. Parameters passed to the procedure call are
+ * available.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/26, 3:22)
  */

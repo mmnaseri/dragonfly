@@ -1,6 +1,8 @@
 package com.agileapes.dragonfly.data;
 
 /**
+ * This is the type of the operation to be performed.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/26, 2:50)
  */

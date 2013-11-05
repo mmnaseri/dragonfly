@@ -15,6 +15,9 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface StoredProcedures {
 
+    /**
+     * The procedures bound to the database specified for the hosting entity
+     */
     StoredProcedure[] value();
 
 }

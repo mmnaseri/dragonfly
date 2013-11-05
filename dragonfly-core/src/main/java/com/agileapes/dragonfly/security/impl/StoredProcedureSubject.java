@@ -1,6 +1,5 @@
 package com.agileapes.dragonfly.security.impl;
 
-import com.agileapes.dragonfly.metadata.StoredProcedureMetadata;
 import com.agileapes.dragonfly.security.Subject;
 
 /**
@@ -9,16 +8,22 @@ import com.agileapes.dragonfly.security.Subject;
  */
 public class StoredProcedureSubject implements Subject {
 
-    final StoredProcedureMetadata procedureMetadata;
+    private final Class<?> entityType;
+    private final String procedureName;
     final Object[] parameters;
 
-    public StoredProcedureSubject(StoredProcedureMetadata procedureMetadata, Object[] parameters) {
-        this.procedureMetadata = procedureMetadata;
+    public StoredProcedureSubject(Class<?> entityType, final String procedureName, Object[] parameters) {
+        this.entityType = entityType;
+        this.procedureName = procedureName;
         this.parameters = parameters;
     }
 
-    public StoredProcedureMetadata getProcedureMetadata() {
-        return procedureMetadata;
+    public String getProcedureName() {
+        return procedureName;
+    }
+
+    public Class<?> getEntityType() {
+        return entityType;
     }
 
     public Object[] getParameters() {

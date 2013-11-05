@@ -11,6 +11,11 @@ import java.util.Map;
 import java.util.Properties;
 
 /**
+ * This is an implementation of the traditional {@link Connection} interface provided
+ * through JDBC. This implementation takes a real connection as the underlying, actual
+ * connection to the data source. This class adds nested connection opening and closing
+ * to the functionalities of the connection.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/10/2, 21:24)
  */
@@ -79,7 +84,9 @@ public class DelegatingConnection implements Connection {
     @Override
     public void rollback() throws SQLException {
         log.warn("Rolling back changes made through the connection");
-        connection.rollback();
+        if (!connection.getAutoCommit()) {
+            connection.rollback();
+        }
     }
 
     public void open() {

@@ -4,8 +4,12 @@ import com.agileapes.dragonfly.data.DataAccess;
 import com.agileapes.dragonfly.data.DataCallback;
 import com.agileapes.dragonfly.data.DataOperation;
 import com.agileapes.dragonfly.data.OperationType;
+import com.agileapes.dragonfly.error.UnsuccessfulOperationError;
 
 /**
+ * This class encapsulates an abstract data operation, providing method bodies for the most
+ * common operations.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/26, 2:22)
  */
@@ -24,6 +28,11 @@ public abstract class AbstractDataOperation implements DataOperation {
     @Override
     public DataAccess getDataAccess() {
         return dataAccess;
+    }
+
+    @Override
+    public void interrupt() {
+        throw new UnsuccessfulOperationError("The operation was interrupted");
     }
 
     @Override

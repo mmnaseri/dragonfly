@@ -28,6 +28,9 @@ import java.util.Map;
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 
 /**
+ * This class is designed as a helper for performing operations on the middle entities
+ * in a many-to-many relation.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/10/3, 13:35)
  */

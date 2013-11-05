@@ -18,6 +18,11 @@ public @interface Extension {
 
     String ALL = "*";
 
+    /**
+     * This specifier allows for writing elaborate filters as to which entities are
+     * subject to the present extension. Simply leaving it as is (<code>*</code>) means
+     * the extension will apply to all entities.
+     */
     String filter() default ALL;
 
 }

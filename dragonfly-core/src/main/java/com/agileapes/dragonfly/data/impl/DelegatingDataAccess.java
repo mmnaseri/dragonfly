@@ -16,6 +16,14 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 
 /**
+ * <p>This is a data access implementation that will introduce <em>around advices</em> to
+ * operations of a normal data access.</p>
+ *
+ * <p>This is done through the introduction of {@link DataCallback} implementations by
+ * adding them via {@link #addCallback(DataCallback)}. This means callbacks can be introduced
+ * to add around advises for many different purposes, ranging from enabling data operations on
+ * unconventional entities, to logging the duration of data access operations.</p>
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/26, 2:24)
  */

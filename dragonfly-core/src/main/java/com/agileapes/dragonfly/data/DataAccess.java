@@ -30,11 +30,29 @@ public interface DataAccess {
      *                  interface's defining context, i.e., it must be initialized through
      *                  {@link EntityContext#getInstance(Class)} or {@link EntityContext#getInstance(TableMetadata)}
      * @param <E>       the type of the entity
+     * @return the saved entity, which might be identical to the passed entity
      */
     <E> E save(E entity);
 
+    /**
+     * This will save the entity to the database as a new entity. No heuristics need apply, since
+     * we are explicitly asking for a new entry to be added to the database.
+     * @param entity    the entity to be persisted. This entity must belong to the data access
+     *                  interface's defining context, i.e., it must be initialized through
+     *                  {@link EntityContext#getInstance(Class)} or {@link EntityContext#getInstance(TableMetadata)}
+     * @param <E>       the type of the entity
+     * @return the saved entity, which might be identical to the passed entity
+     */
     <E> E insert(E entity);
 
+    /**
+     * Updates the given entity in the database. Might result in more than one row being updated.
+     * @param entity    the entity to be persisted. This entity must belong to the data access
+     *                  interface's defining context, i.e., it must be initialized through
+     *                  {@link EntityContext#getInstance(Class)} or {@link EntityContext#getInstance(TableMetadata)}
+     * @param <E>       the type of the entity
+     * @return the saved entity, which might be identical to the passed entity
+     */
     <E> E update(E entity);
 
     /**
@@ -90,6 +108,16 @@ public interface DataAccess {
      */
     <E> List<E> find(E sample);
 
+    /**
+     * Finds all matching items in the database.
+     * @param sample    the entity to be used as a sample. This entity must belong to the data access
+     *                  interface's defining context, i.e., it must be initialized through
+     *                  {@link EntityContext#getInstance(Class)} or {@link EntityContext#getInstance(TableMetadata)}
+     * @param order     the order expression for the results
+     * @param <E>       the type of the entity.
+     * @return a list of all items matching the description as provided by the sample.
+     * @see com.agileapes.dragonfly.data.impl.OrderExpressionParser
+     */
     <E> List<E> find(E sample, String order);
 
     /**
@@ -114,6 +142,15 @@ public interface DataAccess {
      */
     <E> List<E> findAll(Class<E> entityType);
 
+    /**
+     * Attempts to list all items with the given type registered with the database accessible
+     * to the current session
+     * @param entityType    the type of the entity to be enlisted
+     * @param order     the order expression for the results
+     * @param <E>           the type of the entity
+     * @return a list of all available items
+     * @see com.agileapes.dragonfly.data.impl.OrderExpressionParser
+     */
     <E> List<E> findAll(Class<E> entityType, String order);
 
     /**

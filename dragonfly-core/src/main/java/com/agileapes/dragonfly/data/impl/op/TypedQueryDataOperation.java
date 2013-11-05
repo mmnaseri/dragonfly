@@ -7,6 +7,9 @@ import com.agileapes.dragonfly.data.OperationType;
 import java.util.Map;
 
 /**
+ * This is a data operation for which a type has been provided, but it is supposed to run
+ * the given query.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/26, 3:17)
  */

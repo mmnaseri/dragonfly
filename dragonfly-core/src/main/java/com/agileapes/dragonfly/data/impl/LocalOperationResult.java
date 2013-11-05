@@ -3,6 +3,9 @@ package com.agileapes.dragonfly.data.impl;
 import com.agileapes.dragonfly.statement.Statements;
 
 /**
+ * This class is designed to hold results for a given operation for which results must be cached
+ * for later reference.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/10/5, 9:25)
  */

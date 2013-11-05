@@ -20,6 +20,26 @@ import java.util.regex.Pattern;
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 
 /**
+ * <p>This is a parser that will turn a string describing an ordering based on a given
+ * table metadata into actual metadata for the ordering.</p>
+ *
+ * <p>The syntax for the expression is:</p>
+ *
+ * <ul>
+ *     <li><code>ordering   ::= [order-item [, order-item]*]</code></li>
+ *     <li><code>order-item ::= property-or-column [ASC|DESC]</code></li>
+ * </ul>
+ *
+ * <p>An empty string means that the ordering will be done based on the table's primary key
+ * columns in the order they were defined.</p>
+ *
+ * <p>Not specifying whether or not the items should be ordered in ascending order, tells the
+ * parser to fall back to the default order (ASC).</p>
+ *
+ * <p>Column names always take precedence over property names. This means that if we have a
+ * column named {@code x} and a property named as such, too, specifying an order for {@code x}
+ * will tell the parser to designate the ordering for the column {@code x}.</p>
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/11/3, 16:15)
  */
@@ -64,6 +84,11 @@ public class OrderExpressionParser implements Transformer<String, ResultOrderMet
                 throw new ExpressionParseError("No such column: " + tableMetadata.getName() + "." + identifier);
             }
             ordering.add(new DefaultOrderMetadata(column, order));
+        }
+        if (ordering.isEmpty()) {
+            for (ColumnMetadata columnMetadata : tableMetadata.getPrimaryKey().getColumns()) {
+                ordering.add(new DefaultOrderMetadata(columnMetadata, DEFAULT_ORDER));
+            }
         }
         return new DefaultResultOrderMetadata(ordering);
     }

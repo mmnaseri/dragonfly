@@ -11,6 +11,7 @@ import com.agileapes.dragonfly.events.DataAccessEventHandler;
 import com.agileapes.dragonfly.events.EventHandlerContext;
 import com.agileapes.dragonfly.security.DataSecurityManager;
 import com.agileapes.dragonfly.security.impl.MethodSubject;
+import com.agileapes.dragonfly.security.impl.StoredProcedureSubject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -20,7 +21,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@SuppressWarnings("unchecked")
+/**
+ * This class adds security to the method calls and procedure calls of the default data access implementation
+ * available through {@link DefaultDataAccess}.
+ *
+ * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
+ * @since 1.0 (2013/9/20, 23:29)
+ */
 public class SecuredDataAccess extends DefaultDataAccess implements PartialDataAccess, EventHandlerContext {
 
     private static final Map<Integer, MethodDescriptor> methodDescriptors = new HashMap<Integer, MethodDescriptor>();
@@ -64,25 +71,25 @@ public class SecuredDataAccess extends DefaultDataAccess implements PartialDataA
     }
 
     public SecuredDataAccess(DataAccessSession session, DataSecurityManager securityManager, EntityContext entityContext, EntityHandlerContext handlerContext, boolean autoInitialize) {
-        super(session, securityManager, entityContext, handlerContext, autoInitialize);
+        super(session, entityContext, handlerContext, autoInitialize);
         this.securityManager = securityManager;
         log.info("Initializing secured data access interface");
     }
 
     @Override
-    public Object find(final Class entityType, final Serializable key) {
+    public <E, K extends Serializable> E find(final Class<E> entityType, final K key) {
         securityManager.checkAccess(new MethodSubject(methodDescriptors.get(3)));
         return super.find(entityType, key);
     }
 
     @Override
-    public List find(final Object sample) {
+    public <E> List<E> find(final E sample) {
         securityManager.checkAccess(new MethodSubject(methodDescriptors.get(4)));
         return super.find(sample);
     }
 
     @Override
-    public Object save(final Object entity) {
+    public <E> E save(final E entity) {
         securityManager.checkAccess(new MethodSubject(methodDescriptors.get(5)));
         return super.save(entity);
     }
@@ -112,7 +119,7 @@ public class SecuredDataAccess extends DefaultDataAccess implements PartialDataA
     }
 
     @Override
-    public List findAll(final Class entityType) {
+    public <E> List<E> findAll(final Class<E> entityType) {
         securityManager.checkAccess(new MethodSubject(methodDescriptors.get(11)));
         return super.findAll(entityType);
     }
@@ -120,6 +127,7 @@ public class SecuredDataAccess extends DefaultDataAccess implements PartialDataA
     @Override
     public List call(final Class entityType, final String procedureName, final Object[] parameters) {
         securityManager.checkAccess(new MethodSubject(methodDescriptors.get(12)));
+        securityManager.checkAccess(new StoredProcedureSubject(entityType, procedureName, parameters));
         return super.call(entityType, procedureName, parameters);
     }
 
@@ -130,7 +138,7 @@ public class SecuredDataAccess extends DefaultDataAccess implements PartialDataA
     }
 
     @Override
-    public int executeUpdate(final Class entityType, final String queryName, final Map values) {
+    public <E> int executeUpdate(final Class<E> entityType, final String queryName, final Map<String, Object> values) {
         securityManager.checkAccess(new MethodSubject(methodDescriptors.get(14)));
         return super.executeUpdate(entityType, queryName, values);
     }
@@ -142,31 +150,31 @@ public class SecuredDataAccess extends DefaultDataAccess implements PartialDataA
     }
 
     @Override
-    public List executeQuery(final Class entityType, final String queryName, final Map values) {
+    public <E> List<E> executeQuery(final Class<E> entityType, final String queryName, final Map<String, Object> values) {
         securityManager.checkAccess(new MethodSubject(methodDescriptors.get(16)));
         return super.executeQuery(entityType, queryName, values);
     }
 
     @Override
-    public List executeQuery(final Object sample) {
+    public <E> List<E> executeQuery(final E sample) {
         securityManager.checkAccess(new MethodSubject(methodDescriptors.get(17)));
         return super.executeQuery(sample);
     }
 
     @Override
-    public List executeQuery(final Class resultType) {
+    public <E> List<E> executeQuery(final Class<E> resultType) {
         securityManager.checkAccess(new MethodSubject(methodDescriptors.get(18)));
         return super.executeQuery(resultType);
     }
 
     @Override
-    public List executeQuery(final Class resultType, final Map values) {
+    public <E> List<E> executeQuery(final Class<E> resultType, final Map<String, Object> values) {
         securityManager.checkAccess(new MethodSubject(methodDescriptors.get(19)));
         return super.executeQuery(resultType, values);
     }
 
     @Override
-    public List executeQuery(final Object sample, final String queryName) {
+    public <E> List<E> executeQuery(final E sample, final String queryName) {
         securityManager.checkAccess(new MethodSubject(methodDescriptors.get(20)));
         return super.executeQuery(sample, queryName);
     }
@@ -178,31 +186,31 @@ public class SecuredDataAccess extends DefaultDataAccess implements PartialDataA
     }
 
     @Override
-    public List executeUntypedQuery(final Class entityType, final String queryName, final Map values) {
+    public <E> List<Map<String, Object>> executeUntypedQuery(final Class<E> entityType, final String queryName, final Map<String, Object> values) {
         securityManager.checkAccess(new MethodSubject(methodDescriptors.get(23)));
         return super.executeUntypedQuery(entityType, queryName, values);
     }
 
     @Override
-    public long countAll(Class entityType) {
+    public <E> long countAll(Class<E> entityType) {
         securityManager.checkAccess(new MethodSubject(methodDescriptors.get(24)));
         return super.countAll(entityType);
     }
 
     @Override
-    public long count(Object sample) {
+    public <E> long count(E sample) {
         securityManager.checkAccess(new MethodSubject(methodDescriptors.get(25)));
         return super.count(sample);
     }
 
     @Override
-    public boolean exists(Object sample) {
+    public <E> boolean exists(E sample) {
         securityManager.checkAccess(new MethodSubject(methodDescriptors.get(26)));
         return super.exists(sample);
     }
 
     @Override
-    public boolean exists(Class entityType, Serializable key) {
+    public <E, K extends Serializable> boolean exists(Class<E> entityType, K key) {
         securityManager.checkAccess(new MethodSubject(methodDescriptors.get(27)));
         return super.exists(entityType, key);
     }
@@ -231,4 +239,5 @@ public class SecuredDataAccess extends DefaultDataAccess implements PartialDataA
     public <E> List<E> findAll(Class<E> entityType, String order) {
         return super.findAll(entityType, order);
     }
+
 }

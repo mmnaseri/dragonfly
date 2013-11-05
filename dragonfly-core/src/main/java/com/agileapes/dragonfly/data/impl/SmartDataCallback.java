@@ -5,6 +5,9 @@ import com.agileapes.dragonfly.data.DataCallback;
 import com.agileapes.dragonfly.data.DataOperation;
 
 /**
+ * This data callback allows for easy determination of the operation types through generics
+ * of the data callback passed through.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/26, 2:44)
  */
