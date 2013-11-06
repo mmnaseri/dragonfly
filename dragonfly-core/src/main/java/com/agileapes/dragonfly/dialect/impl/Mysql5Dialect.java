@@ -30,6 +30,8 @@ import java.util.Map;
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 
 /**
+ * Adds vendor-specific details for MySQL 5
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/4, 14:15)
  */

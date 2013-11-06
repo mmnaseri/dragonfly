@@ -6,6 +6,7 @@ import com.agileapes.dragonfly.data.DataStructureHandler;
 import com.agileapes.dragonfly.dialect.DatabaseDialect;
 import com.agileapes.dragonfly.error.DataAccessSessionInitializationError;
 import com.agileapes.dragonfly.error.DatabaseConnectionError;
+import com.agileapes.dragonfly.error.DatabaseDriverNotFoundError;
 import com.agileapes.dragonfly.metadata.MetadataRegistry;
 import com.agileapes.dragonfly.statement.impl.LocalStatementRegistry;
 import com.agileapes.dragonfly.statement.impl.StatementRegistry;
@@ -82,6 +83,7 @@ public class DefaultDataAccessSession implements DataAccessSession {
     }
 
     public DefaultDataAccessSession(DatabaseDialect databaseDialect, StatementRegistry statementRegistry, MetadataRegistry metadataRegistry, DataSource dataSource, String username, String password) {
+        loadDriver(databaseDialect);
         this.databaseDialect = databaseDialect;
         this.statementRegistry = statementRegistry;
         this.metadataRegistry = metadataRegistry;
@@ -90,6 +92,15 @@ public class DefaultDataAccessSession implements DataAccessSession {
         this.password = password;
         this.dataStructureHandler = new DefaultDataStructureHandler(this);
         this.localConnection = new ThreadLocal<DelegatingConnection>();
+    }
+
+    private void loadDriver(DatabaseDialect databaseDialect) {
+        final String className = databaseDialect.getDriverClassName();
+        try {
+            Class.forName(className, true, getClass().getClassLoader());
+        } catch (ClassNotFoundException e) {
+            throw new DatabaseDriverNotFoundError(className);
+        }
     }
 
     /**

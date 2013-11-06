@@ -64,6 +64,9 @@ public interface DatabaseDialect extends Filter<DatabaseMetaData> {
      */
     String getName();
 
+    /**
+     * @return the class name for the underlying driver used by this dialect
+     */
     String getDriverClassName();
 
     /**
@@ -86,8 +89,23 @@ public interface DatabaseDialect extends Filter<DatabaseMetaData> {
      */
     String getCountColumn();
 
+    /**
+     * Attempts to load values for all keys generated through sequences based on the
+     * given table metadata
+     * @param tableMetadata    the table for which retrieval of keys must occur
+     * @param <E>              the type of the entity for the key
+     * @return a map of values for the retrieved keys
+     */
     <E> Map<String,Object> loadSequenceValues(TableMetadata<E> tableMetadata);
 
+    /**
+     * Will load keys from table generated values.
+     * @param generatorMetadata    the metadata for key-generating table
+     * @param tableMetadata        the metadata for the table for which keys will be generated
+     * @param session              the session through which connections must be established
+     * @param <E>                  the type of the entity for the target
+     * @return a map of values for the retrieved keys
+     */
     <E> Map<String,Object> loadTableValues(TableMetadata<?> generatorMetadata, TableMetadata<E> tableMetadata, DataAccessSession session);
 
 

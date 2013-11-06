@@ -16,6 +16,9 @@ import java.util.Collections;
 import java.util.Map;
 
 /**
+ * This database dialect will prepare most of what a dialect should have, so that extending
+ * dialects only need to specify vendor-specific details.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/5, 1:24)
  */
