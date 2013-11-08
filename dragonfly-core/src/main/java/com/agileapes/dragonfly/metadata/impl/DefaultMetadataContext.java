@@ -135,7 +135,7 @@ public class DefaultMetadataContext extends DefaultMetadataRegistry implements M
                 //finally we settle by resolving all column references for reference orderings
                 for (OrderMetadata orderMetadata : referenceMetadata.getOrdering()) {
                     if (orderMetadata.getColumn() instanceof UnresolvedColumnMetadata) {
-                        ((DefaultOrderMetadata) orderMetadata).setColumn(resolveColumn(map, tableMetadata, (UnresolvedColumnMetadata) orderMetadata.getColumn()));
+                        ((DefaultOrderMetadata) orderMetadata).setColumn(resolveColumn(map, tableMetadata, orderMetadata.getColumn()));
                     }
                 }
                 if (RelationType.MANY_TO_MANY.equals(referenceMetadata.getRelationType())) {
@@ -206,7 +206,7 @@ public class DefaultMetadataContext extends DefaultMetadataRegistry implements M
         if (foreignColumn.getName() == null || foreignColumn.getName().isEmpty()) {
             final PrimaryKeyConstraintMetadata primaryKey = foreignTable.getPrimaryKey();
             if (primaryKey.getColumns().size() != 1) {
-                throw new EntityDefinitionError("Entity " + localTable.getEntityType().getCanonicalName() + " references composite primary key at " + foreignTable.getEntityType().getCanonicalName());
+                throw new RelationDefinitionError("Entity " + localTable.getEntityType().getCanonicalName() + " references composite primary key at " + foreignTable.getEntityType().getCanonicalName());
             }
             resolvedColumn = primaryKey.getColumns().iterator().next();
         } else {

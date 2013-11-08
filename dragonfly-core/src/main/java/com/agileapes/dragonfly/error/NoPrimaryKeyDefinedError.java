@@ -18,6 +18,9 @@
 package com.agileapes.dragonfly.error;
 
 /**
+ * This error indicates that we are requesting primary key definition for an entity that does
+ * not define any such keys
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/8/29, 14:38)
  */

@@ -28,9 +28,7 @@ import com.agileapes.dragonfly.annotations.Order;
 import com.agileapes.dragonfly.annotations.StoredProcedure;
 import com.agileapes.dragonfly.annotations.StoredProcedureParameter;
 import com.agileapes.dragonfly.annotations.StoredProcedures;
-import com.agileapes.dragonfly.error.EntityDefinitionError;
-import com.agileapes.dragonfly.error.NoSuchColumnError;
-import com.agileapes.dragonfly.error.UnsupportedColumnTypeError;
+import com.agileapes.dragonfly.error.*;
 import com.agileapes.dragonfly.metadata.*;
 import com.agileapes.dragonfly.tools.ColumnNameFilter;
 import com.agileapes.dragonfly.tools.ColumnPropertyFilter;
@@ -96,7 +94,7 @@ public class AnnotationMetadataResolver implements MetadataResolver {
                 .keep(new AnnotatedElementFilter(Column.class, JoinColumn.class))
                 .keep(new AnnotatedElementFilter(Transient.class))
                 .isEmpty()) {
-            throw new EntityDefinitionError("Entity cannot have transient columns: " + entityType.getCanonicalName());
+            throw new TransientColumnFoundError(entityType);
         }
         final Collection<SequenceMetadata> sequences = new HashSet<SequenceMetadata>();
         final HashSet<ConstraintMetadata> constraints = new HashSet<ConstraintMetadata>();
@@ -147,15 +145,15 @@ public class AnnotationMetadataResolver implements MetadataResolver {
                 }
                 if (method.isAnnotationPresent(Version.class)) {
                     if (versionColumn.get() != null) {
-                        throw new EntityDefinitionError("More than one column has been defined for entity: " + entityType);
+                        throw new MultipleVersionColumnsError(entityType);
                     }
                     if (column != null) {
                         if (columnMetadata.isNullable()) {
-                            throw new EntityDefinitionError("Version column cannot be nullable: " + entityType.getCanonicalName() + "." + columnMetadata.getName());
+                            throw new VersionColumnDefinitionError("Version column cannot be nullable: " + entityType.getCanonicalName() + "." + columnMetadata.getName());
                         }
                         versionColumn.set(columnMetadata);
                     } else {
-                        throw new EntityDefinitionError("Only local columns can be used for optimistic locking");
+                        throw new VersionColumnDefinitionError("Only local columns can be used for optimistic locking");
                     }
                 }
                 return columnMetadata;
@@ -171,7 +169,7 @@ public class AnnotationMetadataResolver implements MetadataResolver {
             @Override
             public void process(Method method) {
                 if (!Collection.class.isAssignableFrom(method.getReturnType())) {
-                    throw new EntityDefinitionError("One to many relations must be collections. Error in " + method);
+                    throw new RelationDefinitionError("One to many relations must be collections. Error in " + method);
                 }
                 final OneToMany annotation = method.getAnnotation(OneToMany.class);
                 Class<?> foreignEntity = annotation.targetEntity().equals(void.class) ? ((Class) ((ParameterizedType) method.getGenericReturnType()).getActualTypeArguments()[0]) : annotation.targetEntity();
@@ -185,10 +183,10 @@ public class AnnotationMetadataResolver implements MetadataResolver {
                             .keep(new MethodReturnTypeFilter(entityType))
                             .list();
                     if (list.isEmpty()) {
-                        throw new EntityDefinitionError("No ManyToOne relations for " + entityType.getCanonicalName() + " were found on " + foreignEntity.getCanonicalName());
+                        throw new RelationDefinitionError("No ManyToOne relations for " + entityType.getCanonicalName() + " were found on " + foreignEntity.getCanonicalName());
                     }
                     if (list.size() > 1) {
-                        throw new EntityDefinitionError("Ambiguous one to many relationship on " + entityType.getCanonicalName() + "." + propertyName);
+                        throw new RelationDefinitionError("Ambiguous one to many relationship on " + entityType.getCanonicalName() + "." + propertyName);
                     }
                     final Method foreignMethod = list.get(0);
                     final Column column = foreignMethod.getAnnotation(Column.class);
@@ -371,12 +369,12 @@ public class AnnotationMetadataResolver implements MetadataResolver {
                     public OrderMetadata map(String input) {
                         final String[] split = input.split("\\s+");
                         if (split.length > 2) {
-                            throw new EntityDefinitionError("Invalid order specification: " + input);
+                            throw new EntityOrderDefinitionError(input);
                         }
                         //noinspection unchecked
                         final String order = (split.length == 2 ? split[1] : "ASC").toUpperCase();
                         if (!order.matches("ASC|DESC")) {
-                            throw new EntityDefinitionError("Invalid order specification: " + input);
+                            throw new EntityOrderDefinitionError(input);
                         }
                         return new DefaultOrderMetadata(new UnresolvedColumnMetadata(split[0], new UnresolvedTableMetadata<Object>((Class<Object>) foreignEntity)), order);
                     }

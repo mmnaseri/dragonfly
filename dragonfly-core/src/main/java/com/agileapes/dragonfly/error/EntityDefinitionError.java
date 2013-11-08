@@ -18,6 +18,9 @@
 package com.agileapes.dragonfly.error;
 
 /**
+ * This error means that there is something wrong with the way the entity has been defined, and to
+ * fix the error you will need to be able to change the actual definition of the entity.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/5, 12:59)
  */

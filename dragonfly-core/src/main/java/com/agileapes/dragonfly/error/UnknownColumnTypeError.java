@@ -18,6 +18,8 @@
 package com.agileapes.dragonfly.error;
 
 /**
+ * This error indicates that an invalid column type constant has been given
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/4, 14:15)
  */

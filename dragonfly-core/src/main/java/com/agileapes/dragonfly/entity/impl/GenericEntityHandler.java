@@ -35,10 +35,7 @@ import com.agileapes.dragonfly.entity.EntityContext;
 import com.agileapes.dragonfly.entity.EntityHandler;
 import com.agileapes.dragonfly.entity.EntityInitializationContext;
 import com.agileapes.dragonfly.entity.InitializedEntity;
-import com.agileapes.dragonfly.error.EntityDefinitionError;
-import com.agileapes.dragonfly.error.EntityPreparationError;
-import com.agileapes.dragonfly.error.NoPrimaryKeyDefinedError;
-import com.agileapes.dragonfly.error.UnsuccessfulOperationError;
+import com.agileapes.dragonfly.error.*;
 import com.agileapes.dragonfly.metadata.*;
 import com.agileapes.dragonfly.metadata.impl.PrimaryKeyConstraintMetadata;
 import com.agileapes.dragonfly.tools.ColumnNameFilter;
@@ -251,14 +248,14 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
                                       if (objects.isEmpty()) {
                                           return;
                                       } else if (objects.size() > 1) {
-                                          throw new EntityDefinitionError("More than one item corresponds to one-to-one relationship");
+                                          throw new RelationDefinitionError("More than one item corresponds to one-to-one relationship");
                                       }
                                       propertyValue = objects.get(0);
                                   } else {
                                       try {
                                           propertyValue = ReflectionUtils.getCollection(wrapper.getPropertyType(reference.getPropertyName()));
                                       } catch (NoSuchPropertyException e) {
-                                          throw new EntityDefinitionError("Failed to get property type " + reference.getLocalTable().getEntityType().getCanonicalName() + "." + reference.getPropertyName());
+                                          throw new RelationDefinitionError("Failed to get property type " + reference.getLocalTable().getEntityType().getCanonicalName() + "." + reference.getPropertyName());
                                       }
                                       //noinspection unchecked
                                       ((Collection<Object>) propertyValue).addAll(objects);
@@ -696,7 +693,7 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
             } else if (Types.TIMESTAMP == versionColumn.getType()) {
                 version = new Timestamp(new Date().getTime());
             } else {
-                throw new EntityDefinitionError("Unsupported version type: " + versionType.getCanonicalName());
+                throw new VersionColumnDefinitionError("Unsupported version type: " + versionType.getCanonicalName());
             }
             wrapper.setPropertyValue(versionColumn.getPropertyName(), version);
         } catch (Exception e) {
@@ -723,11 +720,11 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
             } else if (Types.TIMESTAMP == versionColumn.getType()) {
                 version = new Timestamp(new Date().getTime());
             } else {
-                throw new EntityDefinitionError("Unsupported version type: " + versionType.getCanonicalName());
+                throw new VersionColumnDefinitionError("Unsupported version type: " + versionType.getCanonicalName());
             }
             wrapper.setPropertyValue(versionColumn.getPropertyName(), version);
         } catch (Exception e) {
-            throw new EntityDefinitionError("Version property has not been properly defined", e);
+            throw new VersionColumnDefinitionError("Version property has not been properly defined", e);
         }
     }
 

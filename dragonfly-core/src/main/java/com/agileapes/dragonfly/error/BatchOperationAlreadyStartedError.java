@@ -18,13 +18,16 @@
 package com.agileapes.dragonfly.error;
 
 /**
+ * This error indicates efforts on the part of the database interface to start a new batch stack
+ * while one is already in progress.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
- * @since 1.0 (2013/9/9, 2:02)
+ * @since 1.0 (2013/11/8, 13:10)
  */
-public class StatementExecutionFailureError extends DatabaseError {
+public class BatchOperationAlreadyStartedError extends BatchOperationInterruptedError {
 
-    public StatementExecutionFailureError(String message, Throwable cause) {
-        super(message, cause);
+    public BatchOperationAlreadyStartedError() {
+        super("Batch operation already in progress");
     }
 
 }

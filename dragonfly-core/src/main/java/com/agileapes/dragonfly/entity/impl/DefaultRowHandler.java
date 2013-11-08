@@ -18,7 +18,7 @@
 package com.agileapes.dragonfly.entity.impl;
 
 import com.agileapes.dragonfly.entity.RowHandler;
-import com.agileapes.dragonfly.error.MetadataAccessException;
+import com.agileapes.dragonfly.error.ResultSetMetadataAccessError;
 
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -46,7 +46,7 @@ public class DefaultRowHandler implements RowHandler {
                 map.put(metaData.getColumnName(i), resultSet.getObject(i));
             }
         } catch (SQLException e) {
-            throw new MetadataAccessException(e);
+            throw new ResultSetMetadataAccessError(e);
         }
         return map;
     }

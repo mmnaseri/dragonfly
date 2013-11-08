@@ -18,13 +18,15 @@
 package com.agileapes.dragonfly.error;
 
 /**
+ * This error is raised whenever an error is found in the definition of an order expression
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
- * @since 1.0 (2013/9/7, 1:32)
+ * @since 1.0 (2013/11/8, 14:28)
  */
-public class AmbiguousObjectKeyError extends DatabaseError {
+public class EntityOrderDefinitionError extends EntityDefinitionError {
 
-    public AmbiguousObjectKeyError(Class<?> entityType, Object key) {
-        super("Key <" + key + "> is ambiguous for describing objects of type " + entityType);
+    public EntityOrderDefinitionError(String orderSpecification) {
+        super("Incorrect order definition was passed in: " + orderSpecification);
     }
 
 }

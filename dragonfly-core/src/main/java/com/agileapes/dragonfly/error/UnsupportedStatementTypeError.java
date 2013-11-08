@@ -20,6 +20,8 @@ package com.agileapes.dragonfly.error;
 import com.agileapes.dragonfly.statement.Statements;
 
 /**
+ * This error indicates that no statement builder for the given type is available through the dialect
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/5, 1:20)
  */

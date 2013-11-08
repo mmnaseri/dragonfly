@@ -18,15 +18,28 @@
 package com.agileapes.dragonfly.error;
 
 /**
+ * This is the base class for all database related errors thrown by this framework. This ensures
+ * that all errors are easily catch-able by hierarchical catch statements.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/8/29, 14:38)
  */
 public abstract class DatabaseError extends Error {
 
+    /**
+     * Instantiates the error by passing a message, and assuming that this is the root cause
+     * of the problem.
+     * @param message    the error message
+     */
     public DatabaseError(String message) {
         super(message);
     }
 
+    /**
+     * Instantiates the error, while also specifying the underlying cause of the problem
+     * @param message    the error message
+     * @param cause      the cause of the error
+     */
     public DatabaseError(String message, Throwable cause) {
         super(message, cause);
     }

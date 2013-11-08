@@ -18,6 +18,9 @@
 package com.agileapes.dragonfly.error;
 
 /**
+ * This error indicates an attempted operation on a persistent entity that has been already
+ * removed from the data source
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/5, 20:10)
  */

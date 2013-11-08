@@ -295,7 +295,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
             try {
                 preparedStatement.addBatch();
             } catch (SQLException e) {
-                throw new BatchOperationInterruptedError("Failed to add batch operation", e);
+                throw new BatchOperationExecutionError("Failed to add batch operation", e);
             }
             return preparedStatement;
         } else {
@@ -315,7 +315,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
             try {
                 connection.setAutoCommit(false);
             } catch (SQLException e) {
-                throw new BatchOperationInterruptedError("Failed to disable auto-commit mode for the current connection", e);
+                throw new BatchOperationExecutionError("Failed to disable auto-commit mode for the current connection", e);
             }
         }
         final Statement finalStatement;
@@ -366,7 +366,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
 
     private <E> List<Map<String, Object>> internalExecuteUntypedQuery(Class<E> entityType, String statementName, Map<String, Object> values, ResultOrderMetadata ordering) {
         if (isInBatchMode() && !statementName.startsWith("count")) {
-            throw new BatchOperationInterruptedError("Batch operation interrupted by query");
+            throw new BatchOperationInterruptedByReadError();
         }
         final Statement statement = getStatement(entityType, statementName, ordering, StatementType.QUERY);
         final Connection connection = openConnection();
@@ -431,7 +431,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
                 result = statementBuilder.getStatement(session.getMetadataRegistry().getTableMetadata(entityType), ordering);
             }
         } catch (RegistryException e) {
-            throw new UnrecognizedQueryError(entityType, statementName);
+            throw new NoSuchQueryError(entityType, statementName);
         }
         if (expected.length > 0) {
             boolean found = false;
@@ -547,14 +547,14 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     private synchronized void startBatch() {
         log.info("Starting batch operation");
         if (isInBatchMode()) {
-            throw new BatchOperationInterruptedError("Batch operation already in progress");
+            throw new BatchOperationAlreadyStartedError();
         }
         batch.set(true);
     }
 
     private synchronized List<Integer> endBatch() {
         if (!isInBatchMode()) {
-            throw new BatchOperationInterruptedError("No batch operation has been started");
+            throw new NoBatchOperationError();
         }
         localCounts.get().clear();
         final List<BatchOperationDescriptor> descriptors = batchOperation.get();
@@ -579,7 +579,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
                 connection.commit();
                 log.info(batchResult.length + " operation(s) completed successfully in " + (System.nanoTime() - time) + "ns");
             } catch (SQLException e) {
-                throw new BatchOperationInterruptedError("Failed to execute operation batch", e);
+                throw new BatchOperationExecutionError("Failed to execute operation batch", e);
             }
             if (StatementType.getStatementType(descriptor.getSql()).equals(StatementType.INSERT)) {
                 try {
@@ -592,7 +592,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
                         entityHandler.setKey(entity, session.getDatabaseDialect().retrieveKey(generatedKeys));
                     }
                 } catch (SQLException e) {
-                    throw new BatchOperationInterruptedError("Failed to retrieve generated keys", e);
+                    throw new BatchOperationExecutionError("Failed to retrieve generated keys", e);
                 }
             }
             for (int i : batchResult) {
@@ -1058,7 +1058,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         } else if (list.size() == 1) {
             result = list.get(0);
         } else {
-            throw new EntityDefinitionError("More than one item correspond to type " + entityType.getCanonicalName() + " and key " + key);
+            throw new ObjectKeyError(entityType, key);
         }
         eventHandler.afterFind(entityType, key, result);
         return result;
@@ -1123,7 +1123,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     @Override
     public <E> List<?> call(Class<E> entityType, final String procedureName, Object... parameters) {
         if (isInBatchMode()) {
-            throw new BatchOperationInterruptedError("Batch operation interrupted by procedure call");
+            throw new BatchOperationInterruptedByProcedureError();
         }
         log.info("Calling to stored procedure " + entityType.getCanonicalName() + "." + procedureName);
         final TableMetadata<E> tableMetadata = session.getMetadataRegistry().getTableMetadata(entityType);
@@ -1135,7 +1135,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
             }
         }).first();
         if (procedureMetadata == null) {
-            throw new UnrecognizedProcedureError(entityType, procedureName);
+            throw new NoSuchProcedureError(entityType, procedureName);
         }
         if (procedureMetadata.getParameters().size() != parameters.length) {
             throw new MismatchedParametersNumberError(entityType, procedureName, procedureMetadata.getParameters().size(), parameters.length);
@@ -1215,7 +1215,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
             }
             cleanUpStatement(callableStatement);
         } catch (SQLException e) {
-            throw new StatementExecutionFailureError("Failed to call procedure " + procedureName, e);
+            throw new ProcedureExecutionFailureError("Failed to call procedure " + procedureName, e);
         }
         return result;
     }

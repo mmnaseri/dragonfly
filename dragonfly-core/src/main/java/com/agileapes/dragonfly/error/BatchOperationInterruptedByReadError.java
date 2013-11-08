@@ -17,16 +17,16 @@
 
 package com.agileapes.dragonfly.error;
 
-import com.agileapes.dragonfly.data.DataOperation;
-
 /**
+ * This error signifies a read access to database while performing a batch operation
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
- * @since 1.0 (2013/9/26, 2:57)
+ * @since 1.0 (2013/11/8, 13:08)
  */
-public class AmbiguousCallbackError extends DatabaseError {
+public class BatchOperationInterruptedByReadError extends BatchOperationInterruptedError {
 
-    public AmbiguousCallbackError(DataOperation operation) {
-        super("There are more the one was to do this operation: " + operation);
+    public BatchOperationInterruptedByReadError() {
+        super("Database reads are prohibited during batch operations");
     }
 
 }

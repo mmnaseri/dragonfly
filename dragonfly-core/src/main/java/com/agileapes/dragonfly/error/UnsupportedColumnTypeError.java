@@ -18,13 +18,15 @@
 package com.agileapes.dragonfly.error;
 
 /**
+ * This error indicates that there is a problem in the definition of the column on the entity
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/5, 13:58)
  */
-public class UnsupportedColumnTypeError extends DatabaseError {
+public class UnsupportedColumnTypeError extends EntityDefinitionError {
 
-    public UnsupportedColumnTypeError(String msg) {
-        super(msg);
+    public UnsupportedColumnTypeError(String message) {
+        super(message);
     }
 
 }

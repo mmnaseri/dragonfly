@@ -18,12 +18,18 @@
 package com.agileapes.dragonfly.error;
 
 /**
+ * This error indicates a general problem in the definition of the version column
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
- * @since 1.0 (2013/9/8, 18:35)
+ * @since 1.0 (2013/11/8, 17:29)
  */
-public class UnknownTableSchemaError extends DatabaseError {
+public class VersionColumnDefinitionError extends EntityDefinitionError {
 
-    public UnknownTableSchemaError(Class<?> entityType) {
-        super("No schema was defined for entity: " + entityType);
+    public VersionColumnDefinitionError(String message) {
+        super(message);
+    }
+
+    public VersionColumnDefinitionError(String message, Throwable cause) {
+        super(message, cause);
     }
 }

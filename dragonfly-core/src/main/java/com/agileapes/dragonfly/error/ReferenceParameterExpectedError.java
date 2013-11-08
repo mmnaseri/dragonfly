@@ -20,6 +20,9 @@ package com.agileapes.dragonfly.error;
 import com.agileapes.dragonfly.data.impl.Reference;
 
 /**
+ * This error indicates that the parameter passed to the procedure must have been an instance of
+ * {@link Reference} while it was not
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/10, 2:14)
  */

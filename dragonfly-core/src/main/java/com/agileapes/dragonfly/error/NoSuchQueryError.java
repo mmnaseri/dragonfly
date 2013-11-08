@@ -18,13 +18,15 @@
 package com.agileapes.dragonfly.error;
 
 /**
+ * This error indicates a request for execution of an unknown query
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
- * @since 1.0 (2013/9/7, 1:31)
+ * @since 1.0 (2013/9/9, 2:10)
  */
-public class ObjectNotFoundError extends DatabaseError {
+public class NoSuchQueryError extends DatabaseError {
 
-    public ObjectNotFoundError(Class<?> entityType, Object key) {
-        super("No object of type " + entityType.getCanonicalName() + " with key <" + key + "> was found");
+    public NoSuchQueryError(Class<?> entityType, String queryName) {
+        super("No such query was found: " + entityType.getCanonicalName() + "." + queryName);
     }
 
 }

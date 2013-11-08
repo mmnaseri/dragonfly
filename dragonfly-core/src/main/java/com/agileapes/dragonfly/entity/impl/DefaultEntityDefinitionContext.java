@@ -21,6 +21,7 @@ import com.agileapes.couteau.context.impl.OrderedBeanComparator;
 import com.agileapes.dragonfly.entity.EntityDefinition;
 import com.agileapes.dragonfly.entity.EntityDefinitionContext;
 import com.agileapes.dragonfly.entity.EntityDefinitionInterceptor;
+import com.agileapes.dragonfly.error.DuplicateEntityDefinitionError;
 import com.agileapes.dragonfly.error.NoSuchEntityError;
 
 import java.util.Collection;
@@ -74,6 +75,9 @@ public class DefaultEntityDefinitionContext implements EntityDefinitionContext {
     }
 
     private void internalAddEntityDefinition(EntityDefinition<?> entityDefinition) {
+        if (definitions.containsKey(entityDefinition.getEntityType())) {
+            throw new DuplicateEntityDefinitionError(entityDefinition.getEntityType());
+        }
         EntityDefinition<?> definition = entityDefinition;
         for (EntityDefinitionInterceptor interceptor : interceptors) {
             definition = interceptor.intercept(definition);

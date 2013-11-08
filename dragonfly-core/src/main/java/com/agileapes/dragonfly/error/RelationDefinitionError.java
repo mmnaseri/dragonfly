@@ -18,16 +18,15 @@
 package com.agileapes.dragonfly.error;
 
 /**
- * Raised when the number of parameters passed for a procedure call does not match the number
- * of arguments defined for it.
+ * This error indicates an error in the definition of the relation indicated
  *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
- * @since 1.0 (2013/9/10, 1:56)
+ * @since 1.0 (2013/11/8, 17:30)
  */
-public class MismatchedParametersNumberError extends DatabaseError {
+public class RelationDefinitionError extends EntityDefinitionError {
 
-    public MismatchedParametersNumberError(Class<?> entityType, String procedureName, int expectedParameters, int actualParameters) {
-        super("Expected " + expectedParameters + " parameters for procedure " + entityType.getCanonicalName() + "." + procedureName + " but was given " + actualParameters);
+    public RelationDefinitionError(String message) {
+        super(message);
     }
 
 }

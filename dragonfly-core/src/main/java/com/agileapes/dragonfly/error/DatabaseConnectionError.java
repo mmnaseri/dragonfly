@@ -20,6 +20,8 @@ package com.agileapes.dragonfly.error;
 import java.sql.SQLException;
 
 /**
+ * This error signifies a failure in opening a new connection with the database
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/21, 14:09)
  */

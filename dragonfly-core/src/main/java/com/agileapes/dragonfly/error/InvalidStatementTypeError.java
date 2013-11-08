@@ -20,6 +20,8 @@ package com.agileapes.dragonfly.error;
 import com.agileapes.dragonfly.statement.StatementType;
 
 /**
+ * This error indicates that a statement is required from the dialect that it doesn't provide
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/8, 12:27)
  */

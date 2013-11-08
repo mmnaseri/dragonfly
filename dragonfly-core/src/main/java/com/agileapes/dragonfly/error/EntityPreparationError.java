@@ -18,6 +18,9 @@
 package com.agileapes.dragonfly.error;
 
 /**
+ * This error is raised to indicate an operation leading to the preparation of a newly fetched
+ * entity from the database has failed
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/22, 12:36)
  */

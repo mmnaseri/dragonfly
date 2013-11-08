@@ -18,19 +18,15 @@
 package com.agileapes.dragonfly.error;
 
 /**
+ * This error is raised whenever an initialized session is asked to initialize itself again.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
- * @since 1.0 (2013/8/30, 15:51)
+ * @since 1.0 (2013/11/8, 14:23)
  */
-public class AmbiguousEntityError extends DatabaseError {
+public class DataAccessSessionAlreadyInitializedError extends DataAccessSessionInitializationError {
 
-    private final Class<?> entityType;
-
-    public AmbiguousEntityError(Class<?> entityType) {
-        super("More than one definition exists for entity: " + entityType.getCanonicalName());
-        this.entityType = entityType;
+    public DataAccessSessionAlreadyInitializedError() {
+        super("Session already initialized.");
     }
 
-    public Class<?> getEntityType() {
-        return entityType;
-    }
 }

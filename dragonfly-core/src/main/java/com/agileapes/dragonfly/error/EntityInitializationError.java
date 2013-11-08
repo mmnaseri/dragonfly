@@ -18,6 +18,8 @@
 package com.agileapes.dragonfly.error;
 
 /**
+ * This error indicates an error in initializing an entity through its default constructor
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/8/31, 17:32)
  */

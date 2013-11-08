@@ -21,6 +21,7 @@ import com.agileapes.couteau.basics.api.Processor;
 import com.agileapes.dragonfly.data.DataAccessSession;
 import com.agileapes.dragonfly.data.DataStructureHandler;
 import com.agileapes.dragonfly.dialect.DatabaseDialect;
+import com.agileapes.dragonfly.error.DataAccessSessionAlreadyInitializedError;
 import com.agileapes.dragonfly.error.DataAccessSessionInitializationError;
 import com.agileapes.dragonfly.error.DatabaseConnectionError;
 import com.agileapes.dragonfly.error.DatabaseDriverNotFoundError;
@@ -214,10 +215,14 @@ public class DefaultDataAccessSession implements DataAccessSession {
     @Override
     public synchronized void initialize() {
         if (initialized) {
-            throw new DataAccessSessionInitializationError("Session is already initialized");
+            throw new DataAccessSessionAlreadyInitializedError();
         }
         log.info("Initializing data structures with database handlers");
-        dataStructureHandler.initialize();
+        try {
+            dataStructureHandler.initialize();
+        } catch (Error e) {
+            throw new DataAccessSessionInitializationError("An error prevented successful initialization of the session", e);
+        }
         initialized = true;
     }
 

@@ -18,6 +18,9 @@
 package com.agileapes.dragonfly.error;
 
 /**
+ * This error indicates that a problem has interrupted the successful completion of the batch
+ * stack being performed.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/25, 0:05)
  */

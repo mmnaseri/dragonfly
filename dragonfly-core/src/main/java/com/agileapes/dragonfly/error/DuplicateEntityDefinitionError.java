@@ -18,13 +18,21 @@
 package com.agileapes.dragonfly.error;
 
 /**
+ * This error means that a duplicate definition was added to the entity definition context
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
- * @since 1.0 (2013/9/9, 2:10)
+ * @since 1.0 (2013/8/30, 15:51)
  */
-public class UnrecognizedQueryError extends DatabaseError {
+public class DuplicateEntityDefinitionError extends DatabaseError {
 
-    public UnrecognizedQueryError(Class<?> entityType, String queryName) {
-        super("No such query <" + queryName + "> for entity " + entityType.getCanonicalName());
+    private final Class<?> entityType;
+
+    public DuplicateEntityDefinitionError(Class<?> entityType) {
+        super("More than one definition exists for entity: " + entityType.getCanonicalName());
+        this.entityType = entityType;
     }
 
+    public Class<?> getEntityType() {
+        return entityType;
+    }
 }

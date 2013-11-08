@@ -18,13 +18,19 @@
 package com.agileapes.dragonfly.error;
 
 /**
+ * This error means that the session could not be initialized due to an error.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/13, 18:38)
  */
 public class DataAccessSessionInitializationError extends DatabaseError {
 
-    public DataAccessSessionInitializationError(String msg) {
-        super(msg);
+    public DataAccessSessionInitializationError(String message) {
+        super(message);
+    }
+
+    public DataAccessSessionInitializationError(String message, Throwable cause) {
+        super(message, cause);
     }
 
 }

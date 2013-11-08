@@ -18,16 +18,15 @@
 package com.agileapes.dragonfly.error;
 
 /**
- * Raised when the number of parameters passed for a procedure call does not match the number
- * of arguments defined for it.
+ * This error is raised whenever a procedure is called from within a batch operation stack
  *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
- * @since 1.0 (2013/9/10, 1:56)
+ * @since 1.0 (2013/11/8, 13:12)
  */
-public class MismatchedParametersNumberError extends DatabaseError {
+public class BatchOperationInterruptedByProcedureError extends BatchOperationInterruptedError {
 
-    public MismatchedParametersNumberError(Class<?> entityType, String procedureName, int expectedParameters, int actualParameters) {
-        super("Expected " + expectedParameters + " parameters for procedure " + entityType.getCanonicalName() + "." + procedureName + " but was given " + actualParameters);
+    public BatchOperationInterruptedByProcedureError() {
+        super("Procedures cannot be called during batch operation execution");
     }
 
 }

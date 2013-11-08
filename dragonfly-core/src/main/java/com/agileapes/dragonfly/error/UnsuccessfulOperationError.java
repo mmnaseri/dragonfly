@@ -18,6 +18,8 @@
 package com.agileapes.dragonfly.error;
 
 /**
+ * This error is raised whenever an operation on the database has resulted in failure
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/7, 1:27)
  */

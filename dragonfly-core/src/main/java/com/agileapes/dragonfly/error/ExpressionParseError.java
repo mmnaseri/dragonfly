@@ -18,6 +18,8 @@
 package com.agileapes.dragonfly.error;
 
 /**
+ * This error indicates that the expression passed to the parser had syntactic or semantic errors
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/10/7, 22:48)
  */
@@ -27,11 +29,8 @@ public class ExpressionParseError extends Error {
         super(message);
     }
 
-    public ExpressionParseError(String message, Throwable cause) {
-        super(message, cause);
-    }
-
     public ExpressionParseError(Throwable cause) {
         super(cause);
     }
+
 }

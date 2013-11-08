@@ -18,13 +18,15 @@
 package com.agileapes.dragonfly.error;
 
 /**
+ * This error indicates that we are closing a batch session that was not properly started
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
- * @since 1.0 (2013/9/5, 13:52)
+ * @since 1.0 (2013/11/8, 13:11)
  */
-public class InvalidForeignReferenceDefinition extends DatabaseError {
+public class NoBatchOperationError extends BatchOperationInterruptedError {
 
-    public InvalidForeignReferenceDefinition(String msg) {
-        super(msg);
+    public NoBatchOperationError() {
+        super("No batch operation has been started to close");
     }
 
 }

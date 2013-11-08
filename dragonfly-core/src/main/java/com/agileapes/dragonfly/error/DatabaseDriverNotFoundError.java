@@ -18,6 +18,9 @@
 package com.agileapes.dragonfly.error;
 
 /**
+ * This error is raised whenever the database driver class cannot be loaded from the classpath.
+ * To solve such problems, it is usually prudent to look at the dependencies of your project.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/11/6, 15:44)
  */

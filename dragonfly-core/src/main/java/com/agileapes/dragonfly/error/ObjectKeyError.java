@@ -17,17 +17,19 @@
 
 package com.agileapes.dragonfly.error;
 
+import java.io.Serializable;
+
 /**
- * Raised when the number of parameters passed for a procedure call does not match the number
- * of arguments defined for it.
+ * This error means that the key to the entity was not defined properly, and as such, more than one
+ * object in the database responds to the given key
  *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
- * @since 1.0 (2013/9/10, 1:56)
+ * @since 1.0 (2013/11/8, 17:31)
  */
-public class MismatchedParametersNumberError extends DatabaseError {
+public class ObjectKeyError extends EntityDefinitionError {
 
-    public MismatchedParametersNumberError(Class<?> entityType, String procedureName, int expectedParameters, int actualParameters) {
-        super("Expected " + expectedParameters + " parameters for procedure " + entityType.getCanonicalName() + "." + procedureName + " but was given " + actualParameters);
+    public ObjectKeyError(Class<?> entityType, Serializable key) {
+        super("More than one object in the underlying data source correspond to entity of type " + entityType.getCanonicalName() + " with key " + key);
     }
 
 }

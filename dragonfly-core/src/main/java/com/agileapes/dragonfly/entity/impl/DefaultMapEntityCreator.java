@@ -20,8 +20,6 @@ package com.agileapes.dragonfly.entity.impl;
 import com.agileapes.couteau.reflection.beans.BeanWrapper;
 import com.agileapes.couteau.reflection.beans.impl.MethodBeanWrapper;
 import com.agileapes.couteau.reflection.error.NoSuchPropertyException;
-import com.agileapes.couteau.reflection.error.PropertyAccessException;
-import com.agileapes.couteau.reflection.error.PropertyTypeMismatchException;
 import com.agileapes.dragonfly.entity.MapEntityCreator;
 import com.agileapes.dragonfly.error.EntityInitializationError;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
@@ -58,9 +56,7 @@ public class DefaultMapEntityCreator implements MapEntityCreator {
                 wrapper.setPropertyValue(columnMetadata.getPropertyName(), value.getValue());
             } catch (NoSuchPropertyException e) {
                 //ditto here
-            } catch (PropertyAccessException e) {
-                throw new EntityInitializationError(entity.getClass(), e);
-            } catch (PropertyTypeMismatchException e) {
+            } catch (Exception e) {
                 throw new EntityInitializationError(entity.getClass(), e);
             }
         }

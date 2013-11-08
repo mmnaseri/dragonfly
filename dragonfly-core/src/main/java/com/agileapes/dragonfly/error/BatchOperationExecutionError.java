@@ -18,13 +18,15 @@
 package com.agileapes.dragonfly.error;
 
 /**
+ * This error signifies a problem during the execution or preparation of a batch stack.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
- * @since 1.0 (2013/8/31, 17:36)
+ * @since 1.0 (2013/11/8, 13:14)
  */
-public class MetadataAccessException extends DatabaseError {
+public class BatchOperationExecutionError extends BatchOperationInterruptedError {
 
-    public MetadataAccessException(Throwable cause) {
-        super("Error accessing metadata for table", cause);
+    public BatchOperationExecutionError(String message, Throwable cause) {
+        super(message, cause);
     }
 
 }

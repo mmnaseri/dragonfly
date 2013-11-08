@@ -18,6 +18,9 @@
 package com.agileapes.dragonfly.error;
 
 /**
+ * This error indicates that no metadata exists for the given entity type, and therefore, it does
+ * not exist within the persistent context
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/8/30, 15:49)
  */

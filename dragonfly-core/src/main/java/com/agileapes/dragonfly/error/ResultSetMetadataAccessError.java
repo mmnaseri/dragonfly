@@ -18,13 +18,16 @@
 package com.agileapes.dragonfly.error;
 
 /**
+ * This error indicates an error in accessing result set metadata from the retrieved database
+ * result
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
- * @since 1.0 (2013/9/10, 1:52)
+ * @since 1.0 (2013/8/31, 17:36)
  */
-public class UnrecognizedProcedureError extends DatabaseError {
+public class ResultSetMetadataAccessError extends DatabaseError {
 
-    public UnrecognizedProcedureError(Class<?> entityType, String procedureName) {
-        super("No such procedure <" + procedureName + "> registered for entity <" + entityType.getCanonicalName() + ">");
+    public ResultSetMetadataAccessError(Throwable cause) {
+        super("Error accessing metadata for table", cause);
     }
 
 }
