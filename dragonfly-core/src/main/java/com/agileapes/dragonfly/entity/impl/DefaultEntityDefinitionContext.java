@@ -32,6 +32,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 
 /**
+ * This is the default entity definition context used by the application. You have the
+ * ability to automatically update the context by recalling all post-processors in the
+ * event of new interceptors being added.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/17, 14:22)
  */

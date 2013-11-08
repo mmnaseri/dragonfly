@@ -26,6 +26,9 @@ import java.util.Collection;
 import java.util.Map;
 
 /**
+ * This class will take an entity handler instance and delegate the process of map creation
+ * to the handler
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/14, 5:33)
  */

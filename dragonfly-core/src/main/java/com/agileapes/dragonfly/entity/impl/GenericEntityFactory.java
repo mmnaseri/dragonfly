@@ -22,25 +22,28 @@ import com.agileapes.dragonfly.entity.EntityFactory;
 import com.agileapes.dragonfly.error.EntityInitializationError;
 
 /**
+ * This is a generic entity factory that will simply instantiate
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/15, 14:36)
  */
 public class GenericEntityFactory<E> implements EntityFactory<E> {
 
-    private final Class<E> entityType;
+    private final Class<E> enhancedType;
 
-    public GenericEntityFactory(Class<E> entityType) {
-        this.entityType = entityType;
+    public GenericEntityFactory(Class<E> enhancedType) {
+
+        this.enhancedType = enhancedType;
     }
 
     @Override
     public E getInstance(EntityProxy<E> proxy) {
         try {
-            final E entity = entityType.newInstance();
+            final E entity = enhancedType.newInstance();
             ((Interceptible) entity).setInterceptor(proxy);
             return entity;
         } catch (Exception e) {
-            throw new EntityInitializationError(entityType, e);
+            throw new EntityInitializationError(enhancedType, e);
         }
     }
 

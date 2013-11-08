@@ -29,8 +29,18 @@ import java.util.Map;
  */
 public interface ModifiableEntityContext extends EntityContext {
 
+    /**
+     * Changes the interfaces initially designated for entities of each given type.
+     * Each entry has the entity type as the key and a map of key-values containing
+     * interfaces and their concrete implementations as values.
+     * @param interfaces    the interfaces for the entities
+     */
     void setInterfaces(Map<Class<?>, Map<Class<?>, Class<?>>> interfaces);
 
+    /**
+     * Sets the entity factories for different types
+     * @param factories    a map of entity types to entity factories for entity types
+     */
     void setEntityFactories(Map<Class<?>, EntityFactory<?>> factories);
 
 }

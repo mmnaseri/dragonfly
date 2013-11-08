@@ -18,6 +18,9 @@
 package com.agileapes.dragonfly.entity.impl;
 
 /**
+ * This class is the model used for generation of entity factories using the Freemarker template
+ * engine.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/14, 14:22)
  */

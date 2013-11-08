@@ -29,11 +29,18 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
+ * This is an entity initialization context that provides the basics of an entity initialization
+ * context with the ability to be locked and unlocked in a nested fashion. It also uses a cache
+ * to hold entity instances, using type-key duos as the cache keys.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/22, 13:04)
  */
 public abstract class AbstractLockingEntityInitializationContext extends CachingDataDispenser<AbstractLockingEntityInitializationContext.EntityInstanceDescriptor, Object> implements EntityInitializationContext {
 
+    /**
+     * This class represents the keys to the cache
+     */
     public static class EntityInstanceDescriptor {
 
         private final Class<?> entityType;

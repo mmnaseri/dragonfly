@@ -113,6 +113,15 @@ public interface EntityHandler<E> {
      */
     void loadEagerRelations(E entity, Map<String, Object> values, EntityInitializationContext initializationContext);
 
+    /**
+     * Loads the given lazy relation into the entity
+     * @param entity               the entity
+     * @param referenceMetadata    the lazy relation
+     * @param dataAccess           the data access through which the relations should be loaded
+     * @param entityContext        the context which holds entities
+     * @param map                  the map of the entity's loaded values
+     * @param session              the session through which connections can be made
+     */
     void loadLazyRelation(E entity, ReferenceMetadata<E, ?> referenceMetadata, DataAccess dataAccess, EntityContext entityContext, Map<String, Object> map, DataAccessSession session);
 
     /**
@@ -145,11 +154,30 @@ public interface EntityHandler<E> {
      */
     void saveDependentRelations(E entity, DataAccess dataAccess, EntityContext entityContext);
 
+    /**
+     * Returns a map of all related many-to-many objects with table metadata for each relation
+     * as the key
+     * @param entity    the entity instance for which the relations must be extracted
+     * @return the map of related objects
+     */
     Map<TableMetadata<?>, Set<ManyToManyMiddleEntity>> getManyToManyRelatedObjects(E entity);
 
+    /**
+     * Advances the version of the entity by one, if applicable
+     * @param entity    the entity for which the version must be advanced
+     */
     void incrementVersion(E entity);
 
+    /**
+     * Initializes the version value for the version column of the given entity, if applicable
+     * @param entity    the entity for which the version must be advanced
+     */
     void initializeVersion(E entity);
 
+    /**
+     * Determines whether or not the entity is lockable. At the moment, this is the same as
+     * checking for optimistic locking support for the entity
+     * @return {@code true} means the entity is lockable
+     */
     boolean isLockable();
 }

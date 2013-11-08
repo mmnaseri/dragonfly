@@ -27,6 +27,11 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
+ * This class will try to load an entity factory from the classpath first, and then if not available,
+ * instantiate a generic factory. This way, if the Maven plugin has been used, or entity factories
+ * have been compiled with the project, that class will take precedence over the more generic,
+ * common-purpose one available with the framework.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/14, 14:25)
  */

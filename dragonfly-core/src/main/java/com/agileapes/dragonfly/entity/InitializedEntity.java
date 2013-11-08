@@ -66,10 +66,22 @@ public interface InitializedEntity<E> {
      */
     void unfreeze();
 
+    /**
+     * Sets the initialization context for the given entity
+     * @param initializationContext    the initialization context for the entity
+     */
     void setInitializationContext(EntityInitializationContext initializationContext);
 
+    /**
+     * Returns the initialization context for the entity
+     * @return the context for the entity
+     */
     EntityInitializationContext getInitializationContext();
 
+    /**
+     * The map of values for the entity as it was last seen in the database for the current instance
+     * @param map    the map of values for the entity
+     */
     void setMap(Map<String, Object> map);
 
 }

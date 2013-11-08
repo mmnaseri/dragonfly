@@ -22,6 +22,8 @@ import com.agileapes.dragonfly.entity.EntityDefinition;
 import java.util.Map;
 
 /**
+ * This is an immutable entity definition class.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/17, 14:17)
  */

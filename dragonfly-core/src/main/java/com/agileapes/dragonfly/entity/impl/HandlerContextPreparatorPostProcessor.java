@@ -25,6 +25,10 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
+ * This class is able to take a list of entity handlers and feed them to the entity handler context
+ * configured for the application. This will override the use of predesignated {@link GenericEntityHandler}
+ * instances for some entity types.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/14, 5:50)
  */

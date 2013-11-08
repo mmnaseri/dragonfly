@@ -23,6 +23,10 @@ import com.agileapes.couteau.basics.api.impl.SimpleCache;
 import com.agileapes.dragonfly.data.DataAccess;
 
 /**
+ * This entity initialization instance is an instance that can not be nested inside another
+ * context, and as such will always be the parent in its context tree. It is also thread-local
+ * which means that it will expose a different cache instance for each thread.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/21, 13:45)
  */

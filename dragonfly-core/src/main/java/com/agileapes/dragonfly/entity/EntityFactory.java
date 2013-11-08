@@ -20,11 +20,21 @@ package com.agileapes.dragonfly.entity;
 import com.agileapes.dragonfly.entity.impl.EntityProxy;
 
 /**
+ * The entity factory allows for dynamic instantiation of entities and therefore will allow
+ * for instantiation of enhanced entity classes. Each factory instance is singly bound to a
+ * predesignated entity type, exactly one factory instance is expected to exist for each
+ * entity type.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/14, 14:21)
  */
 public interface EntityFactory<E> {
 
+    /**
+     * Returns a new instance of the entity bound to the given type.
+     * @param proxy    the proxy to intercept calls to the methods of the proxied entity
+     * @return the enhanced instance of the given entity.
+     */
     E getInstance(EntityProxy<E> proxy);
 
 }

@@ -17,7 +17,6 @@
 
 package com.agileapes.dragonfly.entity.impl;
 
-import com.agileapes.dragonfly.entity.EntityContext;
 import com.agileapes.dragonfly.entity.EntityHandler;
 import com.agileapes.dragonfly.entity.MapEntityCreator;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
@@ -26,17 +25,17 @@ import java.util.Collection;
 import java.util.Map;
 
 /**
+ * This class will take an entity handler and delegate creation of entity maps to the handler
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/14, 5:35)
  */
 public class DelegatingEntityCreator implements MapEntityCreator {
     
     private final EntityHandler<Object> handler;
-    private final EntityContext entityContext;
 
-    public DelegatingEntityCreator(EntityContext entityContext, EntityHandler<Object> handler) {
+    public DelegatingEntityCreator(EntityHandler<Object> handler) {
         this.handler = handler;
-        this.entityContext = entityContext;
     }
 
     @Override

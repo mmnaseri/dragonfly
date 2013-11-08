@@ -38,6 +38,10 @@ import java.util.Map;
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 
 /**
+ * This class will prepare an SQL statement by interpolating property values as defined in
+ * the given map, and finally returning a {@link PreparedStatement} instance through the
+ * designated connection.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/3, 17:02)
  */

@@ -27,6 +27,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * This class will turn a row of result set data into a key-value map to make it better accessible
+ * to other parts of the program.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/8/31, 17:31)
  */

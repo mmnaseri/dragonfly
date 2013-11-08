@@ -18,11 +18,22 @@
 package com.agileapes.dragonfly.entity;
 
 /**
+ * This interface allows for interception of entity definitions so that definitions of entities
+ * can be changed externally (on a deterministic basis).
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/17, 14:13)
  */
 public interface EntityDefinitionInterceptor {
 
+    /**
+     * This method is called by the context whenever an entity is added, so that it is given
+     * a chance to modify the definition of the given entity
+     * @param definition    the definition of the entity as it was presented to the context
+     * @param <E>           the type parameter for the entity's type
+     * @return the (modified) definition for the entity. This will replace the original definition
+     * in the context
+     */
     <E> EntityDefinition<E> intercept(EntityDefinition<E> definition);
 
 }

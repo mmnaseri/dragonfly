@@ -23,6 +23,9 @@ import com.agileapes.dragonfly.data.DataAccess;
 import com.agileapes.dragonfly.entity.EntityInitializationContext;
 
 /**
+ * This is a default initialization context that does not concern itself with any sort of thread
+ * consideration save protecting its cache against multiple thread write accesses.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/20, 16:39)
  */

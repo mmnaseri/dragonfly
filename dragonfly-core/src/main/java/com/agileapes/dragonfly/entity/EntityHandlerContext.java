@@ -18,14 +18,34 @@
 package com.agileapes.dragonfly.entity;
 
 /**
+ * This is a context that facilitates interaction with and operation on different
+ * entities through entity handlers.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/14, 5:31)
  */
 public interface EntityHandlerContext extends EntityMapCreator, MapEntityCreator {
 
+    /**
+     * Adds a handler to the context. Handlers are expected to uniquely apply to a given
+     * entity type
+     * @param handler    the entity handler to be added
+     */
     void addHandler(EntityHandler<?> handler);
 
+    /**
+     * Returns the handler for the given entity type
+     * @param entityType    the type of the entity
+     * @param <E>           the type parameter for the entity
+     * @return the handler
+     */
     <E> EntityHandler<E> getHandler(Class<E> entityType);
 
+    /**
+     * Returns the handler for the given entity
+     * @param entity        the entity
+     * @param <E>           the type parameter for the entity
+     * @return the handler
+     */
     <E> EntityHandler<E> getHandler(E entity);
 }

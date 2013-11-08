@@ -20,13 +20,22 @@ package com.agileapes.dragonfly.entity;
 import java.util.Map;
 
 /**
+ * This interface encapsulates the definition of an individual entity added to the framework
+ * to be recognized for persistence. Interfaces available to the entity are defined here.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/17, 14:12)
  */
 public interface EntityDefinition<E> {
 
+    /**
+     * @return the type of the entity
+     */
     Class<E> getEntityType();
 
+    /**
+     * @return Interfaces available to the entity and a default concrete class for each interface
+     */
     Map<Class<?>, Class<?>> getInterfaces();
 
 }

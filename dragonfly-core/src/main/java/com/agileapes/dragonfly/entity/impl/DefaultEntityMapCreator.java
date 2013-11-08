@@ -39,6 +39,9 @@ import java.util.Map;
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 
 /**
+ * This is the default entity map creator that relies on reflections API and generic assumptions
+ * to create maps from entity values. The maps keys are properties.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/8/31, 17:43)
  */

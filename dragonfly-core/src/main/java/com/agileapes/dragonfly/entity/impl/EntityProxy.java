@@ -241,4 +241,8 @@ public class EntityProxy<E> extends SecuredInterfaceInterceptor implements DataA
         return freezeLock > 0;
     }
 
+    public Class<E> getEntityType() {
+        return entityType;
+    }
+
 }

@@ -27,6 +27,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
+ * This is the entity handler context used throughout the application
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/14, 5:38)
  */
@@ -57,7 +59,7 @@ public class DefaultEntityHandlerContext implements EntityHandlerContext {
     @Override
     public void addHandler(EntityHandler<?> entityHandler) {
         //noinspection unchecked
-        entityCreators.put(entityHandler.getEntityType(), new DelegatingEntityCreator(entityContext, (EntityHandler<Object>) entityHandler));
+        entityCreators.put(entityHandler.getEntityType(), new DelegatingEntityCreator((EntityHandler<Object>) entityHandler));
         //noinspection unchecked
         mapCreators.put(entityHandler.getEntityType(), new DelegatingMapCreator((EntityHandler<Object>) entityHandler));
         entityHandlers.put(entityHandler.getEntityType(), entityHandler);

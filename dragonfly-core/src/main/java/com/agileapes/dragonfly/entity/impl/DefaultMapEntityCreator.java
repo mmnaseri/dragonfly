@@ -33,6 +33,9 @@ import java.util.Map;
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 
 /**
+ * This class will use column metadata for each entity to fill an entity instance's properties
+ * with values put into the map. The map's keys are assumed to be column names.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/8/31, 17:39)
  */

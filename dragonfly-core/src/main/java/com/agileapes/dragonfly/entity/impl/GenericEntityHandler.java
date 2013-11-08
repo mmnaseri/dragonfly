@@ -54,6 +54,11 @@ import java.util.*;
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 
 /**
+ * This generic entity handler is capable of handling all operations expected from an entity handler
+ * and moreover it can do it all for any and all entities of all types. This not being tailored for
+ * one specific entity type makes it somewhat slower, as it needs to determine the how of doing
+ * everything at runtime, instead of having the knowledge intrinsically.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/18, 15:28)
  */
