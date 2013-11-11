@@ -43,6 +43,8 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 
 /**
+ * This is the default extension manager used throughout the application
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/18, 16:37)
  */
@@ -64,7 +66,7 @@ public class DefaultExtensionManager implements ExtensionManager {
     @Override
     public void addExtension(final Class<?> extension) {
         final Extension annotation = extension.getAnnotation(Extension.class);
-        final Filter<Class<?>> filter = parser.parse(annotation.filter());
+        final Filter<Class<?>> filter = parser.map(annotation.filter());
         final TableMetadata<?> extendedTableMetadata = metadataResolver.resolve(extension);
         //noinspection unchecked
         final TableMetadataCopier<Object> tableMetadataCopier = new TableMetadataCopier<Object>((TableMetadata<Object>) extendedTableMetadata);

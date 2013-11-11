@@ -39,6 +39,8 @@ import java.util.List;
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 
 /**
+ * This is the default extension expression used throughout the application
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/18, 15:53)
  */
@@ -53,7 +55,7 @@ public class DefaultExtensionExpressionParser implements ExtensionExpressionPars
     };
 
     @Override
-    public Filter<Class<?>> parse(String expression) {
+    public Filter<Class<?>> map(String expression) {
         final TypeDescriptorParser parser = new TypeDescriptorParser(new BufferedTokenStream(new TypeDescriptorLexer(new ANTLRStringStream(expression))));
         try {
             final TypeDescriptorParser.start_return start = parser.start();

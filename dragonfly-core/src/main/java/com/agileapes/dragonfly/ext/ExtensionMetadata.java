@@ -22,15 +22,26 @@ import com.agileapes.dragonfly.entity.EntityDefinitionInterceptor;
 import com.agileapes.dragonfly.metadata.TableMetadataInterceptor;
 
 /**
+ * This interface encapsulates the metadata for an extension
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/18, 16:39)
  */
 public interface ExtensionMetadata extends Filter<Class<?>> {
 
+    /**
+     * @return the actual extension class
+     */
     Class<?> getExtension();
 
+    /**
+     * @return the metadata interceptor introduced through the extension
+     */
     TableMetadataInterceptor getTableMetadataInterceptor();
 
+    /**
+     * @return the definition interceptor exposed for the extension
+     */
     EntityDefinitionInterceptor getEntityDefinitionInterceptor();
 
 

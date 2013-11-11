@@ -18,13 +18,14 @@
 package com.agileapes.dragonfly.ext;
 
 import com.agileapes.couteau.basics.api.Filter;
+import com.agileapes.couteau.basics.api.Transformer;
 
 /**
+ * This interface denotes parsers that will take valid extension expressions and return
+ * filters described by that expression
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/18, 15:50)
  */
-public interface ExtensionExpressionParser {
-
-    Filter<Class<?>> parse(String expression);
-
+public interface ExtensionExpressionParser extends Transformer<String, Filter<Class<?>>> {
 }

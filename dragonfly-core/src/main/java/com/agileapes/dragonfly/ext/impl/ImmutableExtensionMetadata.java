@@ -23,6 +23,8 @@ import com.agileapes.dragonfly.ext.ExtensionMetadata;
 import com.agileapes.dragonfly.metadata.TableMetadataInterceptor;
 
 /**
+ * This is an immutable extension metadata
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/18, 16:46)
  */
