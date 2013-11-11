@@ -24,6 +24,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * This class allows for singular implementation of only the required methods of the
+ * event handler
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/9, 1:31)
  */
@@ -98,7 +101,8 @@ public abstract class AbstractDataAccessEventHandler implements DataAccessEventH
     }
 
     @Override
-    public <E, K extends Serializable> void afterFind(Class<E> entityType, K key, E entity) {
+    public <E, K extends Serializable> E afterFind(Class<E> entityType, K key, E entity) {
+        return entity;
     }
 
     @Override

@@ -1060,8 +1060,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         } else {
             throw new ObjectKeyError(entityType, key);
         }
-        eventHandler.afterFind(entityType, key, result);
-        return result;
+        return eventHandler.afterFind(entityType, key, result);
     }
 
     @Override

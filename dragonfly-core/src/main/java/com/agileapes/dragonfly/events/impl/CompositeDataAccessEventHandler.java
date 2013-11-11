@@ -29,6 +29,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 
 /**
+ * This event handler is capable of taking different handler instances, and calling to them
+ * one by one, in a chained fashion. The handlers are sorted, if the implement the
+ * {@link com.agileapes.couteau.context.contract.OrderedBean} interface
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/9, 1:32)
  */
@@ -164,10 +168,12 @@ public class CompositeDataAccessEventHandler implements DataAccessEventHandler, 
     }
 
     @Override
-    public <E, K extends Serializable> void afterFind(Class<E> entityType, K key, E entity) {
+    public <E, K extends Serializable> E afterFind(Class<E> entityType, K key, E entity) {
+        E found = entity;
         for (DataAccessEventHandler handler : handlers) {
-            handler.afterFind(entityType, key, entity);
+            found = handler.afterFind(entityType, key, found);
         }
+        return found;
     }
 
     @Override
