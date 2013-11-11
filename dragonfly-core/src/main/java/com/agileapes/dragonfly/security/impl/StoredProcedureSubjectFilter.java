@@ -18,7 +18,6 @@
 package com.agileapes.dragonfly.security.impl;
 
 import com.agileapes.couteau.basics.api.Filter;
-import com.agileapes.dragonfly.metadata.StoredProcedureMetadata;
 import com.agileapes.dragonfly.security.SubjectFilter;
 
 /**
@@ -27,14 +26,14 @@ import com.agileapes.dragonfly.security.SubjectFilter;
  */
 public class StoredProcedureSubjectFilter implements SubjectFilter<StoredProcedureSubject> {
 
-    private final Filter<? super StoredProcedureMetadata> filter;
+    private final Filter<? super StoredProcedureSubject> filter;
 
-    public StoredProcedureSubjectFilter(Filter<? super StoredProcedureMetadata> filter) {
+    public StoredProcedureSubjectFilter(Filter<? super StoredProcedureSubject> filter) {
         this.filter = filter;
     }
 
     @Override
     public boolean accepts(StoredProcedureSubject item) {
-        return filter.accepts(item.getProcedureMetadata());
+        return filter.accepts(item);
     }
 }
