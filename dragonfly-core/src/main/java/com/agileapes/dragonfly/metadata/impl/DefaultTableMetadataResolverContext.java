@@ -34,33 +34,33 @@ import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/8, 19:41)
  */
-public class DefaultMetadataResolverContext implements MetadataResolverContext {
+public class DefaultTableMetadataResolverContext implements TableMetadataResolverContext {
 
     private final Cache<Class<?>, TableMetadata<?>> cache = new ConcurrentCache<Class<?>, TableMetadata<?>>();
-    private final List<MetadataResolver> resolvers = new CopyOnWriteArrayList<MetadataResolver>();
+    private final List<TableMetadataResolver> resolvers = new CopyOnWriteArrayList<TableMetadataResolver>();
     private final MetadataResolveStrategy resolveStrategy;
     private final List<TableMetadataInterceptor> interceptors;
 
-    public DefaultMetadataResolverContext() {
+    public DefaultTableMetadataResolverContext() {
         this(Collections.<TableMetadataInterceptor>emptyList());
     }
 
-    public DefaultMetadataResolverContext(List<TableMetadataInterceptor> interceptors) {
+    public DefaultTableMetadataResolverContext(List<TableMetadataInterceptor> interceptors) {
         this(MetadataResolveStrategy.UNAMBIGUOUS, interceptors);
     }
 
-    public DefaultMetadataResolverContext(MetadataResolveStrategy resolveStrategy) {
+    public DefaultTableMetadataResolverContext(MetadataResolveStrategy resolveStrategy) {
         this(resolveStrategy, Collections.<TableMetadataInterceptor>emptyList());
     }
 
-    public DefaultMetadataResolverContext(MetadataResolveStrategy resolveStrategy, List<TableMetadataInterceptor> interceptors) {
+    public DefaultTableMetadataResolverContext(MetadataResolveStrategy resolveStrategy, List<TableMetadataInterceptor> interceptors) {
         this.resolveStrategy = resolveStrategy;
         this.interceptors = with(interceptors).sort(new OrderedBeanComparator()).list();
     }
 
     @Override
-    public void addMetadataResolver(MetadataResolver metadataResolver) {
-        resolvers.add(new AugmentedMetadataResolver(metadataResolver, interceptors));
+    public void addMetadataResolver(TableMetadataResolver tableMetadataResolver) {
+        resolvers.add(new AugmentedTableMetadataResolver(tableMetadataResolver, interceptors));
     }
 
     @Override
@@ -74,7 +74,7 @@ public class DefaultMetadataResolverContext implements MetadataResolverContext {
             return tableMetadata;
         }
         //noinspection unchecked
-        final List<MetadataResolver> list = with(resolvers).keep(new MirrorFilter<Class<?>>(entityType)).list();
+        final List<TableMetadataResolver> list = with(resolvers).keep(new MirrorFilter<Class<?>>(entityType)).list();
         if (list.size() == 0) {
             throw new EntityDefinitionError("No metadata resolvers could be found for the given entity: " + entityType.getCanonicalName());
         }

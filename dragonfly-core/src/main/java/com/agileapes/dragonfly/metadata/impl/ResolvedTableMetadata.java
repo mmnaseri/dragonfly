@@ -17,7 +17,6 @@
 
 package com.agileapes.dragonfly.metadata.impl;
 
-import com.agileapes.dragonfly.error.MetadataCollectionError;
 import com.agileapes.dragonfly.error.NoPrimaryKeyDefinedError;
 import com.agileapes.dragonfly.metadata.*;
 import com.agileapes.dragonfly.tools.ConstraintTypeFilter;
@@ -44,9 +43,9 @@ public class ResolvedTableMetadata<E> extends AbstractTableMetadata<E> {
     private final List<OrderMetadata> ordering;
     private PrimaryKeyConstraintMetadata primaryKey = null;
     private final Collection<NamedQueryMetadata> namedQueries;
-    private final Collection<ReferenceMetadata<E, ?>> foreignReferences;
+    private final Collection<RelationMetadata<E, ?>> foreignReferences;
 
-    public ResolvedTableMetadata(Class<E> entityType, String schema, String name, Collection<ConstraintMetadata> constraints, Collection<ColumnMetadata> columns, Collection<NamedQueryMetadata> namedQueries, Collection<SequenceMetadata> sequences, Collection<StoredProcedureMetadata> storedProcedures, Collection<ReferenceMetadata<E, ?>> foreignReferences, ColumnMetadata versionColumn, List<OrderMetadata> ordering) {
+    public ResolvedTableMetadata(Class<E> entityType, String schema, String name, Collection<ConstraintMetadata> constraints, Collection<ColumnMetadata> columns, Collection<NamedQueryMetadata> namedQueries, Collection<SequenceMetadata> sequences, Collection<StoredProcedureMetadata> storedProcedures, Collection<RelationMetadata<E, ?>> foreignReferences, ColumnMetadata versionColumn, List<OrderMetadata> ordering) {
         super(entityType);
         this.schema = schema;
         this.name = name;
@@ -70,9 +69,9 @@ public class ResolvedTableMetadata<E> extends AbstractTableMetadata<E> {
         for (StoredProcedureMetadata procedure : procedures) {
             ((ImmutableStoredProcedureMetadata) procedure).setTable(this);
         }
-        for (ReferenceMetadata<E, ?> foreignReference : this.foreignReferences) {
+        for (RelationMetadata<E, ?> foreignReference : this.foreignReferences) {
             //noinspection unchecked
-            ((ImmutableReferenceMetadata<E, ?>) foreignReference).setLocalTable(this);
+            ((ImmutableRelationMetadata<E, ?>) foreignReference).setLocalTable(this);
         }
     }
 
@@ -130,7 +129,7 @@ public class ResolvedTableMetadata<E> extends AbstractTableMetadata<E> {
     @Override
     public PrimaryKeyConstraintMetadata getPrimaryKey() {
         if (!hasPrimaryKey()) {
-            throw new MetadataCollectionError("Cannot return table primary key", new NoPrimaryKeyDefinedError(getEntityType()));
+            throw new NoPrimaryKeyDefinedError(getEntityType());
         }
         return primaryKey;
     }
@@ -148,7 +147,7 @@ public class ResolvedTableMetadata<E> extends AbstractTableMetadata<E> {
     }
 
     @Override
-    public Collection<ReferenceMetadata<E, ?>> getForeignReferences() {
+    public Collection<RelationMetadata<E, ?>> getForeignReferences() {
         return foreignReferences;
     }
 

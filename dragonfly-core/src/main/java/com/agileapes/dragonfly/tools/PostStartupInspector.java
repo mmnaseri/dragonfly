@@ -21,8 +21,8 @@ import com.agileapes.couteau.context.contract.OrderedBean;
 import com.agileapes.dragonfly.data.impl.TableKeyGeneratorEntity;
 import com.agileapes.dragonfly.error.EntityDefinitionError;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
-import com.agileapes.dragonfly.metadata.MetadataContext;
-import com.agileapes.dragonfly.metadata.MetadataContextPostProcessor;
+import com.agileapes.dragonfly.metadata.TableMetadataContext;
+import com.agileapes.dragonfly.metadata.TableMetadataContextPostProcessor;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -33,15 +33,15 @@ import java.util.Collection;
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/10/28, 14:01)
  */
-public class PostStartupInspector implements MetadataContextPostProcessor, OrderedBean {
+public class PostStartupInspector implements TableMetadataContextPostProcessor, OrderedBean {
 
     private static final Log log = LogFactory.getLog(PostStartupInspector.class);
 
     @Override
-    public void postProcessMetadataContext(MetadataContext metadataContext) {
-        final Collection<Class<?>> entityTypes = metadataContext.getEntityTypes();
+    public void postProcessMetadataContext(TableMetadataContext tableMetadataContext) {
+        final Collection<Class<?>> entityTypes = tableMetadataContext.getEntityTypes();
         for (Class<?> entityType : entityTypes) {
-            checkEntity(metadataContext.getTableMetadata(entityType));
+            checkEntity(tableMetadataContext.getTableMetadata(entityType));
         }
     }
 

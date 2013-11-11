@@ -35,10 +35,6 @@ public class DefaultResultOrderMetadata implements ResultOrderMetadata {
 
     private final List<OrderMetadata> ordering = new ArrayList<OrderMetadata>();
 
-    public DefaultResultOrderMetadata() {
-        this(Collections.<OrderMetadata>emptyList());
-    }
-
     public DefaultResultOrderMetadata(Collection<OrderMetadata> ordering) {
         this.ordering.addAll(ordering);
     }

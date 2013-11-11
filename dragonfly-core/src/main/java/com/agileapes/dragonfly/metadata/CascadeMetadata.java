@@ -18,17 +18,31 @@
 package com.agileapes.dragonfly.metadata;
 
 /**
+ * This interface encapsulates cascade metadata defined for an entity
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/12, 0:08)
  */
 public interface CascadeMetadata {
 
+    /**
+     * @return {@code true} if persist operations should be cascaded
+     */
     boolean cascadePersist();
 
+    /**
+     * @return {@code true} if merge (update) operations should be cascaded
+     */
     boolean cascadeMerge();
 
+    /**
+     * @return {@code true} if remove operations should be cascaded
+     */
     boolean cascadeRemove();
 
+    /**
+     * @return {@code true} if refresh (load) operations should be cascaded
+     */
     boolean cascadeRefresh();
 
 }

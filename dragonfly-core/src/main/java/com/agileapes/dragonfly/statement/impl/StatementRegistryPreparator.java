@@ -36,13 +36,13 @@ import java.util.concurrent.CopyOnWriteArraySet;
 public class StatementRegistryPreparator {
 
     private final DatabaseDialect dialect;
-    private final MetadataResolver resolver;
-    private final MetadataRegistry registry;
+    private final TableMetadataResolver resolver;
+    private final TableMetadataRegistry registry;
     private final Set<Class<?>> entities;
     private final StatementBuilder statementBuilder;
     private final Configuration configuration;
 
-    public StatementRegistryPreparator(DatabaseDialect dialect, MetadataResolver resolver, MetadataRegistry registry) {
+    public StatementRegistryPreparator(DatabaseDialect dialect, TableMetadataResolver resolver, TableMetadataRegistry registry) {
         this.dialect = dialect;
         this.resolver = resolver;
         this.registry = registry;
@@ -79,6 +79,9 @@ public class StatementRegistryPreparator {
                 statementRegistry.register(entity.getCanonicalName() + ".updateBySample", dialect.getStatementBuilderContext().getManipulationStatementBuilder(Statements.Manipulation.UPDATE).getStatement(tableMetadata));
                 statementRegistry.register(entity.getCanonicalName() + ".truncate", dialect.getStatementBuilderContext().getManipulationStatementBuilder(Statements.Manipulation.TRUNCATE).getStatement(tableMetadata));
                 for (NamedQueryMetadata namedQueryMetadata : tableMetadata.getNamedQueries()) {
+                    if (!namedQueryMetadata.getQueryType().equals(QueryType.NATIVE)) {
+                        continue;
+                    }
                     final StringTemplateLoader loader = new StringTemplateLoader();
                     loader.putTemplate("sql", namedQueryMetadata.getQuery());
                     configuration.setTemplateLoader(loader);

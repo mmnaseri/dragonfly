@@ -14,7 +14,7 @@
             <bean class="com.agileapes.dragonfly.ext.impl.DefaultExtensionExpressionParser"/>
         </constructor-arg>
         <constructor-arg index="1">
-            <bean class="com.agileapes.dragonfly.metadata.impl.AnnotationMetadataResolver">
+            <bean class="com.agileapes.dragonfly.metadata.impl.AnnotationTableMetadataResolver">
                 <constructor-arg value="false"/>
             </bean>
         </constructor-arg>

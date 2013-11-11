@@ -32,7 +32,7 @@ import com.agileapes.dragonfly.entity.InitializedEntity;
 import com.agileapes.dragonfly.error.EntityDeletedError;
 import com.agileapes.dragonfly.error.NoPrimaryKeyDefinedError;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
-import com.agileapes.dragonfly.metadata.ReferenceMetadata;
+import com.agileapes.dragonfly.metadata.RelationMetadata;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.security.DataSecurityManager;
 import com.agileapes.dragonfly.tools.ColumnPropertyFilter;
@@ -164,15 +164,15 @@ public class EntityProxy<E> extends SecuredInterfaceInterceptor implements DataA
                 final String propertyName = ReflectionUtils.getPropertyName(methodDescriptor.getName());
                 if (!lazyLoadedProperties.contains(propertyName)) {
                     lazyLoadedProperties.add(propertyName);
-                    final ReferenceMetadata<E, ?> referenceMetadata = with(tableMetadata.getForeignReferences()).find(new Filter<ReferenceMetadata<E, ?>>() {
+                    final RelationMetadata<E, ?> relationMetadata = with(tableMetadata.getForeignReferences()).find(new Filter<RelationMetadata<E, ?>>() {
                         @Override
-                        public boolean accepts(ReferenceMetadata<E, ?> referenceMetadata) {
+                        public boolean accepts(RelationMetadata<E, ?> referenceMetadata) {
                             return propertyName.equals(referenceMetadata.getPropertyName());
                         }
                     });
-                    if (referenceMetadata != null && referenceMetadata.isLazy()) {
+                    if (relationMetadata != null && relationMetadata.isLazy()) {
                         freeze();
-                        entityHandler.loadLazyRelation(entity, referenceMetadata, dataAccess, entityContext, map, session);
+                        entityHandler.loadLazyRelation(entity, relationMetadata, dataAccess, entityContext, map, session);
                         unfreeze();
                     }
                 }

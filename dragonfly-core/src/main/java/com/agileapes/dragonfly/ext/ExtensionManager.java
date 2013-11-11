@@ -35,9 +35,9 @@ public interface ExtensionManager extends TableMetadataInterceptor, EntityDefini
 
     /**
      * Adds the extension class to the context
-     * @param extension    the class describing the extension
+     * @param extension    the metadata describing the extension
      */
-    void addExtension(Class<?> extension);
+    void addExtension(ExtensionMetadata extension);
 
     /**
      * Returns the metadata interceptors based on all extensions

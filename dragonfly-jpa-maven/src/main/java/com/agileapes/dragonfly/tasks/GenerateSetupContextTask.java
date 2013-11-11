@@ -35,8 +35,8 @@ import com.agileapes.dragonfly.entity.EntityHandlerContext;
 import com.agileapes.dragonfly.entity.impl.DefaultEntityContext;
 import com.agileapes.dragonfly.entity.impl.DefaultEntityHandlerContext;
 import com.agileapes.dragonfly.io.OutputManager;
-import com.agileapes.dragonfly.metadata.MetadataRegistry;
-import com.agileapes.dragonfly.metadata.impl.DefaultMetadataContext;
+import com.agileapes.dragonfly.metadata.TableMetadataRegistry;
+import com.agileapes.dragonfly.metadata.impl.DefaultTableMetadataContext;
 import com.agileapes.dragonfly.model.ApplicationContextModel;
 import com.agileapes.dragonfly.model.BeanDefinitionModel;
 import com.agileapes.dragonfly.model.BeanPropertyModel;
@@ -95,7 +95,7 @@ public class GenerateSetupContextTask extends PluginTask<PluginExecutor> {
 
         final BeanDefinitionModel databaseDialect = new BeanDefinitionModel("_databaseDialect", executor.getDialect().getClass().getCanonicalName());
 
-        final BeanDefinitionModel metadataContext = new BeanDefinitionModel("metadataContext", DefaultMetadataContext.class.getCanonicalName());
+        final BeanDefinitionModel metadataContext = new BeanDefinitionModel("metadataContext", DefaultTableMetadataContext.class.getCanonicalName());
         metadataContext.setProperty(new BeanPropertyModel("registries", metadataRegistry));
 
         final BeanDefinitionModel accessDeniedHandler = new BeanDefinitionModel("_accessDeniedHandler", FatalAccessDeniedHandler.class.getCanonicalName());
@@ -105,12 +105,12 @@ public class GenerateSetupContextTask extends PluginTask<PluginExecutor> {
 
         final BeanDefinitionModel statementRegistry = new BeanDefinitionModel("_generatedStatementRegistry", "com.agileapes.dragonfly.statement.GeneratedStatementRegistry");
         statementRegistry.addConstructorArgument(new BeanPropertyModel("", DatabaseDialect.class.getCanonicalName(), databaseDialect));
-        statementRegistry.addConstructorArgument(new BeanPropertyModel("", MetadataRegistry.class.getCanonicalName(), metadataContext));
+        statementRegistry.addConstructorArgument(new BeanPropertyModel("", TableMetadataRegistry.class.getCanonicalName(), metadataContext));
 
         final BeanDefinitionModel dataAccessSession = new BeanDefinitionModel("_dataAccessSession", DefaultDataAccessSession.class.getCanonicalName());
         dataAccessSession.addConstructorArgument(new BeanPropertyModel("", DatabaseDialect.class.getCanonicalName(), databaseDialect));
         dataAccessSession.addConstructorArgument(new BeanPropertyModel("", StatementRegistry.class.getCanonicalName(), statementRegistry));
-        dataAccessSession.addConstructorArgument(new BeanPropertyModel("", MetadataRegistry.class.getCanonicalName(), metadataContext));
+        dataAccessSession.addConstructorArgument(new BeanPropertyModel("", TableMetadataRegistry.class.getCanonicalName(), metadataContext));
         dataAccessSession.addConstructorArgument(new BeanPropertyModel(new BeanDefinitionModel("${db.dataSource}", "javax.sql.DataSource")));
         dataAccessSession.addConstructorArgument(new BeanPropertyModel("java.lang.String", "${db.username}"));
         dataAccessSession.addConstructorArgument(new BeanPropertyModel("java.lang.String", "${db.password}"));
@@ -119,7 +119,7 @@ public class GenerateSetupContextTask extends PluginTask<PluginExecutor> {
         final HashMap<String, BeanDefinitionModel> entityFactories = new HashMap<String, BeanDefinitionModel>();
         final BeanDefinitionModel entityContext = new BeanDefinitionModel(DefaultEntityContext.class.getCanonicalName());
         entityContext.addConstructorArgument(new BeanPropertyModel("", DataSecurityManager.class.getCanonicalName(), dataSecurityManager));
-        entityContext.addConstructorArgument(new BeanPropertyModel("", MetadataRegistry.class.getCanonicalName(), metadataContext));
+        entityContext.addConstructorArgument(new BeanPropertyModel("", TableMetadataRegistry.class.getCanonicalName(), metadataContext));
         entityContext.setProperty(new BeanPropertyModel("interfaces", interfaces));
         entityContext.setProperty(new BeanPropertyModel("entityFactories", entityFactories));
         for (EntityDefinition<?> definition : definitionContext.getDefinitions()) {
@@ -134,7 +134,7 @@ public class GenerateSetupContextTask extends PluginTask<PluginExecutor> {
 
         final BeanDefinitionModel entityHandlerContext = new BeanDefinitionModel(DefaultEntityHandlerContext.class.getCanonicalName());
         entityHandlerContext.addConstructorArgument(new BeanPropertyModel("", EntityContext.class.getCanonicalName(), entityContext));
-        entityHandlerContext.addConstructorArgument(new BeanPropertyModel("", MetadataRegistry.class.getCanonicalName(), metadataContext));
+        entityHandlerContext.addConstructorArgument(new BeanPropertyModel("", TableMetadataRegistry.class.getCanonicalName(), metadataContext));
 
         final BeanDefinitionModel dataAccess = new BeanDefinitionModel(SecuredDataAccess.class.getCanonicalName());
         dataAccess.addConstructorArgument(new BeanPropertyModel(dataAccessSession));

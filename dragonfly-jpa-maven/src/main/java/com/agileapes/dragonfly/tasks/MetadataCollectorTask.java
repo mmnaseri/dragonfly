@@ -29,9 +29,9 @@ import com.agileapes.couteau.reflection.util.assets.ClassCastingTransformer;
 import com.agileapes.couteau.reflection.util.assets.InstantiatingTransformer;
 import com.agileapes.dragonfly.entity.EntityDefinitionContext;
 import com.agileapes.dragonfly.metadata.*;
-import com.agileapes.dragonfly.metadata.impl.AnnotationMetadataResolver;
-import com.agileapes.dragonfly.metadata.impl.DefaultMetadataContext;
-import com.agileapes.dragonfly.metadata.impl.DefaultMetadataResolverContext;
+import com.agileapes.dragonfly.metadata.impl.AnnotationTableMetadataResolver;
+import com.agileapes.dragonfly.metadata.impl.DefaultTableMetadataContext;
+import com.agileapes.dragonfly.metadata.impl.DefaultTableMetadataResolverContext;
 import com.agileapes.dragonfly.mojo.PluginExecutor;
 import com.agileapes.dragonfly.statement.impl.DefaultStatementRegistry;
 import com.agileapes.dragonfly.statement.impl.StatementRegistry;
@@ -56,7 +56,7 @@ import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 @Component("metadataCollector")
 public class MetadataCollectorTask extends PluginTask<PluginExecutor> implements ApplicationContextAware {
 
-    private final MetadataRegistry registry = new DefaultMetadataContext();
+    private final TableMetadataRegistry registry = new DefaultTableMetadataContext();
     private final StatementRegistry statementRegistry = new DefaultStatementRegistry();
     private ApplicationContext applicationContext;
 
@@ -89,8 +89,8 @@ public class MetadataCollectorTask extends PluginTask<PluginExecutor> implements
                         .transform(new ClassCastingTransformer<TableMetadataInterceptor>(TableMetadataInterceptor.class))
                         .transform(new InstantiatingTransformer<TableMetadataInterceptor>()).list())
                 .sort(new OrderedBeanComparator()).list();
-        final MetadataResolver resolver = new AnnotationMetadataResolver();
-        final MetadataResolverContext resolverContext = new DefaultMetadataResolverContext(MetadataResolveStrategy.UNAMBIGUOUS, interceptors);
+        final TableMetadataResolver resolver = new AnnotationTableMetadataResolver();
+        final TableMetadataResolverContext resolverContext = new DefaultTableMetadataResolverContext(MetadataResolveStrategy.UNAMBIGUOUS, interceptors);
         resolverContext.addMetadataResolver(resolver);
         final StatementRegistryPreparator preparator = new StatementRegistryPreparator(pluginExecutor.getDialect(), resolverContext, registry);
         with(definitionContext.getEntities()).each(new Processor<Class<?>>() {
@@ -102,7 +102,7 @@ public class MetadataCollectorTask extends PluginTask<PluginExecutor> implements
         preparator.prepare(statementRegistry);
     }
 
-    public MetadataRegistry getMetadataRegistry() {
+    public TableMetadataRegistry getMetadataRegistry() {
         return registry;
     }
 

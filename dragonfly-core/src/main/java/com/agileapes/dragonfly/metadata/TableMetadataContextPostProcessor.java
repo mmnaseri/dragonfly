@@ -17,14 +17,20 @@
 
 package com.agileapes.dragonfly.metadata;
 
-import com.agileapes.couteau.basics.api.Filter;
-
 /**
+ * This interface allows for post-processing of a table metadata context, which provides the
+ * best point-cut for adding new or augmenting existing table metadata
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
- * @since 1.0 (2013/9/5, 12:55)
+ * @since 1.0 (2013/10/11, 12:13)
  */
-public interface MetadataResolver extends Filter<Class<?>> {
+public interface TableMetadataContextPostProcessor {
 
-    <E> TableMetadata<E> resolve(Class<E> entityType);
+    /**
+     * This method is called by the framework at the appropriate juncture to allow for
+     * post-processing of the table metadata context
+     * @param tableMetadataContext    the table metadata context being processed
+     */
+    void postProcessMetadataContext(TableMetadataContext tableMetadataContext);
 
 }

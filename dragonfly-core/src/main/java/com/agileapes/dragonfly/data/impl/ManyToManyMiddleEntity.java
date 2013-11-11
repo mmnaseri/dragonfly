@@ -17,7 +17,7 @@
 
 package com.agileapes.dragonfly.data.impl;
 
-import com.agileapes.dragonfly.metadata.ReferenceMetadata;
+import com.agileapes.dragonfly.metadata.RelationMetadata;
 
 /**
  * This class is the single implementation used as the middle entity in any many-to-many
@@ -30,7 +30,7 @@ public class ManyToManyMiddleEntity {
 
     private Object first;
     private Object second;
-    private ReferenceMetadata<?, ?> referenceMetadata;
+    private RelationMetadata<?, ?> relationMetadata;
 
     public Object getFirst() {
         return first;
@@ -52,12 +52,12 @@ public class ManyToManyMiddleEntity {
         return first != null && second != null;
     }
 
-    public ReferenceMetadata<?, ?> getReferenceMetadata() {
-        return referenceMetadata;
+    public RelationMetadata<?, ?> getRelationMetadata() {
+        return relationMetadata;
     }
 
-    public void setReferenceMetadata(ReferenceMetadata<?, ?> referenceMetadata) {
-        this.referenceMetadata = referenceMetadata;
+    public void setRelationMetadata(RelationMetadata<?, ?> relationMetadata) {
+        this.relationMetadata = relationMetadata;
     }
 
 }

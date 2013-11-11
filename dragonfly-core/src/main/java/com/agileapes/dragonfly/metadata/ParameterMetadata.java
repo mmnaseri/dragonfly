@@ -20,15 +20,26 @@ package com.agileapes.dragonfly.metadata;
 import com.agileapes.dragonfly.annotations.ParameterMode;
 
 /**
+ * This interface allows for declaration of the properties of a procedure call parameter
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/10, 0:46)
  */
 public interface ParameterMetadata extends Metadata {
 
+    /**
+     * @return the JDBC type of the parameter, as per {@link java.sql.Types}
+     */
     int getType();
 
+    /**
+     * @return the type of the parameter, as understood by the Java compiler
+     */
     Class<?> getParameterType();
 
+    /**
+     * @return the input/output and referential mode of the parameter
+     */
     ParameterMode getParameterMode();
 
 }

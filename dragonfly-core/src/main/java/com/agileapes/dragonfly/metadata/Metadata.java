@@ -18,6 +18,9 @@
 package com.agileapes.dragonfly.metadata;
 
 /**
+ * Central interface identifying all metadata providing interfaces throughout the
+ * framework, so that they can be centrally managed and monitored.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/8, 17:53)
  */

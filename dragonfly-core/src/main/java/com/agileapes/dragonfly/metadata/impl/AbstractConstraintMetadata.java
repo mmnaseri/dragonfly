@@ -56,7 +56,7 @@ public abstract class AbstractConstraintMetadata implements ConstraintMetadata {
     }
 
     @Override
-    public TableMetadata getTable() {
+    public TableMetadata<?> getTable() {
         return table;
     }
 

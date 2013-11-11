@@ -37,4 +37,9 @@ public enum Ordering {
     public String toString() {
         return text;
     }
+
+    public static Ordering getOrdering(String order) {
+        return order.equalsIgnoreCase("ASC") ? ASCENDING : (order.equalsIgnoreCase("DESC") ? DESCENDING : null);
+    }
+
 }

@@ -29,14 +29,14 @@ import com.agileapes.dragonfly.entity.ModifiableEntityContext;
 import com.agileapes.dragonfly.entity.impl.DefaultEntityDefinitionContext;
 import com.agileapes.dragonfly.entity.impl.ImmutableEntityDefinition;
 import com.agileapes.dragonfly.ext.ExtensionManager;
-import com.agileapes.dragonfly.ext.impl.DefaultExtensionExpressionParser;
+import com.agileapes.dragonfly.ext.impl.AnnotationExtensionMetadataResolver;
 import com.agileapes.dragonfly.ext.impl.DefaultExtensionManager;
-import com.agileapes.dragonfly.metadata.MetadataRegistry;
 import com.agileapes.dragonfly.metadata.MetadataResolveStrategy;
-import com.agileapes.dragonfly.metadata.MetadataResolverContext;
 import com.agileapes.dragonfly.metadata.TableMetadataInterceptor;
-import com.agileapes.dragonfly.metadata.impl.AnnotationMetadataResolver;
-import com.agileapes.dragonfly.metadata.impl.DefaultMetadataResolverContext;
+import com.agileapes.dragonfly.metadata.TableMetadataRegistry;
+import com.agileapes.dragonfly.metadata.TableMetadataResolverContext;
+import com.agileapes.dragonfly.metadata.impl.AnnotationTableMetadataResolver;
+import com.agileapes.dragonfly.metadata.impl.DefaultTableMetadataResolverContext;
 import com.agileapes.dragonfly.statement.impl.StatementRegistry;
 import com.agileapes.dragonfly.statement.impl.StatementRegistryPreparator;
 import org.apache.commons.logging.Log;
@@ -63,7 +63,7 @@ public class SessionPreparator implements BeanFactoryPostProcessor, Disposable {
     private final static Log log = LogFactory.getLog(SessionPreparator.class);
     
     private final ExtensionManager extensionManager;
-    private final MetadataResolverContext resolverContext;
+    private final TableMetadataResolverContext resolverContext;
     private final EntityDefinitionContext definitionContext;
     private final String[] basePackages;
 
@@ -81,10 +81,11 @@ public class SessionPreparator implements BeanFactoryPostProcessor, Disposable {
 
     public SessionPreparator(String[] basePackages) {
         this.basePackages = basePackages;
-        extensionManager = new DefaultExtensionManager(new DefaultExtensionExpressionParser(), new AnnotationMetadataResolver());
-        resolverContext = new DefaultMetadataResolverContext(MetadataResolveStrategy.UNAMBIGUOUS, Arrays.<TableMetadataInterceptor>asList(extensionManager));
+        extensionManager = new DefaultExtensionManager();
+        resolverContext = new DefaultTableMetadataResolverContext(MetadataResolveStrategy.UNAMBIGUOUS, Arrays.<TableMetadataInterceptor>asList(extensionManager));
         definitionContext = new DefaultEntityDefinitionContext();
         definitionContext.addInterceptor(extensionManager);
+        resolverContext.addMetadataResolver(new AnnotationTableMetadataResolver());
     }
 
     @Override
@@ -94,7 +95,7 @@ public class SessionPreparator implements BeanFactoryPostProcessor, Disposable {
                 "the Maven plugin.");
         log.debug("Looking up the necessary components ...");
         final DatabaseDialect databaseDialect = context.getBean(DatabaseDialect.class);
-        final MetadataRegistry metadataRegistry = context.getBean(MetadataRegistry.class);
+        final TableMetadataRegistry tableMetadataRegistry = context.getBean(TableMetadataRegistry.class);
         final StatementRegistry statementRegistry = context.getBean(StatementRegistry.class);
         final ModifiableEntityContext entityContext = context.getBean(ModifiableEntityContext.class);
         final ClassPathScanningCandidateComponentProvider componentProvider = new ClassPathScanningCandidateComponentProvider(false);
@@ -117,20 +118,20 @@ public class SessionPreparator implements BeanFactoryPostProcessor, Disposable {
         log.info("Finding extensions to the data access ...");
         log.debug("Looking for classes with @Extension");
         componentProvider.addIncludeFilter(new AnnotationTypeFilter(Extension.class));
+        final AnnotationExtensionMetadataResolver extensionMetadataResolver = new AnnotationExtensionMetadataResolver(resolverContext);
         for (String basePackage : basePackages) {
             final Set<BeanDefinition> beanDefinitions = componentProvider.findCandidateComponents(basePackage);
             for (BeanDefinition beanDefinition : beanDefinitions) {
                 try {
                     log.debug("Registering extension " + beanDefinition.getBeanClassName());
-                    extensionManager.addExtension(ClassUtils.forName(beanDefinition.getBeanClassName(), ClassLoader.getSystemClassLoader()));
+                    extensionManager.addExtension(extensionMetadataResolver.resolve(ClassUtils.forName(beanDefinition.getBeanClassName(), ClassLoader.getSystemClassLoader())));
                 } catch (ClassNotFoundException e) {
                     throw new FatalBeanException("Failed to retrieve class: " + beanDefinition.getBeanClassName(), e);
                 }
             }
         }
-        resolverContext.addMetadataResolver(new AnnotationMetadataResolver());
         log.info("Preparing entity statements for later use");
-        final StatementRegistryPreparator preparator = new StatementRegistryPreparator(databaseDialect, resolverContext, metadataRegistry);
+        final StatementRegistryPreparator preparator = new StatementRegistryPreparator(databaseDialect, resolverContext, tableMetadataRegistry);
         for (Class<?> entity : definitionContext.getEntities()) {
             preparator.addEntity(entity);
         }

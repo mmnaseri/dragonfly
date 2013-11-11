@@ -18,7 +18,7 @@
 package com.agileapes.dragonfly.data;
 
 import com.agileapes.dragonfly.dialect.DatabaseDialect;
-import com.agileapes.dragonfly.metadata.MetadataRegistry;
+import com.agileapes.dragonfly.metadata.TableMetadataRegistry;
 import com.agileapes.dragonfly.statement.impl.StatementRegistry;
 
 import java.sql.Connection;
@@ -57,7 +57,7 @@ public interface DataAccessSession {
     /**
      * @return the metadata registry for all entities registered with the session
      */
-    MetadataRegistry getMetadataRegistry();
+    TableMetadataRegistry getTableMetadataRegistry();
 
     /**
      * @return all registered entity types for the current session

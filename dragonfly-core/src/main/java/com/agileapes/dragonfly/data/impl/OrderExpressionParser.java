@@ -20,6 +20,7 @@ package com.agileapes.dragonfly.data.impl;
 import com.agileapes.couteau.basics.api.Transformer;
 import com.agileapes.couteau.strings.document.DocumentReader;
 import com.agileapes.couteau.strings.document.impl.DefaultDocumentReader;
+import com.agileapes.dragonfly.annotations.Ordering;
 import com.agileapes.dragonfly.error.ExpressionParseError;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
 import com.agileapes.dragonfly.metadata.OrderMetadata;
@@ -65,7 +66,7 @@ public class OrderExpressionParser implements Transformer<String, ResultOrderMet
     private static final Pattern WHITESPACE = Pattern.compile("\\s+");
     private static final Pattern IDENTIFIER = Pattern.compile("[a-z_][a-z0-9_]*", Pattern.CASE_INSENSITIVE);
     private static final Pattern ORDER = Pattern.compile("ASC|DESC", Pattern.CASE_INSENSITIVE);
-    private static final String DEFAULT_ORDER = "ASC";
+    private static final Ordering DEFAULT_ORDER = Ordering.ASCENDING;
     private static final String COMMA = ",";
     private final TableMetadata<?> tableMetadata;
 
@@ -85,7 +86,7 @@ public class OrderExpressionParser implements Transformer<String, ResultOrderMet
                 order = reader.expect(ORDER, false);
                 reader.skip(WHITESPACE);
             } else {
-                order = DEFAULT_ORDER;
+                order = DEFAULT_ORDER.toString();
             }
             if (reader.hasMore()) {
                 if (reader.has(COMMA)) {
@@ -100,7 +101,7 @@ public class OrderExpressionParser implements Transformer<String, ResultOrderMet
             if (column == null) {
                 throw new ExpressionParseError("No such column: " + tableMetadata.getName() + "." + identifier);
             }
-            ordering.add(new DefaultOrderMetadata(column, order));
+            ordering.add(new DefaultOrderMetadata(column, Ordering.getOrdering(order)));
         }
         if (ordering.isEmpty()) {
             for (ColumnMetadata columnMetadata : tableMetadata.getPrimaryKey().getColumns()) {

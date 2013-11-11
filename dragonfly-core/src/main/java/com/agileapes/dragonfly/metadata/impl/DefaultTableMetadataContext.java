@@ -39,15 +39,15 @@ import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/8/30, 15:46)
  */
-public class DefaultMetadataContext extends DefaultMetadataRegistry implements MetadataContext {
+public class DefaultTableMetadataContext extends DefaultTableMetadataRegistry implements TableMetadataContext {
 
     private final Cache<Class<?>, TableMetadata<?>> metadataCache = new ConcurrentCache<Class<?>, TableMetadata<?>>();
     private final Set<TableMetadata<?>> virtualTables = new CopyOnWriteArraySet<TableMetadata<?>>();
-    private Set<MetadataRegistry> registries = new CopyOnWriteArraySet<MetadataRegistry>();
+    private Set<TableMetadataRegistry> registries = new CopyOnWriteArraySet<TableMetadataRegistry>();
     private final Set<Class<?>> entityTypes = new HashSet<Class<?>>();
     private boolean ready = true;
 
-    public DefaultMetadataContext() {
+    public DefaultTableMetadataContext() {
         addMetadataRegistry(this);
     }
 
@@ -59,20 +59,20 @@ public class DefaultMetadataContext extends DefaultMetadataRegistry implements M
         return new HashSet<Class<?>>(entityTypes);
     }
 
-    public void setRegistries(Set<MetadataRegistry> registries) {
-        this.registries = new CopyOnWriteArraySet<MetadataRegistry>(registries);
+    public void setRegistries(Set<TableMetadataRegistry> registries) {
+        this.registries = new CopyOnWriteArraySet<TableMetadataRegistry>(registries);
         this.registries.add(this);
         ready = false;
     }
 
     @Override
-    public synchronized void addMetadataRegistry(MetadataRegistry registry) {
+    public synchronized void addMetadataRegistry(TableMetadataRegistry registry) {
         registries.add(registry);
         ready = false;
-        registry.setChangeCallback(new Processor<MetadataRegistry>() {
+        registry.setChangeCallback(new Processor<TableMetadataRegistry>() {
             @Override
-            public void process(MetadataRegistry registry) {
-                entityTypes.addAll((registry == DefaultMetadataContext.this) ? DefaultMetadataContext.super.getEntityTypes() : registry.getEntityTypes());
+            public void process(TableMetadataRegistry registry) {
+                entityTypes.addAll((registry == DefaultTableMetadataContext.this) ? DefaultTableMetadataContext.super.getEntityTypes() : registry.getEntityTypes());
                 ready = false;
             }
         });
@@ -96,7 +96,7 @@ public class DefaultMetadataContext extends DefaultMetadataRegistry implements M
         String schema = null;
         //then we fill a map from entity-type to table metadata from each registry
         final Map<Class<?>, TableMetadata<?>> map = new HashMap<Class<?>, TableMetadata<?>>();
-        for (MetadataRegistry registry : registries) {
+        for (TableMetadataRegistry registry : registries) {
             final Collection<Class<?>> entityTypes = registry == this ? super.getEntityTypes() : registry.getEntityTypes();
             for (Class<?> entityType : entityTypes) {
                 map.put(entityType, registry == this ? super.getTableMetadata(entityType) : registry.getTableMetadata(entityType));
@@ -131,20 +131,20 @@ public class DefaultMetadataContext extends DefaultMetadataRegistry implements M
                 final ColumnMetadata resolvedColumn = resolveColumn(map, metadata, foreignColumn);
                 ((ResolvedColumnMetadata) columnMetadata).setForeignReference(resolvedColumn);
             }
-            for (ReferenceMetadata<?, ?> referenceMetadata : metadata.getForeignReferences()) {
+            for (RelationMetadata<?, ?> relationMetadata : metadata.getForeignReferences()) {
                 //finally we settle by resolving all column references for reference orderings
-                for (OrderMetadata orderMetadata : referenceMetadata.getOrdering()) {
+                for (OrderMetadata orderMetadata : relationMetadata.getOrdering()) {
                     if (orderMetadata.getColumn() instanceof UnresolvedColumnMetadata) {
                         ((DefaultOrderMetadata) orderMetadata).setColumn(resolveColumn(map, tableMetadata, orderMetadata.getColumn()));
                     }
                 }
-                if (RelationType.MANY_TO_MANY.equals(referenceMetadata.getRelationType())) {
-                    final ManyToManyDescriptor key = new ManyToManyDescriptor(metadata.getEntityType(), referenceMetadata.getPropertyName(), referenceMetadata.getForeignColumn().getTable().getEntityType(), referenceMetadata.getForeignColumn().getName());
+                if (RelationType.MANY_TO_MANY.equals(relationMetadata.getType())) {
+                    final ManyToManyDescriptor key = new ManyToManyDescriptor(metadata.getEntityType(), relationMetadata.getPropertyName(), relationMetadata.getForeignColumn().getTable().getEntityType(), relationMetadata.getForeignColumn().getName());
                     final TableMetadata<?> foreignTable = manyToManyMiddleTables.get(with(manyToManyMiddleTables.keySet()).find(new EqualityFilter<ManyToManyDescriptor>(key)));
-                    ((ImmutableReferenceMetadata) referenceMetadata).setForeignColumn(with(foreignTable.getColumns()).find(new ColumnNameFilter(metadata.getName())));
+                    ((ImmutableRelationMetadata) relationMetadata).setForeignColumn(with(foreignTable.getColumns()).find(new ColumnNameFilter(metadata.getName())));
                     continue;
                 }
-                ((ImmutableReferenceMetadata) referenceMetadata).setForeignColumn(resolveColumn(map, metadata, referenceMetadata.getForeignColumn()));
+                ((ImmutableRelationMetadata) relationMetadata).setForeignColumn(resolveColumn(map, metadata, relationMetadata.getForeignColumn()));
             }
         }
         entityTypes.clear();
@@ -160,15 +160,15 @@ public class DefaultMetadataContext extends DefaultMetadataRegistry implements M
     private void collectManyToManyRelations(final Map<Class<?>, TableMetadata<?>> tables, final Map<ManyToManyDescriptor, TableMetadata<?>> map, final TableMetadata<?> tableMetadata, final String schema) {
         //noinspection unchecked
         with(tableMetadata.getForeignReferences())
-                .keep(new Filter<ReferenceMetadata<?, ?>>() {
+                .keep(new Filter<RelationMetadata<?, ?>>() {
                     @Override
-                    public boolean accepts(ReferenceMetadata<?, ?> item) {
-                        return RelationType.MANY_TO_MANY.equals(item.getRelationType());
+                    public boolean accepts(RelationMetadata<?, ?> item) {
+                        return RelationType.MANY_TO_MANY.equals(item.getType());
                     }
                 })
-                .each(new Processor<ReferenceMetadata<?, ?>>() {
+                .each(new Processor<RelationMetadata<?, ?>>() {
                     @Override
-                    public void process(ReferenceMetadata<?, ?> reference) {
+                    public void process(RelationMetadata<?, ?> reference) {
                         final ManyToManyDescriptor key = new ManyToManyDescriptor(tableMetadata.getEntityType(), reference.getPropertyName(), reference.getForeignColumn().getTable().getEntityType(), reference.getForeignColumn().getName());
                         if (with(map.keySet()).exists(new EqualityFilter<ManyToManyDescriptor>(key))) {
                             return;
@@ -185,7 +185,7 @@ public class DefaultMetadataContext extends DefaultMetadataRegistry implements M
                         columns.add(secondColumn);
                         final List<ConstraintMetadata> constraints = new ArrayList<ConstraintMetadata>();
                         //noinspection unchecked
-                        final ResolvedTableMetadata metadata = new ResolvedTableMetadata(ManyToManyMiddleEntity.class, schema, middleTableName, constraints, columns, Collections.<NamedQueryMetadata>emptyList(), Collections.<SequenceMetadata>emptyList(), Collections.<StoredProcedureMetadata>emptyList(), new HashSet<ReferenceMetadata<Object, ?>>(), null, null);
+                        final ResolvedTableMetadata metadata = new ResolvedTableMetadata(ManyToManyMiddleEntity.class, schema, middleTableName, constraints, columns, Collections.<NamedQueryMetadata>emptyList(), Collections.<SequenceMetadata>emptyList(), Collections.<StoredProcedureMetadata>emptyList(), new HashSet<RelationMetadata<Object, ?>>(), null, null);
                         constraints.add(new UniqueConstraintMetadata(metadata, columns));
                         constraints.add(new ForeignKeyConstraintMetadata(metadata, firstColumn));
                         constraints.add(new ForeignKeyConstraintMetadata(metadata, secondColumn));

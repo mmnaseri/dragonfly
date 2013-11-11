@@ -18,6 +18,8 @@
 package com.agileapes.dragonfly.metadata.impl;
 
 import com.agileapes.dragonfly.metadata.NamedQueryMetadata;
+import com.agileapes.dragonfly.metadata.QueryType;
+import com.agileapes.dragonfly.metadata.TableMetadata;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
@@ -27,10 +29,14 @@ public class ImmutableNamedQueryMetadata implements NamedQueryMetadata {
 
     private final String name;
     private final String query;
+    private final TableMetadata<?> tableMetadata;
+    private final QueryType queryType;
 
-    public ImmutableNamedQueryMetadata(String name, String query) {
+    public ImmutableNamedQueryMetadata(String name, String query, TableMetadata<?> tableMetadata, QueryType queryType) {
         this.name = name;
         this.query = query;
+        this.tableMetadata = tableMetadata;
+        this.queryType = queryType;
     }
 
     @Override
@@ -41,5 +47,15 @@ public class ImmutableNamedQueryMetadata implements NamedQueryMetadata {
     @Override
     public String getQuery() {
         return query;
+    }
+
+    @Override
+    public TableMetadata<?> getTable() {
+        return tableMetadata;
+    }
+
+    @Override
+    public QueryType getQueryType() {
+        return queryType;
     }
 }

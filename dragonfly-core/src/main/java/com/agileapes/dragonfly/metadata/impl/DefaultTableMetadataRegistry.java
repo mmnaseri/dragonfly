@@ -22,7 +22,7 @@ import com.agileapes.couteau.basics.api.Transformer;
 import com.agileapes.couteau.context.contract.Registry;
 import com.agileapes.couteau.context.error.RegistryException;
 import com.agileapes.couteau.context.impl.ConcurrentRegistry;
-import com.agileapes.dragonfly.metadata.MetadataRegistry;
+import com.agileapes.dragonfly.metadata.TableMetadataRegistry;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 
 import java.util.Collection;
@@ -33,7 +33,7 @@ import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/8/30, 14:42)
  */
-public class DefaultMetadataRegistry implements MetadataRegistry {
+public class DefaultTableMetadataRegistry implements TableMetadataRegistry {
 
     private final Registry<TableMetadata<?>> registry = new ConcurrentRegistry<TableMetadata<?>>();
     private final Transformer<Class<?>, String> mapper = new Transformer<Class<?>, String>() {
@@ -42,7 +42,7 @@ public class DefaultMetadataRegistry implements MetadataRegistry {
             return aClass.getCanonicalName();
         }
     };
-    private Processor<MetadataRegistry> registryProcessor;
+    private Processor<TableMetadataRegistry> registryProcessor;
 
     @Override
     public Collection<Class<?>> getEntityTypes() {
@@ -83,7 +83,7 @@ public class DefaultMetadataRegistry implements MetadataRegistry {
     }
 
     @Override
-    public void setChangeCallback(Processor<MetadataRegistry> registryProcessor) {
+    public void setChangeCallback(Processor<TableMetadataRegistry> registryProcessor) {
         this.registryProcessor = registryProcessor;
     }
 

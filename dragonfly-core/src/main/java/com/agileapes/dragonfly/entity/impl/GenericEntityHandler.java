@@ -187,21 +187,21 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
         final MethodBeanWrapper<E> wrapper = new MethodBeanWrapper<E>(entity);
         //noinspection unchecked
         with(tableMetadata.getForeignReferences())
-                .drop(new Filter<ReferenceMetadata<E, ?>>() {
+                .drop(new Filter<RelationMetadata<E, ?>>() {
                     @Override
-                    public boolean accepts(ReferenceMetadata<E, ?> item) {
+                    public boolean accepts(RelationMetadata<E, ?> item) {
                         return item.isLazy();
                     }
                 })
-                .forThose(new Filter<ReferenceMetadata<E, ?>>() {
+                .forThose(new Filter<RelationMetadata<E, ?>>() {
                               @Override
-                              public boolean accepts(ReferenceMetadata<E, ?> reference) {
-                                  return reference.isRelationOwner() && reference.getRelationType().getForeignCardinality() == 1;
+                              public boolean accepts(RelationMetadata<E, ?> reference) {
+                                  return reference.isOwner() && reference.getType().getForeignCardinality() == 1;
                               }
                           },
-                        new Processor<ReferenceMetadata<E, ?>>() {
+                        new Processor<RelationMetadata<E, ?>>() {
                             @Override
-                            public void process(final ReferenceMetadata<E, ?> reference) {
+                            public void process(final RelationMetadata<E, ?> reference) {
                                 final ColumnMetadata columnMetadata = with(reference.getLocalTable().getColumns()).find(new ColumnPropertyFilter(reference.getPropertyName()));
                                 final String columnName = with(values.keySet()).find(new Filter<String>() {
                                     @Override
@@ -227,14 +227,14 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
                             }
                         }
                 )
-                .forThose(new Filter<ReferenceMetadata<E, ?>>() {
+                .forThose(new Filter<RelationMetadata<E, ?>>() {
                               @Override
-                              public boolean accepts(ReferenceMetadata<E, ?> reference) {
-                                  return !reference.isRelationOwner() && reference.getRelationType().getLocalCardinality() == 1;
+                              public boolean accepts(RelationMetadata<E, ?> reference) {
+                                  return !reference.isOwner() && reference.getType().getLocalCardinality() == 1;
                               }
-                          }, new Processor<ReferenceMetadata<E, ?>>() {
+                          }, new Processor<RelationMetadata<E, ?>>() {
                               @Override
-                              public void process(ReferenceMetadata<E, ?> reference) {
+                              public void process(RelationMetadata<E, ?> reference) {
                                   final Object foreignEntity = entityContext.getInstance(reference.getForeignTable().getEntityType());
                                   final MethodBeanWrapper<Object> foreignEntityWrapper = new MethodBeanWrapper<Object>(foreignEntity);
                                   try {
@@ -244,7 +244,7 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
                                   }
                                   final List<Object> objects = initializationContext.getDataAccess().find(foreignEntity, reference.getOrdering().toString());
                                   final Object propertyValue;
-                                  if (reference.getRelationType().getForeignCardinality() == 1) {
+                                  if (reference.getType().getForeignCardinality() == 1) {
                                       if (objects.isEmpty()) {
                                           return;
                                       } else if (objects.size() > 1) {
@@ -271,11 +271,11 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
     }
 
     @Override
-    public void loadLazyRelation(E entity, final ReferenceMetadata<E, ?> referenceMetadata, final DataAccess dataAccess, EntityContext entityContext, Map<String, Object> map, DataAccessSession session) {
+    public void loadLazyRelation(E entity, final RelationMetadata<E, ?> relationMetadata, final DataAccess dataAccess, EntityContext entityContext, Map<String, Object> map, DataAccessSession session) {
         final BeanWrapper<E> wrapper = new MethodBeanWrapper<E>(entity);
-        if (referenceMetadata.getRelationType().equals(RelationType.ONE_TO_ONE)) {
-            if (referenceMetadata.isRelationOwner()) {
-                final ColumnMetadata columnMetadata = with(tableMetadata.getColumns()).find(new ColumnPropertyFilter(referenceMetadata.getPropertyName()));
+        if (relationMetadata.getType().equals(RelationType.ONE_TO_ONE)) {
+            if (relationMetadata.isOwner()) {
+                final ColumnMetadata columnMetadata = with(tableMetadata.getColumns()).find(new ColumnPropertyFilter(relationMetadata.getPropertyName()));
                 final String key = with(map.keySet()).find(new Filter<String>() {
                     @Override
                     public boolean accepts(String item) {
@@ -285,7 +285,7 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
                 if (!map.containsKey(key) || map.get(key) == null) {
                     return;
                 }
-                final Object foreignEntity = entityContext.getInstance(referenceMetadata.getForeignTable().getEntityType());
+                final Object foreignEntity = entityContext.getInstance(relationMetadata.getForeignTable().getEntityType());
                 if (!columnMetadata.getForeignReference().getDeclaringClass().isInstance(foreignEntity)) {
                     return;
                 }
@@ -303,15 +303,15 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
                     throw new EntityPreparationError("More than one entity correspond to one-to-one relationship");
                 }
                 try {
-                    wrapper.setPropertyValue(referenceMetadata.getPropertyName(), objects.get(0));
+                    wrapper.setPropertyValue(relationMetadata.getPropertyName(), objects.get(0));
                 } catch (Exception e) {
                     throw new EntityPreparationError("Failed to prepare entity", e);
                 }
             } else {
-                final Object foreignEntity = entityContext.getInstance(referenceMetadata.getForeignTable().getEntityType());
+                final Object foreignEntity = entityContext.getInstance(relationMetadata.getForeignTable().getEntityType());
                 final BeanWrapper<Object> foreignEntityWrapper = new MethodBeanWrapper<Object>(foreignEntity);
                 try {
-                    foreignEntityWrapper.setPropertyValue(referenceMetadata.getForeignColumn().getPropertyName(), entity);
+                    foreignEntityWrapper.setPropertyValue(relationMetadata.getForeignColumn().getPropertyName(), entity);
                 } catch (Exception e) {
                     throw new EntityPreparationError("Failed to prepare entity properties", e);
                 }
@@ -323,28 +323,28 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
                     throw new EntityPreparationError("More than one entity correspond to one-to-one relationship");
                 }
                 try {
-                    wrapper.setPropertyValue(referenceMetadata.getPropertyName(), objects.get(0));
+                    wrapper.setPropertyValue(relationMetadata.getPropertyName(), objects.get(0));
                 } catch (Exception e) {
                     throw new EntityPreparationError("Failed to prepare entity", e);
                 }
             }
-        } else if (referenceMetadata.getRelationType().equals(RelationType.ONE_TO_MANY)) {
-            final Object foreignEntity = entityContext.getInstance(referenceMetadata.getForeignTable().getEntityType());
+        } else if (relationMetadata.getType().equals(RelationType.ONE_TO_MANY)) {
+            final Object foreignEntity = entityContext.getInstance(relationMetadata.getForeignTable().getEntityType());
             final BeanWrapper<Object> foreignEntityWrapper = new MethodBeanWrapper<Object>(foreignEntity);
             try {
-                foreignEntityWrapper.setPropertyValue(referenceMetadata.getForeignColumn().getPropertyName(), entity);
+                foreignEntityWrapper.setPropertyValue(relationMetadata.getForeignColumn().getPropertyName(), entity);
             } catch (Exception e) {
                 throw new EntityPreparationError("Failed to prepare entity properties", e);
             }
             try {
-                final Collection<Object> newCollection = ReflectionUtils.getCollection(wrapper.getPropertyType(referenceMetadata.getPropertyName()));
-                newCollection.addAll(dataAccess.find(foreignEntity, referenceMetadata.getOrdering().toString()));
-                wrapper.setPropertyValue(referenceMetadata.getPropertyName(), newCollection);
+                final Collection<Object> newCollection = ReflectionUtils.getCollection(wrapper.getPropertyType(relationMetadata.getPropertyName()));
+                newCollection.addAll(dataAccess.find(foreignEntity, relationMetadata.getOrdering().toString()));
+                wrapper.setPropertyValue(relationMetadata.getPropertyName(), newCollection);
             } catch (Exception e) {
                 throw new EntityPreparationError("Failed to prepare entity", e);
             }
-        } else if (referenceMetadata.getRelationType().equals(RelationType.MANY_TO_ONE)) {
-            final ColumnMetadata columnMetadata = with(tableMetadata.getColumns()).find(new ColumnPropertyFilter(referenceMetadata.getPropertyName()));
+        } else if (relationMetadata.getType().equals(RelationType.MANY_TO_ONE)) {
+            final ColumnMetadata columnMetadata = with(tableMetadata.getColumns()).find(new ColumnPropertyFilter(relationMetadata.getPropertyName()));
             final String key = with(map.keySet()).find(new Filter<String>() {
                 @Override
                 public boolean accepts(String item) {
@@ -354,7 +354,7 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
             if (!map.containsKey(key) || map.get(key) == null) {
                 return;
             }
-            final Object foreignEntity = entityContext.getInstance(referenceMetadata.getForeignTable().getEntityType());
+            final Object foreignEntity = entityContext.getInstance(relationMetadata.getForeignTable().getEntityType());
             if (!columnMetadata.getForeignReference().getDeclaringClass().isInstance(foreignEntity)) {
                 return;
             }
@@ -372,17 +372,17 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
                 throw new EntityPreparationError("More than one entity correspond to one-to-one relationship");
             }
             try {
-                wrapper.setPropertyValue(referenceMetadata.getPropertyName(), objects.get(0));
+                wrapper.setPropertyValue(relationMetadata.getPropertyName(), objects.get(0));
             } catch (Exception e) {
                 throw new EntityPreparationError("Failed to prepare entity", e);
             }
-        } else if (referenceMetadata.getRelationType().equals(RelationType.MANY_TO_MANY)) {
+        } else if (relationMetadata.getType().equals(RelationType.MANY_TO_MANY)) {
             final Connection connection = session.getConnection();
-            final ManyToManyActionHelper helper = new ManyToManyActionHelper(new DefaultStatementPreparator(false), connection, session.getDatabaseDialect().getStatementBuilderContext(), referenceMetadata.getForeignColumn().getTable(), tableMetadata, referenceMetadata, entityContext);
+            final ManyToManyActionHelper helper = new ManyToManyActionHelper(new DefaultStatementPreparator(false), connection, session.getDatabaseDialect().getStatementBuilderContext(), relationMetadata.getForeignColumn().getTable(), tableMetadata, relationMetadata, entityContext);
             final ManyToManyMiddleEntity middleEntity = new ManyToManyMiddleEntity();
             final BeanWrapper<ManyToManyMiddleEntity> middleEntityWrapper = new MethodBeanWrapper<ManyToManyMiddleEntity>(middleEntity);
             try {
-                middleEntityWrapper.setPropertyValue(referenceMetadata.getForeignColumn().getPropertyName(), entity);
+                middleEntityWrapper.setPropertyValue(relationMetadata.getForeignColumn().getPropertyName(), entity);
             } catch (Exception e) {
                 throw new EntityPreparationError("Failed to prepare entity", e);
             }
@@ -395,7 +395,7 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
                 throw new EntityPreparationError("Failed to commit changes to the database", e);
             }
             try {
-                wrapper.setPropertyValue(referenceMetadata.getPropertyName(), list);
+                wrapper.setPropertyValue(relationMetadata.getPropertyName(), list);
             } catch (Exception e) {
                 throw new EntityPreparationError("Failed to prepare entity", e);
             }
@@ -407,20 +407,20 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
         final MethodBeanWrapper<E> wrapper = new MethodBeanWrapper<E>(entity);
         //noinspection unchecked
         with(tableMetadata.getForeignReferences())
-                .keep(new Filter<ReferenceMetadata<E, ?>>() {
+                .keep(new Filter<RelationMetadata<E, ?>>() {
                     @Override
-                    public boolean accepts(ReferenceMetadata<E, ?> item) {
+                    public boolean accepts(RelationMetadata<E, ?> item) {
                         return item.getCascadeMetadata().cascadeRemove();
                     }
                 })
-                .forThose(new Filter<ReferenceMetadata<E, ?>>() {
+                .forThose(new Filter<RelationMetadata<E, ?>>() {
                               @Override
-                              public boolean accepts(ReferenceMetadata<E, ?> item) {
-                                  return item.isRelationOwner();
+                              public boolean accepts(RelationMetadata<E, ?> item) {
+                                  return item.isOwner();
                               }
-                          }, new Processor<ReferenceMetadata<E, ?>>() {
+                          }, new Processor<RelationMetadata<E, ?>>() {
                               @Override
-                              public void process(ReferenceMetadata<E, ?> reference) {
+                              public void process(RelationMetadata<E, ?> reference) {
                                   //many-to-one, owner=here and one-to-one, owner=here
                                   try {
                                       final Object foreignEntity = wrapper.getPropertyValue(reference.getPropertyName());
@@ -440,21 +440,21 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
     public void deleteDependencyRelations(final E entity, final DataAccess dataAccess) {
         //noinspection unchecked
         with(tableMetadata.getForeignReferences())
-                .keep(new Filter<ReferenceMetadata<E, ?>>() {
+                .keep(new Filter<RelationMetadata<E, ?>>() {
                     @Override
-                    public boolean accepts(ReferenceMetadata<E, ?> item) {
+                    public boolean accepts(RelationMetadata<E, ?> item) {
                         return item.getCascadeMetadata().cascadeRemove();
                     }
                 })
-                .forThose(new Filter<ReferenceMetadata<E, ?>>() {
+                .forThose(new Filter<RelationMetadata<E, ?>>() {
                               @Override
-                              public boolean accepts(ReferenceMetadata<E, ?> item) {
-                                  return !item.isRelationOwner() && item.getRelationType().getLocalCardinality() == 1;
+                              public boolean accepts(RelationMetadata<E, ?> item) {
+                                  return !item.isOwner() && item.getType().getLocalCardinality() == 1;
                               }
                           },
-                        new Processor<ReferenceMetadata<E, ?>>() {
+                        new Processor<RelationMetadata<E, ?>>() {
                             @Override
-                            public void process(ReferenceMetadata<E, ?> reference) {
+                            public void process(RelationMetadata<E, ?> reference) {
                                 //one-to-many, owner=there and one-to-one, owner=there
                                 final Object foreignEntity = entityContext.getInstance(reference.getForeignTable().getEntityType());
                                 final MethodBeanWrapper<Object> foreignEntityWrapper = new MethodBeanWrapper<Object>(foreignEntity);
@@ -476,22 +476,22 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
         final MethodBeanWrapper<E> wrapper = new MethodBeanWrapper<E>(entity);
         //noinspection unchecked
         with(tableMetadata.getForeignReferences())
-                .keep(new Filter<ReferenceMetadata<E, ?>>() {
+                .keep(new Filter<RelationMetadata<E, ?>>() {
                     @Override
-                    public boolean accepts(ReferenceMetadata<E, ?> item) {
-                        return item.getCascadeMetadata().cascadePersist() && item.isRelationOwner();
+                    public boolean accepts(RelationMetadata<E, ?> item) {
+                        return item.getCascadeMetadata().cascadePersist() && item.isOwner();
                     }
                 })
-                .forThose(new Filter<ReferenceMetadata<E, ?>>() {
+                .forThose(new Filter<RelationMetadata<E, ?>>() {
                               //many-to-one and one-to-one relations where owner=here
                               @Override
-                              public boolean accepts(ReferenceMetadata<E, ?> item) {
-                                  return item.getRelationType().getForeignCardinality() == 1;
+                              public boolean accepts(RelationMetadata<E, ?> item) {
+                                  return item.getType().getForeignCardinality() == 1;
                               }
                           },
-                        new Processor<ReferenceMetadata<E, ?>>() {
+                        new Processor<RelationMetadata<E, ?>>() {
                             @Override
-                            public void process(ReferenceMetadata<E, ?> input) {
+                            public void process(RelationMetadata<E, ?> input) {
                                 try {
                                     final Object foreignEntity = wrapper.getPropertyValue(input.getPropertyName());
                                     if (foreignEntity == null) {
@@ -511,23 +511,23 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
         final MethodBeanWrapper<E> wrapper = new MethodBeanWrapper<E>(entity);
         //noinspection unchecked
         with(tableMetadata.getForeignReferences())
-                .keep(new Filter<ReferenceMetadata<E, ?>>() {
+                .keep(new Filter<RelationMetadata<E, ?>>() {
                     @Override
-                    public boolean accepts(ReferenceMetadata<E, ?> item) {
-                        return item.getCascadeMetadata().cascadePersist() && !item.isRelationOwner();
+                    public boolean accepts(RelationMetadata<E, ?> item) {
+                        return item.getCascadeMetadata().cascadePersist() && !item.isOwner();
                     }
                 })
-                .forThose(new Filter<ReferenceMetadata<E, ?>>() {
+                .forThose(new Filter<RelationMetadata<E, ?>>() {
                               //one-to-one relations
                               @Override
-                              public boolean accepts(ReferenceMetadata<E, ?> item) {
+                              public boolean accepts(RelationMetadata<E, ?> item) {
                                   //one-to-one
-                                  return item.getRelationType().getLocalCardinality() == 1 && item.getRelationType().getForeignCardinality() == 1;
+                                  return item.getType().getLocalCardinality() == 1 && item.getType().getForeignCardinality() == 1;
                               }
                           },
-                        new Processor<ReferenceMetadata<E, ?>>() {
+                        new Processor<RelationMetadata<E, ?>>() {
                             @Override
-                            public void process(ReferenceMetadata<E, ?> reference) {
+                            public void process(RelationMetadata<E, ?> reference) {
                                 try {
                                     final Object foreignEntitySample = entityContext.getInstance(reference.getForeignColumn().getTable().getEntityType());
                                     final MethodBeanWrapper<Object> foreignEntitySampleWrapper = new MethodBeanWrapper<Object>(foreignEntitySample);
@@ -546,16 +546,16 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
                             }
                         }
                 )
-                .forThose(new Filter<ReferenceMetadata<E, ?>>() {
+                .forThose(new Filter<RelationMetadata<E, ?>>() {
                               @Override
-                              public boolean accepts(ReferenceMetadata<E, ?> item) {
+                              public boolean accepts(RelationMetadata<E, ?> item) {
                                   //one-to-many
-                                  return item.getRelationType().getLocalCardinality() == 1 && item.getRelationType().getForeignCardinality() > 1;
+                                  return item.getType().getLocalCardinality() == 1 && item.getType().getForeignCardinality() > 1;
                               }
                           },
-                        new Processor<ReferenceMetadata<E, ?>>() {
+                        new Processor<RelationMetadata<E, ?>>() {
                             @Override
-                            public void process(ReferenceMetadata<E, ?> reference) {
+                            public void process(RelationMetadata<E, ?> reference) {
                                 try {
                                     final Object foreignEntitySample = entityContext.getInstance(reference.getForeignColumn().getTable().getEntityType());
                                     final MethodBeanWrapper<Object> foreignEntitySampleWrapper = new MethodBeanWrapper<Object>(foreignEntitySample);
@@ -585,15 +585,15 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
                         }
                 )
                 .forThose(
-                        new Filter<ReferenceMetadata<E, ?>>() {
+                        new Filter<RelationMetadata<E, ?>>() {
                             @Override
-                            public boolean accepts(ReferenceMetadata<E, ?> item) {
-                                return item.getRelationType().getLocalCardinality() > 1 && item.getRelationType().getForeignCardinality() > 1;
+                            public boolean accepts(RelationMetadata<E, ?> item) {
+                                return item.getType().getLocalCardinality() > 1 && item.getType().getForeignCardinality() > 1;
                             }
                         },
-                        new Processor<ReferenceMetadata<E, ?>>() {
+                        new Processor<RelationMetadata<E, ?>>() {
                             @Override
-                            public void process(ReferenceMetadata<E, ?> reference) {
+                            public void process(RelationMetadata<E, ?> reference) {
                                 try {
                                     final Object propertyValue = wrapper.getPropertyValue(reference.getPropertyName());
                                     if (propertyValue == null) {
@@ -628,15 +628,15 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
         final BeanAccessor<E> accessor = new MethodBeanAccessor<E>(entity);
         //noinspection unchecked
         with(tableMetadata.getForeignReferences())
-                .keep(new Filter<ReferenceMetadata<E, ?>>() {
+                .keep(new Filter<RelationMetadata<E, ?>>() {
                     @Override
-                    public boolean accepts(ReferenceMetadata<E, ?> item) {
-                        return item.getCascadeMetadata().cascadePersist() && RelationType.MANY_TO_MANY.equals(item.getRelationType());
+                    public boolean accepts(RelationMetadata<E, ?> item) {
+                        return item.getCascadeMetadata().cascadePersist() && RelationType.MANY_TO_MANY.equals(item.getType());
                     }
                 })
-                .each(new Processor<ReferenceMetadata<E, ?>>() {
+                .each(new Processor<RelationMetadata<E, ?>>() {
                     @Override
-                    public void process(ReferenceMetadata<E, ?> input) {
+                    public void process(RelationMetadata<E, ?> input) {
                         final TableMetadata<?> foreignTable = input.getForeignTable();
                         try {
                             Object propertyValue = accessor.getPropertyValue(input.getPropertyName());
@@ -659,7 +659,7 @@ public class GenericEntityHandler<E> implements EntityHandler<E> {
                                 final BeanWrapper<ManyToManyMiddleEntity> wrapper = new MethodBeanWrapper<ManyToManyMiddleEntity>(middleEntity);
                                 wrapper.setPropertyValue(with(foreignTable.getColumns()).find(columnNameFilter).getPropertyName(), entity);
                                 wrapper.setPropertyValue(with(foreignTable.getColumns()).find(new NegatingFilter<ColumnMetadata>(columnNameFilter)).getPropertyName(), item);
-                                middleEntity.setReferenceMetadata(input);
+                                middleEntity.setRelationMetadata(input);
                                 entities.add(middleEntity);
                             }
                             map.put(foreignTable, entities);

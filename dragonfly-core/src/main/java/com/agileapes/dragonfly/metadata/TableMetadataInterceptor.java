@@ -18,11 +18,21 @@
 package com.agileapes.dragonfly.metadata;
 
 /**
+ * This interface will allow for interception and post-processing of table metadata,
+ * once it has been successfully gathered and prepared.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/8, 19:37)
  */
 public interface TableMetadataInterceptor {
 
+    /**
+     * Intercepts table metadata so that it might be changed, or monitored.
+     * @param tableMetadata    the table metadata
+     * @param <E>              the type parameter for the entity for which the
+     *           table metadata is being processed.
+     * @return the (possibly modified) table metadata
+     */
     <E> TableMetadata<E> intercept(TableMetadata<E> tableMetadata);
 
 }

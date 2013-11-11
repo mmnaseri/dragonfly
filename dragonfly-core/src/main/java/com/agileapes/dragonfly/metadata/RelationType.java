@@ -18,14 +18,36 @@
 package com.agileapes.dragonfly.metadata;
 
 /**
+ * This enum will represent the different types of relations foreseeable between two
+ * entity tables.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/12, 0:11)
  */
 public enum RelationType {
 
+    /**
+     * A one-to-one relation is a relation in which rows of the two tables must correspond
+     * directly. Since the opposite of this relation is itself, for the relation specification
+     * to be complete, you will need to also know which side is the owner of the relation.
+     */
     ONE_TO_ONE(1, 1),
+    /**
+     * In a one-to-many relation a single row of the local table will be pointed to by some
+     * rows of the foreign table. In this case, it is clear that the owner of the relation
+     * must be the <em>many</em> side.
+     */
     ONE_TO_MANY(1, Integer.MAX_VALUE),
+    /**
+     * This is the opposite of the {@link #ONE_TO_MANY} relation, and as such, the local table
+     * will clearly hold the pointing column, and as such, by the owner of the relation.
+     */
     MANY_TO_ONE(Integer.MAX_VALUE, 1),
+    /**
+     * This is the many-to-many relation specifier, in which physical pointers from local rows
+     * to foreign rows will have to be stored in a third table, and as such, none of the two
+     * parties will be the owner of the relation.
+     */
     MANY_TO_MANY(Integer.MAX_VALUE, Integer.MAX_VALUE);
 
     private final int localCardinality;
@@ -36,10 +58,18 @@ public enum RelationType {
         this.foreignCardinality = foreignCardinality;
     }
 
+    /**
+     * @return specifies the number of rows possibly participating in the relation from
+     * the local table
+     */
     public int getLocalCardinality() {
         return localCardinality;
     }
 
+    /**
+     * @return specifies the possible number of rows for the foreign table that will take
+     * part in the relation
+     */
     public int getForeignCardinality() {
         return foreignCardinality;
     }

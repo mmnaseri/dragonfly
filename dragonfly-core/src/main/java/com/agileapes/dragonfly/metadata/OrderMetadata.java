@@ -17,14 +17,24 @@
 
 package com.agileapes.dragonfly.metadata;
 
+import com.agileapes.dragonfly.annotations.Ordering;
+
 /**
+ * This interface allows for specification of individual ordering for individual columns
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/10/30, 11:27)
  */
 public interface OrderMetadata {
 
+    /**
+     * @return the column for which the ordering is defined
+     */
     ColumnMetadata getColumn();
 
-    String getOrder();
+    /**
+     * @return the order term as understandable by the persistence unit
+     */
+    Ordering getOrder();
 
 }

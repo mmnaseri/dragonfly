@@ -61,8 +61,8 @@ public class TableKeyGeneratorEntity {
         columns.add(nameColumn);
         columns.add(new ResolvedColumnMetadata(null, TableKeyGeneratorEntity.class, "value", Types.BIGINT, "value", Long.class, false, 0, 0, 0));
         final List<NamedQueryMetadata> namedQueries = new ArrayList<NamedQueryMetadata>();
-        namedQueries.add(new ImmutableNamedQueryMetadata("increment", "UPDATE ${qualify(table)} SET ${escape('value')} = ${escape('value')} + 1 WHERE ${escape('name')} = ${value.name}"));
-        final ResolvedTableMetadata<TableKeyGeneratorEntity> tableMetadata = new ResolvedTableMetadata<TableKeyGeneratorEntity>(TableKeyGeneratorEntity.class, schema, "dragonfly_sequences", constraints, columns, namedQueries, Collections.<SequenceMetadata>emptyList(), Collections.<StoredProcedureMetadata>emptyList(), Collections.<ReferenceMetadata<TableKeyGeneratorEntity, ?>>emptyList(), null, null);
+        final ResolvedTableMetadata<TableKeyGeneratorEntity> tableMetadata = new ResolvedTableMetadata<TableKeyGeneratorEntity>(TableKeyGeneratorEntity.class, schema, "dragonfly_sequences", constraints, columns, namedQueries, Collections.<SequenceMetadata>emptyList(), Collections.<StoredProcedureMetadata>emptyList(), Collections.<RelationMetadata<TableKeyGeneratorEntity, ?>>emptyList(), null, null);
+        namedQueries.add(new ImmutableNamedQueryMetadata("increment", "UPDATE ${qualify(table)} SET ${escape('value')} = ${escape('value')} + 1 WHERE ${escape('name')} = ${value.name}", tableMetadata, QueryType.NATIVE));
         constraints.add(new UniqueConstraintMetadata(tableMetadata, Arrays.<ColumnMetadata>asList(nameColumn)));
         return tableMetadata;
     }

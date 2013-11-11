@@ -24,7 +24,7 @@ import com.agileapes.couteau.lang.compiler.impl.SimpleJavaSourceCompiler;
 import com.agileapes.couteau.lang.error.CompileException;
 import com.agileapes.couteau.maven.task.PluginTask;
 import com.agileapes.couteau.reflection.cp.MappedClassLoader;
-import com.agileapes.dragonfly.metadata.MetadataRegistry;
+import com.agileapes.dragonfly.metadata.TableMetadataRegistry;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.model.MetadataGenerationModel;
 import com.agileapes.dragonfly.mojo.PluginExecutor;
@@ -59,17 +59,17 @@ public class GenerateMetadataRegistryTask extends AbstractCodeGenerationTask {
     }
 
     @Value("#{metadataCollector.metadataRegistry}")
-    private MetadataRegistry metadataRegistry;
+    private TableMetadataRegistry tableMetadataRegistry;
 
     @Override
     public void execute(PluginExecutor pluginExecutor) throws MojoFailureException {
-        final Collection<Class<?>> entityTypes = metadataRegistry.getEntityTypes();
+        final Collection<Class<?>> entityTypes = tableMetadataRegistry.getEntityTypes();
         final Configuration configuration = FreemarkerUtils.getConfiguration(GenerateMetadataRegistryTask.class, "/ftl");
         final HashSet<TableMetadata<?>> tables = new HashSet<TableMetadata<?>>();
         final MetadataGenerationModel model = new MetadataGenerationModel();
         model.setTables(tables);
         for (Class<?> entityType : entityTypes) {
-            tables.add(metadataRegistry.getTableMetadata(entityType));
+            tables.add(tableMetadataRegistry.getTableMetadata(entityType));
         }
         final Template template;
         try {

@@ -24,10 +24,7 @@ import com.agileapes.couteau.reflection.util.ReflectionUtils;
 import com.agileapes.couteau.reflection.util.assets.AnnotatedElementFilter;
 import com.agileapes.couteau.reflection.util.assets.GetterMethodFilter;
 import com.agileapes.couteau.reflection.util.assets.MethodReturnTypeFilter;
-import com.agileapes.dragonfly.annotations.Order;
-import com.agileapes.dragonfly.annotations.StoredProcedure;
-import com.agileapes.dragonfly.annotations.StoredProcedureParameter;
-import com.agileapes.dragonfly.annotations.StoredProcedures;
+import com.agileapes.dragonfly.annotations.*;
 import com.agileapes.dragonfly.error.*;
 import com.agileapes.dragonfly.metadata.*;
 import com.agileapes.dragonfly.tools.ColumnNameFilter;
@@ -52,9 +49,9 @@ import static com.agileapes.couteau.reflection.util.ReflectionUtils.withMethods;
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/5, 12:57)
  */
-public class AnnotationMetadataResolver implements MetadataResolver {
+public class AnnotationTableMetadataResolver implements TableMetadataResolver {
 
-    private static final Log log = LogFactory.getLog(MetadataResolver.class);
+    private static final Log log = LogFactory.getLog(TableMetadataResolver.class);
     private static final String NO_SCHEMA = "";
 
     @Override
@@ -65,7 +62,7 @@ public class AnnotationMetadataResolver implements MetadataResolver {
         final Set<Set<String>> uniqueColumns = new HashSet<Set<String>>();
         final Set<String> keyColumns = new HashSet<String>();
         final Set<String> foreignKeys = new HashSet<String>();
-        final HashSet<ReferenceMetadata<E, ?>> foreignReferences = new HashSet<ReferenceMetadata<E, ?>>();
+        final HashSet<RelationMetadata<E, ?>> foreignReferences = new HashSet<RelationMetadata<E, ?>>();
         if (entityType.isAnnotationPresent(Table.class)) {
             final Table table = entityType.getAnnotation(Table.class);
             tableName = table.name().isEmpty() ? entityType.getSimpleName() : table.name();
@@ -139,7 +136,7 @@ public class AnnotationMetadataResolver implements MetadataResolver {
                     final RelationType relationType = getRelationType(method);
                     final CascadeMetadata cascadeMetadata = getCascadeMetadata(method);
                     final boolean isLazy = determineLaziness(method);
-                    final ImmutableReferenceMetadata<E, Object> reference = new ImmutableReferenceMetadata<E, Object>(declaringClass, columnMetadata.getPropertyName(), true, null, null, null, relationType, cascadeMetadata, isLazy, null);
+                    final ImmutableRelationMetadata<E, Object> reference = new ImmutableRelationMetadata<E, Object>(declaringClass, columnMetadata.getPropertyName(), true, null, null, null, relationType, cascadeMetadata, isLazy, null);
                     reference.setForeignColumn(foreignColumn);
                     foreignReferences.add(reference);
                 }
@@ -199,7 +196,7 @@ public class AnnotationMetadataResolver implements MetadataResolver {
                 final List<OrderMetadata> ordering = getOrdering(foreignEntity, method.getAnnotation(OrderBy.class));
                 //noinspection unchecked
                 final UnresolvedColumnMetadata foreignColumn = new UnresolvedColumnMetadata(foreignColumnName, new UnresolvedTableMetadata<Object>((Class<Object>) foreignEntity));
-                final ImmutableReferenceMetadata<E, Object> reference = new ImmutableReferenceMetadata<E, Object>(ReflectionUtils.getDeclaringClass(method), propertyName, false, null, null, null, getRelationType(method), getCascadeMetadata(method), determineLaziness(method), ordering);
+                final ImmutableRelationMetadata<E, Object> reference = new ImmutableRelationMetadata<E, Object>(ReflectionUtils.getDeclaringClass(method), propertyName, false, null, null, null, getRelationType(method), getCascadeMetadata(method), determineLaziness(method), ordering);
                 reference.setForeignColumn(foreignColumn);
                 foreignReferences.add(reference);
             }
@@ -216,7 +213,7 @@ public class AnnotationMetadataResolver implements MetadataResolver {
                 final OneToOne annotation = method.getAnnotation(OneToOne.class);
                 Class<?> foreignEntity = annotation.targetEntity().equals(void.class) ? method.getReturnType() : annotation.targetEntity();
                 final String propertyName = ReflectionUtils.getPropertyName(method.getName());
-                final ImmutableReferenceMetadata<E, Object> reference = new ImmutableReferenceMetadata<E, Object>(ReflectionUtils.getDeclaringClass(method), propertyName, false, null, null, null, getRelationType(method), getCascadeMetadata(method), determineLaziness(method), null);
+                final ImmutableRelationMetadata<E, Object> reference = new ImmutableRelationMetadata<E, Object>(ReflectionUtils.getDeclaringClass(method), propertyName, false, null, null, null, getRelationType(method), getCascadeMetadata(method), determineLaziness(method), null);
                 String foreignColumnName = annotation.mappedBy();
                 if (foreignColumnName.isEmpty()) {
                     //noinspection unchecked
@@ -246,12 +243,6 @@ public class AnnotationMetadataResolver implements MetadataResolver {
             }
         });
         final HashSet<NamedQueryMetadata> namedQueries = new HashSet<NamedQueryMetadata>();
-        if (entityType.isAnnotationPresent(NamedNativeQueries.class)) {
-            final NamedNativeQuery[] queries = entityType.getAnnotation(NamedNativeQueries.class).value();
-            for (NamedNativeQuery query : queries) {
-                namedQueries.add(new ImmutableNamedQueryMetadata(query.name(), query.query()));
-            }
-        }
         if (entityType.isAnnotationPresent(SequenceGenerator.class)) {
             final SequenceGenerator annotation = entityType.getAnnotation(SequenceGenerator.class);
             sequences.add(new DefaultSequenceMetadata(annotation.name(), annotation.initialValue(), annotation.allocationSize()));
@@ -281,7 +272,7 @@ public class AnnotationMetadataResolver implements MetadataResolver {
                         if (columnMetadata == null) {
                             throw new NoSuchColumnError(entityType, columnName);
                         }
-                        return new DefaultOrderMetadata(columnMetadata, input.getAnnotation(Order.class).value().toString());
+                        return new DefaultOrderMetadata(columnMetadata, input.getAnnotation(Order.class).value());
                     }
                 }).list();
         final ResolvedTableMetadata<E> tableMetadata = new ResolvedTableMetadata<E>(entityType, schema, tableName, constraints, tableColumns, namedQueries, sequences, storedProcedures, foreignReferences, versionColumn.get(), ordering);
@@ -292,6 +283,15 @@ public class AnnotationMetadataResolver implements MetadataResolver {
                     return getColumnMetadata(columnName, tableColumns, entityType);
                 }
             }).list()));
+        }
+        if (entityType.isAnnotationPresent(NamedNativeQueries.class)) {
+            final NamedNativeQuery[] queries = entityType.getAnnotation(NamedNativeQueries.class).value();
+            for (NamedNativeQuery query : queries) {
+                namedQueries.add(new ImmutableNamedQueryMetadata(query.name(), query.query(), tableMetadata, QueryType.NATIVE));
+            }
+        } else if (entityType.isAnnotationPresent(NamedNativeQuery.class)) {
+            final NamedNativeQuery query = entityType.getAnnotation(NamedNativeQuery.class);
+            namedQueries.add(new ImmutableNamedQueryMetadata(query.name(), query.query(), tableMetadata, QueryType.NATIVE));
         }
         constraints.addAll(with(uniqueColumns).sort().transform(new Transformer<Set<String>, Set<ColumnMetadata>>() {
             @Override
@@ -351,7 +351,7 @@ public class AnnotationMetadataResolver implements MetadataResolver {
                                 }
                                 final List<OrderMetadata> ordering = getOrdering(foreignEntity, method.getAnnotation(OrderBy.class));
                                 //noinspection unchecked
-                                foreignReferences.add(new ImmutableReferenceMetadata<E, Object>(ReflectionUtils.getDeclaringClass(method), ReflectionUtils.getPropertyName(method.getName()), false, tableMetadata, null, new UnresolvedColumnMetadata(foreignProperty, new UnresolvedTableMetadata<Object>((Class<Object>) foreignEntity)), RelationType.MANY_TO_MANY, getCascadeMetadata(method), determineLaziness(method), ordering));
+                                foreignReferences.add(new ImmutableRelationMetadata<E, Object>(ReflectionUtils.getDeclaringClass(method), ReflectionUtils.getPropertyName(method.getName()), false, tableMetadata, null, new UnresolvedColumnMetadata(foreignProperty, new UnresolvedTableMetadata<Object>((Class<Object>) foreignEntity)), RelationType.MANY_TO_MANY, getCascadeMetadata(method), determineLaziness(method), ordering));
                             }
                         }
                 );
@@ -371,12 +371,12 @@ public class AnnotationMetadataResolver implements MetadataResolver {
                         if (split.length > 2) {
                             throw new EntityOrderDefinitionError(input);
                         }
-                        //noinspection unchecked
                         final String order = (split.length == 2 ? split[1] : "ASC").toUpperCase();
                         if (!order.matches("ASC|DESC")) {
                             throw new EntityOrderDefinitionError(input);
                         }
-                        return new DefaultOrderMetadata(new UnresolvedColumnMetadata(split[0], new UnresolvedTableMetadata<Object>((Class<Object>) foreignEntity)), order);
+                        //noinspection unchecked
+                        return new DefaultOrderMetadata(new UnresolvedColumnMetadata(split[0], new UnresolvedTableMetadata<Object>((Class<Object>) foreignEntity)), Ordering.getOrdering(order));
                     }
                 })
                 .list();

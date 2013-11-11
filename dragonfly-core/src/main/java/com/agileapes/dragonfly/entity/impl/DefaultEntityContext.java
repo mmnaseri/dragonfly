@@ -26,7 +26,7 @@ import com.agileapes.dragonfly.cg.StaticNamingPolicy;
 import com.agileapes.dragonfly.data.DataAccess;
 import com.agileapes.dragonfly.data.DataAccessSession;
 import com.agileapes.dragonfly.entity.*;
-import com.agileapes.dragonfly.metadata.MetadataRegistry;
+import com.agileapes.dragonfly.metadata.TableMetadataRegistry;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.security.DataSecurityManager;
 
@@ -48,20 +48,20 @@ public class DefaultEntityContext implements ModifiableEntityContext {
     private EntityHandlerContext handlerContext;
     private final Map<Class<?>, Map<Class<?>, Class<?>>> interfaces = new HashMap<Class<?>, Map<Class<?>, Class<?>>>();
     private final DataSecurityManager securityManager;
-    private final MetadataRegistry metadataRegistry;
+    private final TableMetadataRegistry tableMetadataRegistry;
     private final Cache<Class<?>, EntityFactory<?>> cache = new ConcurrentCache<Class<?>, EntityFactory<?>>();
     private final DataAccessSession session;
 
-    public DefaultEntityContext(DataSecurityManager securityManager, MetadataRegistry metadataRegistry, DataAccessSession session) {
+    public DefaultEntityContext(DataSecurityManager securityManager, TableMetadataRegistry tableMetadataRegistry, DataAccessSession session) {
         this.securityManager = securityManager;
-        this.metadataRegistry = metadataRegistry;
+        this.tableMetadataRegistry = tableMetadataRegistry;
         this.session = session;
         this.key = UUID.randomUUID().toString();
     }
 
     @Override
     public <E> E getInstance(Class<E> entityType) {
-        return getInstance(metadataRegistry.getTableMetadata(entityType));
+        return getInstance(tableMetadataRegistry.getTableMetadata(entityType));
     }
 
     @Override

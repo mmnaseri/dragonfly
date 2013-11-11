@@ -33,7 +33,7 @@ import com.agileapes.couteau.reflection.property.impl.MethodReadPropertyAccessor
 import com.agileapes.couteau.reflection.property.impl.MethodWritePropertyAccessor;
 import com.agileapes.couteau.reflection.util.ReflectionUtils;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
-import com.agileapes.dragonfly.metadata.MetadataRegistry;
+import com.agileapes.dragonfly.metadata.TableMetadataRegistry;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.metadata.ValueGenerationType;
 import com.agileapes.dragonfly.model.EntityHandlerModel;
@@ -68,7 +68,7 @@ public class GenerateEntityHandlersTask extends AbstractCodeGenerationTask {
     public static final String ENTITY_HANDLER_SUFFIX = "EntityHandler";
 
     @Value("#{metadataCollector.metadataRegistry}")
-    private MetadataRegistry metadataRegistry;
+    private TableMetadataRegistry tableMetadataRegistry;
 
     @Override
     protected String getIntro() {
@@ -90,10 +90,10 @@ public class GenerateEntityHandlersTask extends AbstractCodeGenerationTask {
         } catch (IOException e) {
             throw new MojoFailureException("Error retrieving template", e);
         }
-        final List<TableMetadata<?>> metadataList = with(metadataRegistry.getEntityTypes()).transform(new Transformer<Class<?>, TableMetadata<?>>() {
+        final List<TableMetadata<?>> metadataList = with(tableMetadataRegistry.getEntityTypes()).transform(new Transformer<Class<?>, TableMetadata<?>>() {
             @Override
             public TableMetadata<?> map(Class<?> entityType) {
-                return metadataRegistry.getTableMetadata(entityType);
+                return tableMetadataRegistry.getTableMetadata(entityType);
             }
         }).list();
         for (TableMetadata<?> tableMetadata : metadataList) {

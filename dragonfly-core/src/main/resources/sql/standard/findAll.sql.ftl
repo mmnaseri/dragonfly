@@ -1,1 +1,1 @@
-SELECT * FROM ${qualify(table)}<#if metadata?size &gt; 0> ORDER BY <#list metadata as ordering>${qualify(ordering.column)} ${ordering.order}<#if ordering_has_next>, </#if></#list></#if>;
+SELECT * FROM ${qualify(table)}<#if metadata?size &gt; 0> ORDER BY <#list metadata as ordering>${qualify(ordering.column)} <#if ordering.order?string?lower_case == "asc">ASC<#else>DESC</#if><#if ordering_has_next>, </#if></#list></#if>;

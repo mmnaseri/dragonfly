@@ -20,19 +20,45 @@ package com.agileapes.dragonfly.metadata;
 import java.util.List;
 
 /**
+ * <p>The metadata for a procedure that is callable from the application is available through
+ * this interface. Each procedure is called to a single table and entity, even though they
+ * must clearly specify a result type that might not be the same as the entity to which they
+ * are statically bound.</p>
+ *
+ * <p>This is to bind each procedure to the same catalog and schema as the entity, and prevent
+ * dangling procedure identifiers that do not belong to a pre-designated schema.</p>
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/10, 0:44)
  */
 public interface StoredProcedureMetadata extends Metadata {
 
+    /**
+     * @return the table to which this procedure is bound
+     */
     TableMetadata<?> getTable();
 
+    /**
+     * @return the name of the procedure, which must be unique across the persistence unit.
+     */
     String getName();
 
+    /**
+     * @return the result type for the procedure, which can be {@code void.class} in case it
+     * does not return any values. If, however, it is not set to {@code void.class}, it means
+     * that it must be either another well-defined entity, or it must be a partial entity,
+     * clearly bound to a single named query across the whole persistence unit.
+     */
     Class<?> getResultType();
 
+    /**
+     * @return the parameters to the procedure call
+     */
     List<ParameterMetadata> getParameters();
 
+    /**
+     * @return {@code true} in case the result type for the procedure call is partial
+     */
     boolean isPartial();
 
 }

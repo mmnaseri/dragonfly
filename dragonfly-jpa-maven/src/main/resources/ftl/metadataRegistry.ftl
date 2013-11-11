@@ -55,7 +55,7 @@ public class GeneratedJpaMetadataRegistry implements MetadataRegistry {
             )<#else>new ArrayList<ParameterMetadata>()</#if>));
             </#list>
             <#list table.foreignReferences as reference>
-            foreignReferences.add(new ImmutableReferenceMetadata<${table.entityType.canonicalName}, Object>(tableMetadata, "${escape(reference.propertyName)}", null, null, com.agileapes.dragonfly.metadata.RelationType.${reference.relationType}, new ImmutableCascadeMetadata(${reference.cascadeMetadata.cascadePersist()?string}, ${reference.cascadeMetadata.cascadeMerge()?string}, ${reference.cascadeMetadata.cascadeRemove()?string}, ${reference.cascadeMetadata.cascadeRefresh()?string}), ${reference.lazy?string}));
+            foreignReferences.add(new ImmutableReferenceMetadata<${table.entityType.canonicalName}, Object>(tableMetadata, "${escape(reference.propertyName)}", null, null, com.agileapes.dragonfly.metadata.RelationType.${reference.type}, new ImmutableCascadeMetadata(${reference.cascadeMetadata.cascadePersist()?string}, ${reference.cascadeMetadata.cascadeMerge()?string}, ${reference.cascadeMetadata.cascadeRemove()?string}, ${reference.cascadeMetadata.cascadeRefresh()?string}), ${reference.lazy?string}));
             ((ImmutableReferenceMetadata) foreignReferences.get(foreignReferences.size() - 1)).setForeignColumn(new UnresolvedColumnMetadata("${escape(reference.foreignColumn.name)}", new UnresolvedTableMetadata<${reference.foreignTable.entityType.canonicalName}>(${reference.foreignTable.entityType.canonicalName}.class)));
             </#list>
             map.put(${table.entityType.canonicalName}.class, tableMetadata);

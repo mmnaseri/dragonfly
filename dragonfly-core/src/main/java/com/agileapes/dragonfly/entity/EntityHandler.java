@@ -20,7 +20,7 @@ package com.agileapes.dragonfly.entity;
 import com.agileapes.dragonfly.data.DataAccess;
 import com.agileapes.dragonfly.data.DataAccessSession;
 import com.agileapes.dragonfly.data.impl.ManyToManyMiddleEntity;
-import com.agileapes.dragonfly.metadata.ReferenceMetadata;
+import com.agileapes.dragonfly.metadata.RelationMetadata;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 
 import java.io.Serializable;
@@ -116,13 +116,13 @@ public interface EntityHandler<E> {
     /**
      * Loads the given lazy relation into the entity
      * @param entity               the entity
-     * @param referenceMetadata    the lazy relation
+     * @param relationMetadata    the lazy relation
      * @param dataAccess           the data access through which the relations should be loaded
      * @param entityContext        the context which holds entities
      * @param map                  the map of the entity's loaded values
      * @param session              the session through which connections can be made
      */
-    void loadLazyRelation(E entity, ReferenceMetadata<E, ?> referenceMetadata, DataAccess dataAccess, EntityContext entityContext, Map<String, Object> map, DataAccessSession session);
+    void loadLazyRelation(E entity, RelationMetadata<E, ?> relationMetadata, DataAccess dataAccess, EntityContext entityContext, Map<String, Object> map, DataAccessSession session);
 
     /**
      * Deletes all objects on the deletion of which the correct deletion of

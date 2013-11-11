@@ -7,7 +7,7 @@
         <constructor-arg index="0" type="com.agileapes.dragonfly.dialect.DatabaseDialect" ref="databaseDialect"/>
         <constructor-arg index="1" type="com.agileapes.dragonfly.statement.impl.StatementRegistry"
                          ref="statementRegistry"/>
-        <constructor-arg index="2" type="com.agileapes.dragonfly.metadata.MetadataRegistry" ref="metadataContext"/>
+        <constructor-arg index="2" type="com.agileapes.dragonfly.metadata.TableMetadataRegistry" ref="metadataContext"/>
         <constructor-arg index="3" type="javax.sql.DataSource" ref="${db.dataSource}"/>
     </bean>
 
@@ -17,14 +17,14 @@
 
     <bean id="statementRegistry" class="com.agileapes.dragonfly.statement.impl.DefaultStatementRegistry"/>
 
-    <bean id="metadataContext" class="com.agileapes.dragonfly.metadata.impl.DefaultMetadataContext"/>
+    <bean id="metadataContext" class="com.agileapes.dragonfly.metadata.impl.DefaultTableMetadataContext"/>
 
     <bean id="accessDeniedHandler" class="com.agileapes.dragonfly.security.impl.FatalAccessDeniedHandler"/>
 
     <bean id="entityHandlerContext" class="com.agileapes.dragonfly.entity.impl.DefaultEntityHandlerContext">
         <constructor-arg index="0" type="com.agileapes.dragonfly.entity.EntityContext"
                          ref="entityContext"/>
-        <constructor-arg index="1" type="com.agileapes.dragonfly.metadata.MetadataRegistry" ref="metadataContext"/>
+        <constructor-arg index="1" type="com.agileapes.dragonfly.metadata.TableMetadataRegistry" ref="metadataContext"/>
     </bean>
 
     <bean id="dataSecurityManager" class="com.agileapes.dragonfly.security.impl.DefaultDataSecurityManager">
@@ -51,7 +51,7 @@
     <bean id="entityContext" class="com.agileapes.dragonfly.entity.impl.DefaultEntityContext">
         <constructor-arg index="0" type="com.agileapes.dragonfly.security.DataSecurityManager"
                          ref="dataSecurityManager"/>
-        <constructor-arg index="1" type="com.agileapes.dragonfly.metadata.MetadataRegistry" ref="metadataContext"/>
+        <constructor-arg index="1" type="com.agileapes.dragonfly.metadata.TableMetadataRegistry" ref="metadataContext"/>
         <constructor-arg index="2" type="com.agileapes.dragonfly.data.DataAccessSession" ref="dataAccessSession"/>
     </bean>
 

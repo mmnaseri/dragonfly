@@ -18,11 +18,19 @@
 package com.agileapes.dragonfly.metadata;
 
 /**
+ * This is in essence a metadata registry, with the ability to have metadata registries
+ * added to expand its lookup horizon.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
- * @since 1.0 (2013/9/8, 19:41)
+ * @since 1.0 (2013/8/30, 15:46)
  */
-public interface MetadataResolverContext extends MetadataResolver {
+public interface TableMetadataContext extends TableMetadataRegistry {
 
-    void addMetadataResolver(MetadataResolver metadataResolver);
+    /**
+     * Adds another metadata registry to this context, to allow looking up table metadata
+     * in that registry, as well as the context (which is a registry) itself.
+     * @param registry    the registry to add
+     */
+    void addMetadataRegistry(TableMetadataRegistry registry);
 
 }

@@ -19,7 +19,7 @@ package com.agileapes.dragonfly.entity.impl;
 
 import com.agileapes.dragonfly.entity.*;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
-import com.agileapes.dragonfly.metadata.MetadataRegistry;
+import com.agileapes.dragonfly.metadata.TableMetadataRegistry;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 
 import java.util.Collection;
@@ -40,11 +40,11 @@ public class DefaultEntityHandlerContext implements EntityHandlerContext {
     private final MapEntityCreator defaultEntityCreator;
     private final EntityContext entityContext;
     private final Map<Class<?>, EntityHandler<?>> entityHandlers;
-    private final MetadataRegistry metadataRegistry;
+    private final TableMetadataRegistry tableMetadataRegistry;
 
-    public DefaultEntityHandlerContext(EntityContext entityContext, MetadataRegistry metadataRegistry) {
+    public DefaultEntityHandlerContext(EntityContext entityContext, TableMetadataRegistry tableMetadataRegistry) {
         this.entityContext = entityContext;
-        this.metadataRegistry = metadataRegistry;
+        this.tableMetadataRegistry = tableMetadataRegistry;
         if (entityContext instanceof DefaultEntityContext) {
             final DefaultEntityContext context = (DefaultEntityContext) entityContext;
             context.setHandlerContext(this);
@@ -106,7 +106,7 @@ public class DefaultEntityHandlerContext implements EntityHandlerContext {
                 return (EntityHandler<E>) entityHandlers.get(registeredType);
             }
         }
-        final GenericEntityHandler<E> entityHandler = new GenericEntityHandler<E>(entityType, entityContext, metadataRegistry.getTableMetadata(entityType));
+        final GenericEntityHandler<E> entityHandler = new GenericEntityHandler<E>(entityType, entityContext, tableMetadataRegistry.getTableMetadata(entityType));
         entityHandlers.put(entityType, entityHandler);
         return entityHandler;
     }

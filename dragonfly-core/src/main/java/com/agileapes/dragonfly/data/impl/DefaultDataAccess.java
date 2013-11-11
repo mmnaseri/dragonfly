@@ -428,7 +428,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
                         return STATEMENTS.get(item).equals(statementName);
                     }
                 }));
-                result = statementBuilder.getStatement(session.getMetadataRegistry().getTableMetadata(entityType), ordering);
+                result = statementBuilder.getStatement(session.getTableMetadataRegistry().getTableMetadata(entityType), ordering);
             }
         } catch (RegistryException e) {
             throw new NoSuchQueryError(entityType, statementName);
@@ -483,19 +483,19 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         initializedEntity.setMap(values);
         entityHandler.incrementVersion(enhancedEntity);
         entityHandler.loadEagerRelations(enhancedEntity, values, initializationContext);
-        final TableMetadata<E> tableMetadata = session.getMetadataRegistry().getTableMetadata(entityHandler.getEntityType());
+        final TableMetadata<E> tableMetadata = session.getTableMetadataRegistry().getTableMetadata(entityHandler.getEntityType());
         final BeanWrapper<E> wrapper = new MethodBeanWrapper<E>(enhancedEntity);
         with(tableMetadata.getForeignReferences())
                 .forThose(
-                        new Filter<ReferenceMetadata<E, ?>>() {
+                        new Filter<RelationMetadata<E, ?>>() {
                             @Override
-                            public boolean accepts(ReferenceMetadata<E, ?> item) {
-                                return !item.isLazy() && item.getRelationType().equals(RelationType.MANY_TO_MANY);
+                            public boolean accepts(RelationMetadata<E, ?> item) {
+                                return !item.isLazy() && item.getType().equals(RelationType.MANY_TO_MANY);
                             }
                         },
-                        new Processor<ReferenceMetadata<E, ?>>() {
+                        new Processor<RelationMetadata<E, ?>>() {
                             @Override
-                            public void process(ReferenceMetadata<E, ?> reference) {
+                            public void process(RelationMetadata<E, ?> reference) {
                                 final Connection connection = openConnection();
                                 final TableMetadata<?> middleTable = reference.getForeignTable();
                                 final ManyToManyActionHelper helper = new ManyToManyActionHelper(statementPreparator, connection, session.getDatabaseDialect().getStatementBuilderContext(), middleTable, tableMetadata, reference, entityContext);
@@ -736,8 +736,8 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         initializedEntity.freeze();
         entityHandler.initializeVersion(enhancedEntity);
         final Map<String, Object> sequenceValues = new HashMap<String, Object>();
-        sequenceValues.putAll(session.getDatabaseDialect().loadTableValues(session.getMetadataRegistry().getTableMetadata(TableKeyGeneratorEntity.class), session.getMetadataRegistry().getTableMetadata(entityHandler.getEntityType()), session));
-        sequenceValues.putAll(session.getDatabaseDialect().loadSequenceValues(session.getMetadataRegistry().getTableMetadata(entityHandler.getEntityType())));
+        sequenceValues.putAll(session.getDatabaseDialect().loadTableValues(session.getTableMetadataRegistry().getTableMetadata(TableKeyGeneratorEntity.class), session.getTableMetadataRegistry().getTableMetadata(entityHandler.getEntityType()), session));
+        sequenceValues.putAll(session.getDatabaseDialect().loadSequenceValues(session.getTableMetadataRegistry().getTableMetadata(entityHandler.getEntityType())));
         entityHandler.fromMap(enhancedEntity, sequenceValues);
         entityHandler.saveDependencyRelations(enhancedEntity, this);
         eventHandler.beforeInsert(enhancedEntity);
@@ -786,7 +786,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
             final Cache<TableMetadata<?>, ManyToManyActionHelper> helpers = new SimpleDataDispenser<TableMetadata<?>, ManyToManyActionHelper>() {
                 @Override
                 protected ManyToManyActionHelper produce(TableMetadata<?> tableMetadata) {
-                    return new ManyToManyActionHelper(statementPreparator, connection, session.getDatabaseDialect().getStatementBuilderContext(), tableMetadata, session.getMetadataRegistry().getTableMetadata(entityHandler.getEntityType()), null, entityContext);
+                    return new ManyToManyActionHelper(statementPreparator, connection, session.getDatabaseDialect().getStatementBuilderContext(), tableMetadata, session.getTableMetadataRegistry().getTableMetadata(entityHandler.getEntityType()), null, entityContext);
                 }
             };
             for (Map.Entry<TableMetadata<?>, Set<ManyToManyMiddleEntity>> entry : relatedObjects.entrySet()) {
@@ -909,19 +909,19 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
 
     private <E> void deleteDependencies(final EntityHandler<E> entityHandler, final E enhancedEntity) {
         entityHandler.deleteDependencyRelations(enhancedEntity, this);
-        final TableMetadata<E> tableMetadata = session.getMetadataRegistry().getTableMetadata(entityHandler.getEntityType());
+        final TableMetadata<E> tableMetadata = session.getTableMetadataRegistry().getTableMetadata(entityHandler.getEntityType());
         final Connection connection = openConnection();
         with(tableMetadata.getForeignReferences())
                 .forThose(
-                        new Filter<ReferenceMetadata<E, ?>>() {
+                        new Filter<RelationMetadata<E, ?>>() {
                             @Override
-                            public boolean accepts(ReferenceMetadata<E, ?> item) {
-                                return item.getCascadeMetadata().cascadeRemove() && RelationType.MANY_TO_MANY.equals(item.getRelationType());
+                            public boolean accepts(RelationMetadata<E, ?> item) {
+                                return item.getCascadeMetadata().cascadeRemove() && RelationType.MANY_TO_MANY.equals(item.getType());
                             }
                         },
-                        new Processor<ReferenceMetadata<E, ?>>() {
+                        new Processor<RelationMetadata<E, ?>>() {
                             @Override
-                            public void process(ReferenceMetadata<E, ?> reference) {
+                            public void process(RelationMetadata<E, ?> reference) {
                                 final TableMetadata<?> middleTable = reference.getForeignTable();
                                 final ManyToManyActionHelper helper = new ManyToManyActionHelper(statementPreparator, connection, session.getDatabaseDialect().getStatementBuilderContext(), middleTable, tableMetadata, reference, entityContext);
                                 final ManyToManyMiddleEntity middleEntity = new ManyToManyMiddleEntity();
@@ -990,19 +990,19 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         if (!deleteAllStatements.get().containsKey(entityType) || !deleteAllStatements.get().get(entityType).containsKey(statementType)) {
             final Map<Statements.Manipulation, Set<Statement>> map = deleteAllStatements.get().containsKey(entityType) ? deleteAllStatements.get().get(entityType) : new HashMap<Statements.Manipulation, Set<Statement>>();
             final Set<Statement> statements = map.containsKey(statementType) ? map.get(statementType) : new HashSet<Statement>();
-            final TableMetadata<E> tableMetadata = session.getMetadataRegistry().getTableMetadata(entityType);
+            final TableMetadata<E> tableMetadata = session.getTableMetadataRegistry().getTableMetadata(entityType);
             with(tableMetadata.getForeignReferences())
-                    .forThose(new Filter<ReferenceMetadata<E, ?>>() {
+                    .forThose(new Filter<RelationMetadata<E, ?>>() {
                                   @Override
-                                  public boolean accepts(ReferenceMetadata<E, ?> referenceMetadata) {
-                                      return referenceMetadata.getCascadeMetadata().cascadeRemove() && (statementType.equals(Statements.Manipulation.DELETE_DEPENDENCIES) ? referenceMetadata.isRelationOwner() : !referenceMetadata.isRelationOwner());
+                                  public boolean accepts(RelationMetadata<E, ?> relationMetadata) {
+                                      return relationMetadata.getCascadeMetadata().cascadeRemove() && (statementType.equals(Statements.Manipulation.DELETE_DEPENDENCIES) ? relationMetadata.isOwner() : !relationMetadata.isOwner());
                                   }
                               },
-                            new Processor<ReferenceMetadata<E, ?>>() {
+                            new Processor<RelationMetadata<E, ?>>() {
                                 @Override
-                                public void process(ReferenceMetadata<E, ?> referenceMetadata) {
+                                public void process(RelationMetadata<E, ?> relationMetadata) {
                                     final StatementBuilder builder = session.getDatabaseDialect().getStatementBuilderContext().getManipulationStatementBuilder(statementType);
-                                    statements.add(builder.getStatement(tableMetadata, referenceMetadata));
+                                    statements.add(builder.getStatement(tableMetadata, relationMetadata));
                                 }
                             }
                     );
@@ -1031,7 +1031,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         final EntityHandler<E> entityHandler = entityHandlerContext.getHandler(sample);
         final ResultOrderMetadata ordering;
         if (order != null) {
-            ordering = new OrderExpressionParser(session.getMetadataRegistry().getTableMetadata(entityHandler.getEntityType())).map(order);
+            ordering = new OrderExpressionParser(session.getTableMetadataRegistry().getTableMetadata(entityHandler.getEntityType())).map(order);
         } else {
             ordering = null;
         }
@@ -1073,7 +1073,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         final EntityHandler<E> entityHandler = entityHandlerContext.getHandler(entityType);
         final ResultOrderMetadata ordering;
         if (order != null) {
-            ordering = new OrderExpressionParser(session.getMetadataRegistry().getTableMetadata(entityHandler.getEntityType())).map(order);
+            ordering = new OrderExpressionParser(session.getTableMetadataRegistry().getTableMetadata(entityHandler.getEntityType())).map(order);
         } else {
             ordering = null;
         }
@@ -1125,7 +1125,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
             throw new BatchOperationInterruptedByProcedureError();
         }
         log.info("Calling to stored procedure " + entityType.getCanonicalName() + "." + procedureName);
-        final TableMetadata<E> tableMetadata = session.getMetadataRegistry().getTableMetadata(entityType);
+        final TableMetadata<E> tableMetadata = session.getTableMetadataRegistry().getTableMetadata(entityType);
         //noinspection unchecked
         final StoredProcedureMetadata procedureMetadata = with(tableMetadata.getProcedures()).keep(new Filter<StoredProcedureMetadata>() {
             @Override

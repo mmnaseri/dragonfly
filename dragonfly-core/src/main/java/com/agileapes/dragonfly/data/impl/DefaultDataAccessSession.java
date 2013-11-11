@@ -25,7 +25,7 @@ import com.agileapes.dragonfly.error.DataAccessSessionAlreadyInitializedError;
 import com.agileapes.dragonfly.error.DataAccessSessionInitializationError;
 import com.agileapes.dragonfly.error.DatabaseConnectionError;
 import com.agileapes.dragonfly.error.DatabaseDriverNotFoundError;
-import com.agileapes.dragonfly.metadata.MetadataRegistry;
+import com.agileapes.dragonfly.metadata.TableMetadataRegistry;
 import com.agileapes.dragonfly.statement.impl.LocalStatementRegistry;
 import com.agileapes.dragonfly.statement.impl.StatementRegistry;
 import org.apache.commons.logging.Log;
@@ -60,7 +60,7 @@ public class DefaultDataAccessSession implements DataAccessSession {
     private final String password;
     private final DataSource dataSource;
     private final StatementRegistry statementRegistry;
-    private final MetadataRegistry metadataRegistry;
+    private final TableMetadataRegistry tableMetadataRegistry;
     private final DataStructureHandler dataStructureHandler;
     private boolean initialized = false;
     private final AtomicLong connections = new AtomicLong(0L);
@@ -72,39 +72,39 @@ public class DefaultDataAccessSession implements DataAccessSession {
         return JDBC_PREFIX + databaseDialect.getName() + PROTOCOL_SPECIFIER + (hostName == null ? DEFAULT_HOST : hostName) + PORT_SEPARATOR + (port == null ? databaseDialect.getDefaultPort() : port) + DB_SEPARATOR + (databaseName == null ? "" : databaseName);
     }
 
-    public DefaultDataAccessSession(DatabaseDialect databaseDialect, StatementRegistry statementRegistry, MetadataRegistry metadataRegistry) {
-        this(databaseDialect, statementRegistry, metadataRegistry, null, null);
+    public DefaultDataAccessSession(DatabaseDialect databaseDialect, StatementRegistry statementRegistry, TableMetadataRegistry tableMetadataRegistry) {
+        this(databaseDialect, statementRegistry, tableMetadataRegistry, null, null);
     }
 
-    public DefaultDataAccessSession(DatabaseDialect databaseDialect, StatementRegistry statementRegistry, MetadataRegistry metadataRegistry, String hostName, String databaseName) {
-        this(databaseDialect, statementRegistry, metadataRegistry, hostName, databaseName, null, null);
+    public DefaultDataAccessSession(DatabaseDialect databaseDialect, StatementRegistry statementRegistry, TableMetadataRegistry tableMetadataRegistry, String hostName, String databaseName) {
+        this(databaseDialect, statementRegistry, tableMetadataRegistry, hostName, databaseName, null, null);
     }
 
-    public DefaultDataAccessSession(DatabaseDialect databaseDialect, StatementRegistry statementRegistry, MetadataRegistry metadataRegistry, String hostName, String databaseName, String username, String password) {
-        this(databaseDialect, statementRegistry, metadataRegistry, hostName, null, databaseName, username, password);
+    public DefaultDataAccessSession(DatabaseDialect databaseDialect, StatementRegistry statementRegistry, TableMetadataRegistry tableMetadataRegistry, String hostName, String databaseName, String username, String password) {
+        this(databaseDialect, statementRegistry, tableMetadataRegistry, hostName, null, databaseName, username, password);
     }
 
-    public DefaultDataAccessSession(DatabaseDialect databaseDialect, StatementRegistry statementRegistry, MetadataRegistry metadataRegistry, String hostName, Integer port, String databaseName, String username, String password) {
-        this(databaseDialect, statementRegistry, metadataRegistry, new JdbcDataSource(getConnectionString(databaseDialect, hostName, port, databaseName)), username, password);
+    public DefaultDataAccessSession(DatabaseDialect databaseDialect, StatementRegistry statementRegistry, TableMetadataRegistry tableMetadataRegistry, String hostName, Integer port, String databaseName, String username, String password) {
+        this(databaseDialect, statementRegistry, tableMetadataRegistry, new JdbcDataSource(getConnectionString(databaseDialect, hostName, port, databaseName)), username, password);
     }
 
-    public DefaultDataAccessSession(DatabaseDialect databaseDialect, StatementRegistry statementRegistry, MetadataRegistry metadataRegistry, String connectionString) {
-        this(databaseDialect, statementRegistry, metadataRegistry, connectionString, null, null);
+    public DefaultDataAccessSession(DatabaseDialect databaseDialect, StatementRegistry statementRegistry, TableMetadataRegistry tableMetadataRegistry, String connectionString) {
+        this(databaseDialect, statementRegistry, tableMetadataRegistry, connectionString, null, null);
     }
 
-    public DefaultDataAccessSession(DatabaseDialect databaseDialect, StatementRegistry statementRegistry, MetadataRegistry metadataRegistry, String connectionString, String username, String password) {
-        this(databaseDialect, statementRegistry, metadataRegistry, new JdbcDataSource(connectionString), username, password);
+    public DefaultDataAccessSession(DatabaseDialect databaseDialect, StatementRegistry statementRegistry, TableMetadataRegistry tableMetadataRegistry, String connectionString, String username, String password) {
+        this(databaseDialect, statementRegistry, tableMetadataRegistry, new JdbcDataSource(connectionString), username, password);
     }
 
-    public DefaultDataAccessSession(DatabaseDialect databaseDialect, StatementRegistry statementRegistry, MetadataRegistry metadataRegistry, DataSource dataSource) {
-        this(databaseDialect, statementRegistry, metadataRegistry, dataSource, null, null);
+    public DefaultDataAccessSession(DatabaseDialect databaseDialect, StatementRegistry statementRegistry, TableMetadataRegistry tableMetadataRegistry, DataSource dataSource) {
+        this(databaseDialect, statementRegistry, tableMetadataRegistry, dataSource, null, null);
     }
 
-    public DefaultDataAccessSession(DatabaseDialect databaseDialect, StatementRegistry statementRegistry, MetadataRegistry metadataRegistry, DataSource dataSource, String username, String password) {
+    public DefaultDataAccessSession(DatabaseDialect databaseDialect, StatementRegistry statementRegistry, TableMetadataRegistry tableMetadataRegistry, DataSource dataSource, String username, String password) {
         loadDriver(databaseDialect);
         this.databaseDialect = databaseDialect;
         this.statementRegistry = statementRegistry;
-        this.metadataRegistry = metadataRegistry;
+        this.tableMetadataRegistry = tableMetadataRegistry;
         this.dataSource = dataSource;
         this.username = username;
         this.password = password;
@@ -197,8 +197,8 @@ public class DefaultDataAccessSession implements DataAccessSession {
      * @return the metadata registry associated with the session
      */
     @Override
-    public MetadataRegistry getMetadataRegistry() {
-        return metadataRegistry;
+    public TableMetadataRegistry getTableMetadataRegistry() {
+        return tableMetadataRegistry;
     }
 
     /**
@@ -206,7 +206,7 @@ public class DefaultDataAccessSession implements DataAccessSession {
      */
     @Override
     public Collection<Class<?>> getRegisteredEntities() {
-        return metadataRegistry.getEntityTypes();
+        return tableMetadataRegistry.getEntityTypes();
     }
 
     /**

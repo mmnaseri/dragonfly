@@ -17,6 +17,7 @@
 
 package com.agileapes.dragonfly.metadata.impl;
 
+import com.agileapes.dragonfly.annotations.Ordering;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
 import com.agileapes.dragonfly.metadata.OrderMetadata;
 
@@ -27,9 +28,9 @@ import com.agileapes.dragonfly.metadata.OrderMetadata;
 public class DefaultOrderMetadata implements OrderMetadata {
 
     private ColumnMetadata column;
-    private final String order;
+    private final Ordering order;
 
-    public DefaultOrderMetadata(ColumnMetadata column, String order) {
+    public DefaultOrderMetadata(ColumnMetadata column, Ordering order) {
         this.column = column;
         this.order = order;
     }
@@ -40,7 +41,7 @@ public class DefaultOrderMetadata implements OrderMetadata {
     }
 
     @Override
-    public String getOrder() {
+    public Ordering getOrder() {
         return order;
     }
 

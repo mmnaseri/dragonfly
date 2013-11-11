@@ -18,11 +18,18 @@
 package com.agileapes.dragonfly.metadata;
 
 /**
+ * This is a {@link TableMetadataResolver} that will be able to enjoy the assistance of
+ * delegates to carry out metadata resolving.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
- * @since 1.0 (2013/8/30, 15:46)
+ * @since 1.0 (2013/9/8, 19:41)
  */
-public interface MetadataContext extends MetadataRegistry {
+public interface TableMetadataResolverContext extends TableMetadataResolver {
 
-    void addMetadataRegistry(MetadataRegistry registry);
+    /**
+     * Adds a metadata resolver to the context
+     * @param tableMetadataResolver    the metadata resolver
+     */
+    void addMetadataResolver(TableMetadataResolver tableMetadataResolver);
 
 }

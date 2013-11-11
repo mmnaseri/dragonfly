@@ -90,7 +90,7 @@ public class UnresolvedTableMetadata<E> extends AbstractTableMetadata<E> {
     }
 
     @Override
-    public Collection<ReferenceMetadata<E, ?>> getForeignReferences() {
+    public Collection<RelationMetadata<E, ?>> getForeignReferences() {
         throw new MetadataCollectionError("Metadata is not available", new UnresolvedTableMetadataError(getEntityType()));
     }
 

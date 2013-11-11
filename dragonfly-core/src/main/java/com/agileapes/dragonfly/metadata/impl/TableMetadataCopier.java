@@ -53,7 +53,7 @@ public class TableMetadataCopier<E> {
         final ArrayList<NamedQueryMetadata> namedQueries = new ArrayList<NamedQueryMetadata>();
         final ArrayList<SequenceMetadata> sequences = new ArrayList<SequenceMetadata>();
         final ArrayList<StoredProcedureMetadata> storedProcedures = new ArrayList<StoredProcedureMetadata>();
-        final ArrayList<ReferenceMetadata<E, ?>> foreignReferences = new ArrayList<ReferenceMetadata<E, ?>>();
+        final ArrayList<RelationMetadata<E, ?>> foreignReferences = new ArrayList<RelationMetadata<E, ?>>();
         final ColumnMetadata versionColumn = tableMetadata.getVersionColumn() == null ? null : with(columns).find(new ColumnNameFilter(tableMetadata.getVersionColumn().getName()));
         final List<OrderMetadata> ordering = with(tableMetadata.getOrdering()).transform(new Transformer<OrderMetadata, OrderMetadata>() {
             @Override
@@ -81,7 +81,7 @@ public class TableMetadataCopier<E> {
             }
         }
         for (NamedQueryMetadata queryMetadata : tableMetadata.getNamedQueries()) {
-            namedQueries.add(new ImmutableNamedQueryMetadata(queryMetadata.getName(), queryMetadata.getQuery()));
+            namedQueries.add(new ImmutableNamedQueryMetadata(queryMetadata.getName(), queryMetadata.getQuery(), metadata, queryMetadata.getQueryType()));
         }
         for (SequenceMetadata sequence : tableMetadata.getSequences()) {
             sequences.add(new DefaultSequenceMetadata(sequence.getName(), sequence.getInitialValue(), sequence.getPrefetchSize()));
@@ -89,9 +89,9 @@ public class TableMetadataCopier<E> {
         for (StoredProcedureMetadata procedureMetadata : tableMetadata.getProcedures()) {
             storedProcedures.add(new ImmutableStoredProcedureMetadata(procedureMetadata.getName(), procedureMetadata.getResultType(), procedureMetadata.getParameters()));
         }
-        for (ReferenceMetadata<E, ?> foreignReference : tableMetadata.getForeignReferences()) {
+        for (RelationMetadata<E, ?> foreignReference : tableMetadata.getForeignReferences()) {
             //noinspection unchecked
-            foreignReferences.add(new ImmutableReferenceMetadata<E, Object>(foreignReference.getDeclaringClass(), foreignReference.getPropertyName(), foreignReference.isRelationOwner(), metadata, (TableMetadata<Object>) foreignReference.getForeignTable(), foreignReference.getForeignColumn(), foreignReference.getRelationType(), foreignReference.getCascadeMetadata(), foreignReference.isLazy(), foreignReference.getOrdering()));
+            foreignReferences.add(new ImmutableRelationMetadata<E, Object>(foreignReference.getDeclaringClass(), foreignReference.getPropertyName(), foreignReference.isOwner(), metadata, (TableMetadata<Object>) foreignReference.getForeignTable(), foreignReference.getForeignColumn(), foreignReference.getType(), foreignReference.getCascadeMetadata(), foreignReference.isLazy(), foreignReference.getOrdering()));
         }
         return metadata;
     }

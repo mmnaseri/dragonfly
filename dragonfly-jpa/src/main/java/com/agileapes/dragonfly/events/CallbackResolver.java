@@ -17,8 +17,8 @@
 
 package com.agileapes.dragonfly.events;
 
-import com.agileapes.dragonfly.metadata.MetadataContext;
-import com.agileapes.dragonfly.metadata.MetadataContextPostProcessor;
+import com.agileapes.dragonfly.metadata.TableMetadataContext;
+import com.agileapes.dragonfly.metadata.TableMetadataContextPostProcessor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -30,7 +30,7 @@ import java.util.HashSet;
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/10/11, 12:11)
  */
-public class CallbackResolver implements MetadataContextPostProcessor, EventHandlerContextPostProcessor {
+public class CallbackResolver implements TableMetadataContextPostProcessor, EventHandlerContextPostProcessor {
 
     private static final Log log = LogFactory.getLog(CallbackResolver.class);
     private final Collection<DataAccessEventHandler> eventHandlers = new HashSet<DataAccessEventHandler>();
@@ -44,9 +44,9 @@ public class CallbackResolver implements MetadataContextPostProcessor, EventHand
     }
 
     @Override
-    public synchronized void postProcessMetadataContext(MetadataContext metadataContext) {
+    public synchronized void postProcessMetadataContext(TableMetadataContext tableMetadataContext) {
         log.info("Looking up entity callbacks");
-        final Collection<Class<?>> entityTypes = metadataContext.getEntityTypes();
+        final Collection<Class<?>> entityTypes = tableMetadataContext.getEntityTypes();
         eventHandlers.add(new EntityEventCallback());
         for (Class<?> entityType : entityTypes) {
             if (entityType.isAnnotationPresent(EntityListeners.class)) {

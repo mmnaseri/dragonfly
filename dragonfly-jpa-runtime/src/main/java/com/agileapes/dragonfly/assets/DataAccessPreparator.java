@@ -25,8 +25,8 @@ import com.agileapes.dragonfly.entity.EntityHandlerContext;
 import com.agileapes.dragonfly.entity.EntityHandlerContextPostProcessor;
 import com.agileapes.dragonfly.events.EventHandlerContext;
 import com.agileapes.dragonfly.events.EventHandlerContextPostProcessor;
-import com.agileapes.dragonfly.metadata.MetadataContext;
-import com.agileapes.dragonfly.metadata.MetadataContextPostProcessor;
+import com.agileapes.dragonfly.metadata.TableMetadataContext;
+import com.agileapes.dragonfly.metadata.TableMetadataContextPostProcessor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.BeansException;
@@ -65,9 +65,9 @@ public class DataAccessPreparator implements ApplicationContextAware {
                 postProcessor.postProcessEventHandlerContext(context);
             }
         }));
-        postProcessors.add(new AsynchronousPostProcessor<MetadataContext, MetadataContextPostProcessor>(MetadataContext.class, MetadataContextPostProcessor.class, new PostProcessor<MetadataContext, MetadataContextPostProcessor>() {
+        postProcessors.add(new AsynchronousPostProcessor<TableMetadataContext, TableMetadataContextPostProcessor>(TableMetadataContext.class, TableMetadataContextPostProcessor.class, new PostProcessor<TableMetadataContext, TableMetadataContextPostProcessor>() {
             @Override
-            public void postProcess(MetadataContext context, MetadataContextPostProcessor postProcessor) {
+            public void postProcess(TableMetadataContext context, TableMetadataContextPostProcessor postProcessor) {
                 postProcessor.postProcessMetadataContext(context);
             }
         }));

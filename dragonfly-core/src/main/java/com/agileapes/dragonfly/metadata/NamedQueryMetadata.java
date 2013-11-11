@@ -18,13 +18,35 @@
 package com.agileapes.dragonfly.metadata;
 
 /**
+ * This interface encapsulates the properties of a named query. It is assumed that all read
+ * named queries will return entities of the type for which they are defined.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/7, 12:35)
  */
 public interface NamedQueryMetadata extends Metadata {
 
+    /**
+     * @return the name of the query, which must be unique across the entity
+     */
     String getName();
 
+    /**
+     * @return the actual query as specified by the developer. This might or might not be
+     * suitable for immediate execution, i.e. it might require some static or dynamic
+     * post-processing by the framework or third parties before it can be handed to the
+     * persistence unit.
+     */
     String getQuery();
+
+    /**
+     * @return the table for which the named query is defined.
+     */
+    TableMetadata<?> getTable();
+
+    /**
+     * @return the type of the query for execution
+     */
+    QueryType getQueryType();
 
 }

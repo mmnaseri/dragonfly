@@ -20,6 +20,10 @@ package com.agileapes.dragonfly.metadata;
 import java.util.List;
 
 /**
+ * This interface is actually a shorthand interface that provides the same functionalities
+ * as a list and is also a metadata itself, and as such, can be directly passed to statement
+ * templates for code generation.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/10/31, 9:50)
  */

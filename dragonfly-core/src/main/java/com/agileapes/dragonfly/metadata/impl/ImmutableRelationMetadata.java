@@ -26,7 +26,7 @@ import java.util.List;
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/12, 0:17)
  */
-public class ImmutableReferenceMetadata<S, D> implements ReferenceMetadata<S, D> {
+public class ImmutableRelationMetadata<S, D> implements RelationMetadata<S, D> {
 
     private final String propertyName;
     private final boolean owner;
@@ -39,7 +39,7 @@ public class ImmutableReferenceMetadata<S, D> implements ReferenceMetadata<S, D>
     private final boolean lazy;
     private final CascadeMetadata cascadeMetadata;
 
-    public ImmutableReferenceMetadata(Class<?> declaringClass, String propertyName, boolean owner, TableMetadata<S> localTable, TableMetadata<D> foreignTable, ColumnMetadata foreignColumn, RelationType relationType, CascadeMetadata cascadeMetadata, boolean lazy, List<OrderMetadata> ordering) {
+    public ImmutableRelationMetadata(Class<?> declaringClass, String propertyName, boolean owner, TableMetadata<S> localTable, TableMetadata<D> foreignTable, ColumnMetadata foreignColumn, RelationType relationType, CascadeMetadata cascadeMetadata, boolean lazy, List<OrderMetadata> ordering) {
         this.localTable = localTable;
         this.foreignTable = foreignTable;
         this.relationType = relationType;
@@ -63,7 +63,7 @@ public class ImmutableReferenceMetadata<S, D> implements ReferenceMetadata<S, D>
     }
 
     @Override
-    public RelationType getRelationType() {
+    public RelationType getType() {
         return relationType;
     }
 
@@ -88,7 +88,7 @@ public class ImmutableReferenceMetadata<S, D> implements ReferenceMetadata<S, D>
     }
 
     @Override
-    public boolean isRelationOwner() {
+    public boolean isOwner() {
         return owner;
     }
 

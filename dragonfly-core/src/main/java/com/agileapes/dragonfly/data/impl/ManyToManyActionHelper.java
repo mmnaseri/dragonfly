@@ -25,7 +25,7 @@ import com.agileapes.dragonfly.entity.impl.DefaultMapEntityCreator;
 import com.agileapes.dragonfly.entity.impl.DefaultRowHandler;
 import com.agileapes.dragonfly.error.UnsuccessfulOperationError;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
-import com.agileapes.dragonfly.metadata.ReferenceMetadata;
+import com.agileapes.dragonfly.metadata.RelationMetadata;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.statement.Statement;
 import com.agileapes.dragonfly.statement.StatementBuilderContext;
@@ -68,7 +68,7 @@ public class ManyToManyActionHelper {
     private PreparedStatement preparedInsertStatement;
     private PreparedStatement preparedSelectStatement;
 
-    public ManyToManyActionHelper(StatementPreparator statementPreparator, Connection connection, StatementBuilderContext statementBuilderContext, TableMetadata<?> tableMetadata, TableMetadata<?> currentTable, ReferenceMetadata<?, ?> referenceMetadata, EntityContext entityContext) {
+    public ManyToManyActionHelper(StatementPreparator statementPreparator, Connection connection, StatementBuilderContext statementBuilderContext, TableMetadata<?> tableMetadata, TableMetadata<?> currentTable, RelationMetadata<?, ?> relationMetadata, EntityContext entityContext) {
         this.statementPreparator = statementPreparator;
         this.connection = connection;
         this.tableMetadata = tableMetadata;
@@ -76,7 +76,7 @@ public class ManyToManyActionHelper {
         this.entityContext = entityContext;
         this.insertStatement = statementBuilderContext.getManipulationStatementBuilder(Statements.Manipulation.INSERT).getStatement(tableMetadata);
         this.deleteStatement = statementBuilderContext.getManipulationStatementBuilder(Statements.Manipulation.DELETE_LIKE).getStatement(tableMetadata);
-        this.selectStatement = referenceMetadata == null ? statementBuilderContext.getManipulationStatementBuilder(Statements.Manipulation.FIND_LIKE).getStatement(tableMetadata) : statementBuilderContext.getManipulationStatementBuilder(Statements.Manipulation.LOAD_MANY_TO_MANY).getStatement(tableMetadata, referenceMetadata);
+        this.selectStatement = relationMetadata == null ? statementBuilderContext.getManipulationStatementBuilder(Statements.Manipulation.FIND_LIKE).getStatement(tableMetadata) : statementBuilderContext.getManipulationStatementBuilder(Statements.Manipulation.LOAD_MANY_TO_MANY).getStatement(tableMetadata, relationMetadata);
         this.mapCreator = new DefaultEntityMapCreator();
         this.rowHandler = new DefaultRowHandler();
         this.entityCreator = new DefaultMapEntityCreator();
