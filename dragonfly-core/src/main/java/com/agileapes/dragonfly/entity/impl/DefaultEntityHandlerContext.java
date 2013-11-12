@@ -21,6 +21,8 @@ import com.agileapes.dragonfly.entity.*;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
 import com.agileapes.dragonfly.metadata.TableMetadataRegistry;
 import com.agileapes.dragonfly.metadata.TableMetadata;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import java.util.Collection;
 import java.util.Map;
@@ -33,7 +35,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * @since 1.0 (2013/9/14, 5:38)
  */
 public class DefaultEntityHandlerContext implements EntityHandlerContext {
-    
+
+    private static final Log log = LogFactory.getLog(EntityHandlerContext.class);
     private final Map<Class<?>, EntityMapCreator> mapCreators;
     private final Map<Class<?>, MapEntityCreator> entityCreators;
     private final EntityMapCreator defaultMapCreator;
@@ -54,6 +57,7 @@ public class DefaultEntityHandlerContext implements EntityHandlerContext {
         entityCreators = new ConcurrentHashMap<Class<?>, MapEntityCreator>();
         mapCreators = new ConcurrentHashMap<Class<?>, EntityMapCreator>();
         entityHandlers = new ConcurrentHashMap<Class<?>, EntityHandler<?>>();
+        log.info("Started entity handler context ...");
     }
 
     @Override

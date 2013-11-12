@@ -118,7 +118,7 @@ public class SessionPreparator implements BeanFactoryPostProcessor, Disposable {
         log.info("Finding extensions to the data access ...");
         log.debug("Looking for classes with @Extension");
         componentProvider.addIncludeFilter(new AnnotationTypeFilter(Extension.class));
-        final AnnotationExtensionMetadataResolver extensionMetadataResolver = new AnnotationExtensionMetadataResolver(resolverContext);
+        final AnnotationExtensionMetadataResolver extensionMetadataResolver = new AnnotationExtensionMetadataResolver(new AnnotationTableMetadataResolver());
         for (String basePackage : basePackages) {
             final Set<BeanDefinition> beanDefinitions = componentProvider.findCandidateComponents(basePackage);
             for (BeanDefinition beanDefinition : beanDefinitions) {

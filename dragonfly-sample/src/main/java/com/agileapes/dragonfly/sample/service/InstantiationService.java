@@ -22,6 +22,7 @@ import com.agileapes.dragonfly.data.impl.DefaultDataAccessSession;
 import com.agileapes.dragonfly.data.impl.SecuredDataAccess;
 import com.agileapes.dragonfly.dialect.impl.Mysql5Dialect;
 import com.agileapes.dragonfly.entity.EntityContext;
+import com.agileapes.dragonfly.entity.impl.DefaultEntityContext;
 import com.agileapes.dragonfly.entity.impl.DefaultEntityHandlerContext;
 import com.agileapes.dragonfly.entity.impl.EntityProxy;
 import com.agileapes.dragonfly.entity.impl.GenericEntityHandler;
@@ -57,7 +58,7 @@ public class InstantiationService {
         long normalTime = System.nanoTime();
         final int benchmarkSize = 10000;
         final DefaultDataSecurityManager securityManager = new DefaultDataSecurityManager(new FatalAccessDeniedHandler());
-        final SecuredDataAccess dataAccess = new SecuredDataAccess(new DefaultDataAccessSession(new Mysql5Dialect(), statementRegistry, tableMetadataRegistry), securityManager, entityContext, new DefaultEntityHandlerContext(null, null));
+        final SecuredDataAccess dataAccess = new SecuredDataAccess(new DefaultDataAccessSession(new Mysql5Dialect(), statementRegistry, tableMetadataRegistry), securityManager, new DefaultEntityContext(securityManager, session.getTableMetadataRegistry(), session), new DefaultEntityHandlerContext(null, null));
         for (int i = 0; i < benchmarkSize; i ++) {
             final TableMetadata<Person> tableMetadata = tableMetadataRegistry.getTableMetadata(Person.class);
             new EntityProxy<Person>(securityManager, tableMetadata, new GenericEntityHandler<Person>(Person.class, entityContext, tableMetadata), dataAccess, session, entityContext);

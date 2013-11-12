@@ -148,4 +148,9 @@ public class DefaultEntityContext implements ModifiableEntityContext {
     public void setHandlerContext(EntityHandlerContext handlerContext) {
         this.handlerContext = handlerContext;
     }
+
+    public DataAccess getDataAccess() {
+        return dataAccess;
+    }
+
 }

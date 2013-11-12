@@ -168,6 +168,9 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
             }
         };
         if (entityContext instanceof DefaultEntityContext) {
+            if (((DefaultEntityContext) entityContext).getDataAccess() != null) {
+                log.warn("The entity context has already been associated with another data access instance.");
+            }
             ((DefaultEntityContext) entityContext).setDataAccess(this);
         }
         this.statementPreparator = new DefaultStatementPreparator(false);

@@ -18,7 +18,7 @@
 package com.agileapes.dragonfly.statement.impl.model.functions;
 
 import com.agileapes.couteau.freemarker.model.FilteringMethodModel;
-import com.agileapes.dragonfly.error.MetadataCollectionError;
+import com.agileapes.dragonfly.error.NoPrimaryKeyDefinedError;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.tools.ColumnNameFilter;
@@ -44,7 +44,7 @@ public class GeneratedColumnFilterMethod extends FilteringMethodModel<ColumnMeta
                     keys.add(column);
                 }
             }
-        } catch (MetadataCollectionError ignored) {}
+        } catch (NoPrimaryKeyDefinedError ignored) {}
     }
 
     @Override
