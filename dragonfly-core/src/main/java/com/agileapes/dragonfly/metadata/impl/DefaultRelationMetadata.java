@@ -23,10 +23,12 @@ import java.util.Collections;
 import java.util.List;
 
 /**
+ * This class offers the default implementation for relation metadata
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/12, 0:17)
  */
-public class ImmutableRelationMetadata<S, D> implements RelationMetadata<S, D> {
+public class DefaultRelationMetadata<S, D> implements RelationMetadata<S, D> {
 
     private final String propertyName;
     private final boolean owner;
@@ -39,7 +41,7 @@ public class ImmutableRelationMetadata<S, D> implements RelationMetadata<S, D> {
     private final boolean lazy;
     private final CascadeMetadata cascadeMetadata;
 
-    public ImmutableRelationMetadata(Class<?> declaringClass, String propertyName, boolean owner, TableMetadata<S> localTable, TableMetadata<D> foreignTable, ColumnMetadata foreignColumn, RelationType relationType, CascadeMetadata cascadeMetadata, boolean lazy, List<OrderMetadata> ordering) {
+    public DefaultRelationMetadata(Class<?> declaringClass, String propertyName, boolean owner, TableMetadata<S> localTable, TableMetadata<D> foreignTable, ColumnMetadata foreignColumn, RelationType relationType, CascadeMetadata cascadeMetadata, boolean lazy, List<OrderMetadata> ordering) {
         this.localTable = localTable;
         this.foreignTable = foreignTable;
         this.relationType = relationType;

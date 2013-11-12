@@ -31,6 +31,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 
 /**
+ * This is a simple table metadata resolver, with the difference that it will take in
+ * multiple metadata resolvers and decide whether or not it can resolve metadata for a
+ * given entity type.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/8, 19:41)
  */

@@ -25,6 +25,9 @@ import java.util.Arrays;
 import java.util.HashSet;
 
 /**
+ * This class denotes a foreign key constraint, and as such can only take one column as the
+ * columns to which it applies.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/8/29, 14:28)
  */

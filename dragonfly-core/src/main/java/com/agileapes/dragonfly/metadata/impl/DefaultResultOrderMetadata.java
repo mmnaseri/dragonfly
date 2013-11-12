@@ -26,6 +26,9 @@ import java.util.*;
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 
 /**
+ * This is the default implementation of {@link ResultOrderMetadata} that uses an internal
+ * list instance to delegate all list-related methods to it
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/10/31, 9:51)
  */

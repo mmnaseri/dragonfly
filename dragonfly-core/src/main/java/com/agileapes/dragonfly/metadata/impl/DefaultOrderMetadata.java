@@ -22,6 +22,8 @@ import com.agileapes.dragonfly.metadata.ColumnMetadata;
 import com.agileapes.dragonfly.metadata.OrderMetadata;
 
 /**
+ * This is the default order metadata class
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/10/30, 11:28)
  */

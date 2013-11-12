@@ -35,8 +35,12 @@ import java.util.List;
 import static com.agileapes.couteau.reflection.util.ReflectionUtils.withMethods;
 
 /**
+ * This is a class that will resolve column metadata for a given partial entity.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/7, 13:22)
+ * @see Partial
+ * @see MappedColumn
  */
 public class ColumnMappingMetadataCollector {
 

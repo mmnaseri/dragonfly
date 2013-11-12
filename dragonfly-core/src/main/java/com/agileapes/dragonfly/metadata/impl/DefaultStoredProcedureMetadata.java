@@ -25,17 +25,20 @@ import com.agileapes.dragonfly.metadata.TableMetadata;
 import java.util.List;
 
 /**
+ * This class offers the default implementation for the {@link StoredProcedureMetadata}
+ * interface
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/10, 0:51)
  */
-public class ImmutableStoredProcedureMetadata implements StoredProcedureMetadata {
+public class DefaultStoredProcedureMetadata implements StoredProcedureMetadata {
 
     private final String name;
     private final Class<?> resultType;
     private final List<ParameterMetadata> parameters;
     private TableMetadata<?> tableMetadata;
 
-    public ImmutableStoredProcedureMetadata(String name, Class<?> resultType, List<ParameterMetadata> parameters) {
+    public DefaultStoredProcedureMetadata(String name, Class<?> resultType, List<ParameterMetadata> parameters) {
         this.name = name;
         this.resultType = resultType;
         this.parameters = parameters;

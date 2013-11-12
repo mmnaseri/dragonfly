@@ -22,6 +22,8 @@ import com.agileapes.dragonfly.metadata.QueryType;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 
 /**
+ * This class denotes metadata pojo for named queries
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/7, 12:35)
  */

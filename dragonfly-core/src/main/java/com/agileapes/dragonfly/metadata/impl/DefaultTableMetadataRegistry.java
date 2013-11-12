@@ -22,14 +22,17 @@ import com.agileapes.couteau.basics.api.Transformer;
 import com.agileapes.couteau.context.contract.Registry;
 import com.agileapes.couteau.context.error.RegistryException;
 import com.agileapes.couteau.context.impl.ConcurrentRegistry;
-import com.agileapes.dragonfly.metadata.TableMetadataRegistry;
 import com.agileapes.dragonfly.metadata.TableMetadata;
+import com.agileapes.dragonfly.metadata.TableMetadataRegistry;
 
 import java.util.Collection;
 
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 
 /**
+ * This class is a simple metadata registry that will employ an instance of {@link Registry}
+ * from the couteau framework to hold table metadata
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/8/30, 14:42)
  */

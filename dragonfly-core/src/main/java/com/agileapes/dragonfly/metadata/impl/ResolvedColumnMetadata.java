@@ -22,6 +22,9 @@ import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.metadata.ValueGenerationType;
 
 /**
+ * This class holds metadata for a <em>resolved</em> column. This means that the column metadata
+ * is fully accessible and available at this point.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/8/30, 3:14)
  */

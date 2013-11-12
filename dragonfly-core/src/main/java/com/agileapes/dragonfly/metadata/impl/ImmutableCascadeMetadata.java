@@ -20,6 +20,8 @@ package com.agileapes.dragonfly.metadata.impl;
 import com.agileapes.dragonfly.metadata.CascadeMetadata;
 
 /**
+ * This class denotes cascade metadata for a relation
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/12, 0:16)
  */

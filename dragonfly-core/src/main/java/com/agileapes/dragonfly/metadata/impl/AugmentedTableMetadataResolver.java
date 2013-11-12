@@ -17,14 +17,17 @@
 
 package com.agileapes.dragonfly.metadata.impl;
 
-import com.agileapes.dragonfly.metadata.TableMetadataResolver;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.metadata.TableMetadataInterceptor;
+import com.agileapes.dragonfly.metadata.TableMetadataResolver;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * This is a class that will take table a metadata resolver, and a list of metadata
+ * interceptors, and then return the resolved and augmented table metadata for the entity
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/8, 19:37)
  */

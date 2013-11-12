@@ -36,6 +36,9 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 
 /**
+ * This is the default implementation of the table metadata context interface, which builds
+ * on the functionality implemented by its superclass, {@link DefaultTableMetadataRegistry}.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/8/30, 15:46)
  */
@@ -141,10 +144,10 @@ public class DefaultTableMetadataContext extends DefaultTableMetadataRegistry im
                 if (RelationType.MANY_TO_MANY.equals(relationMetadata.getType())) {
                     final ManyToManyDescriptor key = new ManyToManyDescriptor(metadata.getEntityType(), relationMetadata.getPropertyName(), relationMetadata.getForeignColumn().getTable().getEntityType(), relationMetadata.getForeignColumn().getName());
                     final TableMetadata<?> foreignTable = manyToManyMiddleTables.get(with(manyToManyMiddleTables.keySet()).find(new EqualityFilter<ManyToManyDescriptor>(key)));
-                    ((ImmutableRelationMetadata) relationMetadata).setForeignColumn(with(foreignTable.getColumns()).find(new ColumnNameFilter(metadata.getName())));
+                    ((DefaultRelationMetadata) relationMetadata).setForeignColumn(with(foreignTable.getColumns()).find(new ColumnNameFilter(metadata.getName())));
                     continue;
                 }
-                ((ImmutableRelationMetadata) relationMetadata).setForeignColumn(resolveColumn(map, metadata, relationMetadata.getForeignColumn()));
+                ((DefaultRelationMetadata) relationMetadata).setForeignColumn(resolveColumn(map, metadata, relationMetadata.getForeignColumn()));
             }
         }
         entityTypes.clear();

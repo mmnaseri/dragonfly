@@ -27,6 +27,9 @@ import com.agileapes.dragonfly.tools.DatabaseUtils;
 import java.util.Collection;
 
 /**
+ * This class contains the two basic traits common to all constraints, {@link #getTable()}
+ * and {@link #getColumns()}.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/8/29, 14:11)
  */

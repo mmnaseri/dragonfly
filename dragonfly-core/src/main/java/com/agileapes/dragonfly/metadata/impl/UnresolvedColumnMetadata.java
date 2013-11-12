@@ -24,6 +24,9 @@ import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.metadata.ValueGenerationType;
 
 /**
+ * This class will denote unresolved columns, wherein only the name and the table to which this
+ * column belongs have been determined and are thus accessible.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/8/30, 3:19)
  */

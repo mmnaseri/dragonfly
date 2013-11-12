@@ -22,6 +22,10 @@ import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.metadata.ValueGenerationType;
 
 /**
+ * This metadata class is the same as {@link ResolvedColumnMetadata}, with the single difference
+ * that it gives a chance to get the name of the actual property on the defining side of the
+ * many-to-many relation to which it points.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/10/3, 9:41)
  */

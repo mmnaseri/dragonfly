@@ -13,7 +13,7 @@ import com.agileapes.dragonfly.metadata.RelationMetadata;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.metadata.TableMetadataInterceptor;
 import com.agileapes.dragonfly.metadata.TableMetadataResolver;
-import com.agileapes.dragonfly.metadata.impl.ImmutableRelationMetadata;
+import com.agileapes.dragonfly.metadata.impl.DefaultRelationMetadata;
 import com.agileapes.dragonfly.metadata.impl.ResolvedTableMetadata;
 import com.agileapes.dragonfly.metadata.impl.TableMetadataCopier;
 
@@ -65,7 +65,7 @@ public class AnnotationExtensionMetadataResolver implements ExtensionMetadataRes
                             @Override
                             public RelationMetadata<E, ?> map(RelationMetadata<Object, ?> input) {
                                 //noinspection unchecked
-                                return new ImmutableRelationMetadata<E, Object>(input.getDeclaringClass(), input.getPropertyName(), input.isOwner(), tableMetadata, (TableMetadata<Object>) input.getForeignTable(), input.getForeignColumn(), input.getType(), input.getCascadeMetadata(), input.isLazy(), input.getOrdering());
+                                return new DefaultRelationMetadata<E, Object>(input.getDeclaringClass(), input.getPropertyName(), input.isOwner(), tableMetadata, (TableMetadata<Object>) input.getForeignTable(), input.getForeignColumn(), input.getType(), input.getCascadeMetadata(), input.isLazy(), input.getOrdering());
                             }
                         }).list()).list(), tableMetadata.getVersionColumn(),
                         with(tableMetadata.getOrdering()).add(metadata.getOrdering()).list());

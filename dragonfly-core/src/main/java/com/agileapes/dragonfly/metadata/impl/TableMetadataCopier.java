@@ -26,6 +26,13 @@ import java.util.List;
 
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 
+/**
+ * This class will help with copying table metadata into a new instance.
+ *
+ * @param <E>    the type of the entity for which the table is defined and copied.
+ * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
+ * @since 1.0 (2013/8/29, 14:35)
+ */
 public class TableMetadataCopier<E> {
 
     private final TableMetadata<E> tableMetadata;
@@ -84,14 +91,14 @@ public class TableMetadataCopier<E> {
             namedQueries.add(new ImmutableNamedQueryMetadata(queryMetadata.getName(), queryMetadata.getQuery(), metadata, queryMetadata.getQueryType()));
         }
         for (SequenceMetadata sequence : tableMetadata.getSequences()) {
-            sequences.add(new DefaultSequenceMetadata(sequence.getName(), sequence.getInitialValue(), sequence.getPrefetchSize()));
+            sequences.add(new ImmutableSequenceMetadata(sequence.getName(), sequence.getInitialValue(), sequence.getPrefetchSize()));
         }
         for (StoredProcedureMetadata procedureMetadata : tableMetadata.getProcedures()) {
-            storedProcedures.add(new ImmutableStoredProcedureMetadata(procedureMetadata.getName(), procedureMetadata.getResultType(), procedureMetadata.getParameters()));
+            storedProcedures.add(new DefaultStoredProcedureMetadata(procedureMetadata.getName(), procedureMetadata.getResultType(), procedureMetadata.getParameters()));
         }
         for (RelationMetadata<E, ?> foreignReference : tableMetadata.getForeignReferences()) {
             //noinspection unchecked
-            foreignReferences.add(new ImmutableRelationMetadata<E, Object>(foreignReference.getDeclaringClass(), foreignReference.getPropertyName(), foreignReference.isOwner(), metadata, (TableMetadata<Object>) foreignReference.getForeignTable(), foreignReference.getForeignColumn(), foreignReference.getType(), foreignReference.getCascadeMetadata(), foreignReference.isLazy(), foreignReference.getOrdering()));
+            foreignReferences.add(new DefaultRelationMetadata<E, Object>(foreignReference.getDeclaringClass(), foreignReference.getPropertyName(), foreignReference.isOwner(), metadata, (TableMetadata<Object>) foreignReference.getForeignTable(), foreignReference.getForeignColumn(), foreignReference.getType(), foreignReference.getCascadeMetadata(), foreignReference.isLazy(), foreignReference.getOrdering()));
         }
         return metadata;
     }

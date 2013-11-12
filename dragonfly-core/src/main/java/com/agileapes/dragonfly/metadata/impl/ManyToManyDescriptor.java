@@ -18,8 +18,13 @@
 package com.agileapes.dragonfly.metadata.impl;
 
 /**
+ * This class is a many to many relation descriptor. It is used extensively by the table
+ * metadata context to hold virtual table metadata for middle entities in a many-to-many
+ * relation
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/10/3, 2:17)
+ * @see DefaultTableMetadataContext
  */
 public class ManyToManyDescriptor {
 

@@ -20,6 +20,8 @@ package com.agileapes.dragonfly.metadata.impl;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 
 /**
+ * This class supports the basic property of the table metadata class, {@link #getEntityType()}
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/8/29, 14:47)
  */

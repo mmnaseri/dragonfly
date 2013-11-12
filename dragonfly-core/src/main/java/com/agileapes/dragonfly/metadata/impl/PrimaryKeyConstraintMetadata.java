@@ -24,6 +24,8 @@ import com.agileapes.dragonfly.tools.SynchronizedIdentifierDispenser;
 import java.util.Collection;
 
 /**
+ * This class denotes a primary key constraint
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/8/29, 14:34)
  */

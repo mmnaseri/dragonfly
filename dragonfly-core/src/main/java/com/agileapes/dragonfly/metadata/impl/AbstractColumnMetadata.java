@@ -21,6 +21,9 @@ import com.agileapes.dragonfly.metadata.ColumnMetadata;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 
 /**
+ * This is the abstract column metadata, which handles the two basic metadata properties
+ * of the columns, {@link #getName()} and {@link #getTable()}.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/8/29, 18:05)
  */

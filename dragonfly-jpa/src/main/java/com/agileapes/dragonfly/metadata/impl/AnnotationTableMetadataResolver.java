@@ -130,13 +130,13 @@ public class AnnotationTableMetadataResolver implements TableMetadataResolver {
                 }
                 if (method.isAnnotationPresent(SequenceGenerator.class)) {
                     final SequenceGenerator annotation = method.getAnnotation(SequenceGenerator.class);
-                    sequences.add(new DefaultSequenceMetadata(annotation.name(), annotation.initialValue(), annotation.allocationSize()));
+                    sequences.add(new ImmutableSequenceMetadata(annotation.name(), annotation.initialValue(), annotation.allocationSize()));
                 }
                 if (joinColumn != null) {
                     final RelationType relationType = getRelationType(method);
                     final CascadeMetadata cascadeMetadata = getCascadeMetadata(method);
                     final boolean isLazy = determineLaziness(method);
-                    final ImmutableRelationMetadata<E, Object> reference = new ImmutableRelationMetadata<E, Object>(declaringClass, columnMetadata.getPropertyName(), true, null, null, null, relationType, cascadeMetadata, isLazy, null);
+                    final DefaultRelationMetadata<E, Object> reference = new DefaultRelationMetadata<E, Object>(declaringClass, columnMetadata.getPropertyName(), true, null, null, null, relationType, cascadeMetadata, isLazy, null);
                     reference.setForeignColumn(foreignColumn);
                     foreignReferences.add(reference);
                 }
@@ -196,7 +196,7 @@ public class AnnotationTableMetadataResolver implements TableMetadataResolver {
                 final List<OrderMetadata> ordering = getOrdering(foreignEntity, method.getAnnotation(OrderBy.class));
                 //noinspection unchecked
                 final UnresolvedColumnMetadata foreignColumn = new UnresolvedColumnMetadata(foreignColumnName, new UnresolvedTableMetadata<Object>((Class<Object>) foreignEntity));
-                final ImmutableRelationMetadata<E, Object> reference = new ImmutableRelationMetadata<E, Object>(ReflectionUtils.getDeclaringClass(method), propertyName, false, null, null, null, getRelationType(method), getCascadeMetadata(method), determineLaziness(method), ordering);
+                final DefaultRelationMetadata<E, Object> reference = new DefaultRelationMetadata<E, Object>(ReflectionUtils.getDeclaringClass(method), propertyName, false, null, null, null, getRelationType(method), getCascadeMetadata(method), determineLaziness(method), ordering);
                 reference.setForeignColumn(foreignColumn);
                 foreignReferences.add(reference);
             }
@@ -213,7 +213,7 @@ public class AnnotationTableMetadataResolver implements TableMetadataResolver {
                 final OneToOne annotation = method.getAnnotation(OneToOne.class);
                 Class<?> foreignEntity = annotation.targetEntity().equals(void.class) ? method.getReturnType() : annotation.targetEntity();
                 final String propertyName = ReflectionUtils.getPropertyName(method.getName());
-                final ImmutableRelationMetadata<E, Object> reference = new ImmutableRelationMetadata<E, Object>(ReflectionUtils.getDeclaringClass(method), propertyName, false, null, null, null, getRelationType(method), getCascadeMetadata(method), determineLaziness(method), null);
+                final DefaultRelationMetadata<E, Object> reference = new DefaultRelationMetadata<E, Object>(ReflectionUtils.getDeclaringClass(method), propertyName, false, null, null, null, getRelationType(method), getCascadeMetadata(method), determineLaziness(method), null);
                 String foreignColumnName = annotation.mappedBy();
                 if (foreignColumnName.isEmpty()) {
                     //noinspection unchecked
@@ -245,7 +245,7 @@ public class AnnotationTableMetadataResolver implements TableMetadataResolver {
         final HashSet<NamedQueryMetadata> namedQueries = new HashSet<NamedQueryMetadata>();
         if (entityType.isAnnotationPresent(SequenceGenerator.class)) {
             final SequenceGenerator annotation = entityType.getAnnotation(SequenceGenerator.class);
-            sequences.add(new DefaultSequenceMetadata(annotation.name(), annotation.initialValue(), annotation.allocationSize()));
+            sequences.add(new ImmutableSequenceMetadata(annotation.name(), annotation.initialValue(), annotation.allocationSize()));
         }
         //finding orderings
         //noinspection unchecked
@@ -351,7 +351,7 @@ public class AnnotationTableMetadataResolver implements TableMetadataResolver {
                                 }
                                 final List<OrderMetadata> ordering = getOrdering(foreignEntity, method.getAnnotation(OrderBy.class));
                                 //noinspection unchecked
-                                foreignReferences.add(new ImmutableRelationMetadata<E, Object>(ReflectionUtils.getDeclaringClass(method), ReflectionUtils.getPropertyName(method.getName()), false, tableMetadata, null, new UnresolvedColumnMetadata(foreignProperty, new UnresolvedTableMetadata<Object>((Class<Object>) foreignEntity)), RelationType.MANY_TO_MANY, getCascadeMetadata(method), determineLaziness(method), ordering));
+                                foreignReferences.add(new DefaultRelationMetadata<E, Object>(ReflectionUtils.getDeclaringClass(method), ReflectionUtils.getPropertyName(method.getName()), false, tableMetadata, null, new UnresolvedColumnMetadata(foreignProperty, new UnresolvedTableMetadata<Object>((Class<Object>) foreignEntity)), RelationType.MANY_TO_MANY, getCascadeMetadata(method), determineLaziness(method), ordering));
                             }
                         }
                 );
@@ -421,7 +421,7 @@ public class AnnotationTableMetadataResolver implements TableMetadataResolver {
 
     private StoredProcedureMetadata getStoredProcedureMetadata(StoredProcedure annotation) {
         final ArrayList<ParameterMetadata> parameters = new ArrayList<ParameterMetadata>();
-        final StoredProcedureMetadata metadata = new ImmutableStoredProcedureMetadata(annotation.name(), annotation.resultType(), parameters);
+        final StoredProcedureMetadata metadata = new DefaultStoredProcedureMetadata(annotation.name(), annotation.resultType(), parameters);
         for (StoredProcedureParameter parameter : annotation.parameters()) {
             parameters.add(new ImmutableParameterMetadata(parameter.mode(), getColumnType(parameter.type(), null, null), parameter.type()));
         }

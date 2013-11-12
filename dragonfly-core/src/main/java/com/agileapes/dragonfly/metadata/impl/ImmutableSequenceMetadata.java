@@ -20,16 +20,18 @@ package com.agileapes.dragonfly.metadata.impl;
 import com.agileapes.dragonfly.metadata.SequenceMetadata;
 
 /**
+ * This is the default implementation of sequence metadata
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/8, 17:22)
  */
-public class DefaultSequenceMetadata implements SequenceMetadata {
+public class ImmutableSequenceMetadata implements SequenceMetadata {
 
     private final String name;
     private final int initialValue;
     private final int prefetchSize;
 
-    public DefaultSequenceMetadata(String name, int initialValue, int prefetchSize) {
+    public ImmutableSequenceMetadata(String name, int initialValue, int prefetchSize) {
         this.name = name;
         this.initialValue = initialValue;
         this.prefetchSize = prefetchSize;

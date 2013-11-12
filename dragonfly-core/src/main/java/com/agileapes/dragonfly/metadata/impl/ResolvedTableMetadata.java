@@ -28,6 +28,9 @@ import java.util.List;
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 
 /**
+ * This class holds <em>resolved</em> table metadata, meaning that at this point, all metadata
+ * regarding the table has been resolved and can be accessed, including its foreign references.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/8/29, 14:35)
  */
@@ -67,11 +70,11 @@ public class ResolvedTableMetadata<E> extends AbstractTableMetadata<E> {
             ((AbstractConstraintMetadata) constraint).setTable(this);
         }
         for (StoredProcedureMetadata procedure : procedures) {
-            ((ImmutableStoredProcedureMetadata) procedure).setTable(this);
+            ((DefaultStoredProcedureMetadata) procedure).setTable(this);
         }
         for (RelationMetadata<E, ?> foreignReference : this.foreignReferences) {
             //noinspection unchecked
-            ((ImmutableRelationMetadata<E, ?>) foreignReference).setLocalTable(this);
+            ((DefaultRelationMetadata<E, ?>) foreignReference).setLocalTable(this);
         }
     }
 

@@ -21,6 +21,8 @@ import com.agileapes.dragonfly.annotations.ParameterMode;
 import com.agileapes.dragonfly.metadata.ParameterMetadata;
 
 /**
+ * This class exposes an immutable state object for procedure parameter metadata
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/10, 0:49)
  */

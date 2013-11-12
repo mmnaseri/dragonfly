@@ -25,6 +25,9 @@ import java.util.Collection;
 import java.util.List;
 
 /**
+ * This class denotes an unresolved table metadata, in whose case only the type of the entity for
+ * which the table metadata has been defined is clearly available.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/8/29, 14:46)
  */
