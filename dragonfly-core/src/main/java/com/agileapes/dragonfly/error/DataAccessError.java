@@ -18,15 +18,20 @@
 package com.agileapes.dragonfly.error;
 
 /**
- * This is when a parameter of the wrong type is passed for a procedure call
+ * This is the base class for errors that are related to the data access layer, and yet does
+ * to stem from the database.
  *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
- * @since 1.0 (2013/9/10, 2:11)
+ * @since 1.0 (2013/11/13, 10:38)
  */
-public class MismatchedParameterTypeError extends DataAccessError {
+public abstract class DataAccessError extends Error {
 
-    public MismatchedParameterTypeError(Class<?> entityType, String procedureName, int parameterIndex, Class<?> expectedType, Class<?> actualType) {
-        super("Expected parameter " + parameterIndex + " of " + entityType.getCanonicalName() + "." + procedureName + " to be of type " + entityType.getClass() + " while it was of type " + actualType.getClass());
+    public DataAccessError(String message) {
+        super(message);
+    }
+
+    public DataAccessError(String message, Throwable cause) {
+        super(message, cause);
     }
 
 }

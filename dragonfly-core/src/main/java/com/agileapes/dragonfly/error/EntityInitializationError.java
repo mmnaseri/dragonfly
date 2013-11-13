@@ -23,7 +23,7 @@ package com.agileapes.dragonfly.error;
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/8/31, 17:32)
  */
-public class EntityInitializationError extends DatabaseError {
+public class EntityInitializationError extends DataAccessError {
 
     public EntityInitializationError(Class<?> entityType, Throwable cause) {
         super("There was an error initializing bean of type: " + entityType + ". It is " +

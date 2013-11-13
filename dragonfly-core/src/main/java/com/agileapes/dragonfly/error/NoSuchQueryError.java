@@ -23,7 +23,7 @@ package com.agileapes.dragonfly.error;
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/9, 2:10)
  */
-public class NoSuchQueryError extends DatabaseError {
+public class NoSuchQueryError extends DataAccessError {
 
     public NoSuchQueryError(Class<?> entityType, String queryName) {
         super("No such query was found: " + entityType.getCanonicalName() + "." + queryName);

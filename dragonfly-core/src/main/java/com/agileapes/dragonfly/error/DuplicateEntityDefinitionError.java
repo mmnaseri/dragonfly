@@ -23,7 +23,7 @@ package com.agileapes.dragonfly.error;
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/8/30, 15:51)
  */
-public class DuplicateEntityDefinitionError extends DatabaseError {
+public class DuplicateEntityDefinitionError extends DataAccessError {
 
     private final Class<?> entityType;
 

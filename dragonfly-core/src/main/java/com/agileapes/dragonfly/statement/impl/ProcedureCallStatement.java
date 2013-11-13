@@ -21,7 +21,7 @@ import com.agileapes.dragonfly.dialect.DatabaseDialect;
 import com.agileapes.dragonfly.entity.EntityMapCreator;
 import com.agileapes.dragonfly.entity.StatementPreparator;
 import com.agileapes.dragonfly.entity.impl.DefaultStatementPreparator;
-import com.agileapes.dragonfly.error.StatementError;
+import com.agileapes.dragonfly.error.StatementPreparationError;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.statement.Statement;
 import org.apache.commons.logging.Log;
@@ -57,7 +57,7 @@ public class ProcedureCallStatement extends ImmutableStatement {
             log.info("Preparing statement: " + getSql());
             return connection.prepareCall(getSql());
         } catch (SQLException e) {
-            throw new StatementError("Failed to prepare statement through connection", e);
+            throw new StatementPreparationError("Failed to prepare statement through connection", e);
         }
     }
 

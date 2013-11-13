@@ -21,7 +21,7 @@ import com.agileapes.dragonfly.dialect.DatabaseDialect;
 import com.agileapes.dragonfly.entity.EntityMapCreator;
 import com.agileapes.dragonfly.entity.StatementPreparator;
 import com.agileapes.dragonfly.entity.impl.DefaultStatementPreparator;
-import com.agileapes.dragonfly.error.StatementError;
+import com.agileapes.dragonfly.error.StatementPreparationError;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.statement.Statement;
 import com.agileapes.dragonfly.statement.StatementType;
@@ -99,7 +99,7 @@ public class ImmutableStatement implements Statement {
             log.info("Preparing statement: " + sql);
             return connection.prepareStatement(sql);
         } catch (SQLException e) {
-            throw new StatementError("Failed to prepare statement through connection", e);
+            throw new StatementPreparationError("Failed to prepare statement through connection", e);
         }
     }
 

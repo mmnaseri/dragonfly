@@ -24,7 +24,7 @@ package com.agileapes.dragonfly.error;
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/11/13, 10:32)
  */
-public class EntityContextReInitializationError extends DatabaseError {
+public class EntityContextReInitializationError extends DataAccessError {
 
     public EntityContextReInitializationError() {
         super("The entity context has been initialized once, and as such cannot be initialized again.");

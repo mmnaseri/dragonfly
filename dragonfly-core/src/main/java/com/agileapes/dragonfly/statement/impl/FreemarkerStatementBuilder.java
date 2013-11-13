@@ -18,7 +18,7 @@
 package com.agileapes.dragonfly.statement.impl;
 
 import com.agileapes.dragonfly.dialect.DatabaseDialect;
-import com.agileapes.dragonfly.error.StatementError;
+import com.agileapes.dragonfly.error.StatementPreparationError;
 import com.agileapes.dragonfly.metadata.Metadata;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.statement.Statement;
@@ -54,7 +54,7 @@ public class FreemarkerStatementBuilder implements StatementBuilder {
         try {
             template = configuration.getTemplate(templateName);
         } catch (IOException e) {
-            throw new StatementError("Failed to load template: " + templateName, e);
+            throw new StatementPreparationError("Failed to load template: " + templateName, e);
         }
         final FreemarkerStatementModel model;
         try {
