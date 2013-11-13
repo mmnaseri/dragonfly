@@ -17,6 +17,7 @@
 
 package com.agileapes.dragonfly.entity;
 
+import com.agileapes.dragonfly.data.DataAccess;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 
 /**
@@ -52,5 +53,17 @@ public interface EntityContext {
      * was used to access the instance.
      */
     <E> boolean has(E entity);
+
+    /**
+     * Will initialize the entity context for the given data access instance
+     * @param dataAccess    the data access instance to use for the entity context
+     */
+    void initialize(DataAccess dataAccess);
+
+    /**
+     * Determines whether or not the context has been initialized
+     * @return {@code true} means it has already been initialized once
+     */
+    boolean isInitialized();
 
 }

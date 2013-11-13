@@ -26,8 +26,9 @@ import com.agileapes.dragonfly.cg.StaticNamingPolicy;
 import com.agileapes.dragonfly.data.DataAccess;
 import com.agileapes.dragonfly.data.DataAccessSession;
 import com.agileapes.dragonfly.entity.*;
-import com.agileapes.dragonfly.metadata.TableMetadataRegistry;
+import com.agileapes.dragonfly.error.EntityContextReInitializationError;
 import com.agileapes.dragonfly.metadata.TableMetadata;
+import com.agileapes.dragonfly.metadata.TableMetadataRegistry;
 import com.agileapes.dragonfly.security.DataSecurityManager;
 
 import java.util.HashMap;
@@ -128,8 +129,17 @@ public class DefaultEntityContext implements ModifiableEntityContext {
         return false;
     }
 
-    public void setDataAccess(DataAccess dataAccess) {
+    @Override
+    public void initialize(DataAccess dataAccess) {
+        if (isInitialized()) {
+            throw new EntityContextReInitializationError();
+        }
         this.dataAccess = dataAccess;
+    }
+
+    @Override
+    public boolean isInitialized() {
+        return dataAccess != null;
     }
 
     @Override

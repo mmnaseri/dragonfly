@@ -167,12 +167,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
                 return false;
             }
         };
-        if (entityContext instanceof DefaultEntityContext) {
-            if (((DefaultEntityContext) entityContext).getDataAccess() != null) {
-                log.warn("The entity context has already been associated with another data access instance.");
-            }
-            ((DefaultEntityContext) entityContext).setDataAccess(this);
-        }
+        this.entityContext.initialize(this);
         this.statementPreparator = new DefaultStatementPreparator(false);
         this.deferredKeys = new ThreadLocal<List<Object>>() {
             @Override
