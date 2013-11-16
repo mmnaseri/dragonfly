@@ -25,8 +25,6 @@ import java.lang.reflect.Method;
  */
 public interface Actor {
 
-    Class<?> getActorClass();
-
     Method getMethod();
 
 }
