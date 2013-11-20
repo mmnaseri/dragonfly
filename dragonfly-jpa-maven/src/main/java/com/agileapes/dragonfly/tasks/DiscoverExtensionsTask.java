@@ -26,6 +26,9 @@ import com.agileapes.couteau.maven.task.PluginTask;
 import com.agileapes.couteau.reflection.util.assets.AnnotatedElementFilter;
 import com.agileapes.dragonfly.annotations.Extension;
 import com.agileapes.dragonfly.ext.ExtensionManager;
+import com.agileapes.dragonfly.ext.ExtensionMetadataResolver;
+import com.agileapes.dragonfly.ext.impl.AnnotationExtensionMetadataResolver;
+import com.agileapes.dragonfly.metadata.TableMetadataResolver;
 import com.agileapes.dragonfly.mojo.PluginExecutor;
 import org.apache.maven.plugin.MojoFailureException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +48,9 @@ public class DiscoverExtensionsTask extends PluginTask<PluginExecutor> {
     @Autowired
     private ExtensionManager extensionManager;
 
+    @Autowired
+    private TableMetadataResolver tableMetadataResolver;
+
     @Override
     protected String getIntro() {
         return "Discovering extensions ...";
@@ -53,6 +59,7 @@ public class DiscoverExtensionsTask extends PluginTask<PluginExecutor> {
     @Override
     public void execute(PluginExecutor executor) throws MojoFailureException {
         final Collection<ProjectResource> projectResources = executor.getProjectResources();
+        final ExtensionMetadataResolver<Class<?>> metadataResolver = new AnnotationExtensionMetadataResolver(tableMetadataResolver);
         //noinspection unchecked
         with(projectResources)
         .keep(new ProjectResourceTypeFilter(ProjectResourceType.CLASS))
@@ -61,7 +68,7 @@ public class DiscoverExtensionsTask extends PluginTask<PluginExecutor> {
         .each(new Processor<Class<?>>() {
             @Override
             public void process(Class<?> input) {
-                extensionManager.addExtension(input);
+                extensionManager.addExtension(metadataResolver.resolve(input));
             }
         });
     }
