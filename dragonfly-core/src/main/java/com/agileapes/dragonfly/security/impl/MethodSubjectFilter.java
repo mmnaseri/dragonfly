@@ -22,6 +22,8 @@ import com.agileapes.couteau.enhancer.api.MethodDescriptor;
 import com.agileapes.dragonfly.security.SubjectFilter;
 
 /**
+ * This filter allows for separation of accepted method subjects.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/9, 17:01)
  */

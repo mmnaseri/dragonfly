@@ -20,11 +20,17 @@ package com.agileapes.dragonfly.security;
 import java.lang.reflect.Method;
 
 /**
+ * This interface abstracts the concept of an operating entity that is trying to access a certain resource
+ * or subject
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/9, 16:49)
  */
 public interface Actor {
 
+    /**
+     * @return the method through which the access was taking place
+     */
     Method getMethod();
 
 }

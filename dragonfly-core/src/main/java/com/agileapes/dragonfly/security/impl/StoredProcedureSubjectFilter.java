@@ -21,6 +21,8 @@ import com.agileapes.couteau.basics.api.Filter;
 import com.agileapes.dragonfly.security.SubjectFilter;
 
 /**
+ * This class allows for an easy filtering of unwanted stored procedure calls.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/10, 2:52)
  */

@@ -18,17 +18,24 @@
 package com.agileapes.dragonfly.security;
 
 /**
+ * Allows for definition of various types of policies for any given action
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
- * @since 1.0 (2013/9/9, 16:52)
+ * @since 1.0 (2013/9/9, 16:54)
  */
-public interface SecurityPolicyDescriptor {
+public enum PolicyDecisionType {
 
-    String getName();
-
-    ActorFilter getActorFilter();
-
-    SubjectFilter getSubjectFilter();
-
-    SecurityPolicy getSecurityPolicy();
+    /**
+     * Access should be allowed
+     */
+    ALLOW,
+    /**
+     * Access must be denied
+     */
+    DENY,
+    /**
+     * The policy does not state a clear action to be taken
+     */
+    UNDECIDED
 
 }

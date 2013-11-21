@@ -19,7 +19,7 @@
 
     <bean id="metadataContext" class="com.agileapes.dragonfly.metadata.impl.DefaultTableMetadataContext"/>
 
-    <bean id="accessDeniedHandler" class="com.agileapes.dragonfly.security.impl.FatalAccessDeniedHandler"/>
+    <bean id="accessDeniedHandler" class="com.agileapes.dragonfly.security.impl.FailFirstAccessDeniedHandler"/>
 
     <bean id="entityHandlerContext" class="com.agileapes.dragonfly.entity.impl.DefaultEntityHandlerContext">
         <constructor-arg index="0" type="com.agileapes.dragonfly.entity.EntityContext"

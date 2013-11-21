@@ -22,10 +22,12 @@ import com.agileapes.dragonfly.security.Actor;
 import com.agileapes.dragonfly.security.Subject;
 
 /**
+ * This access denied policy will throw an exception immediately at the first sign of an illegal action.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/10, 23:39)
  */
-public class FatalAccessDeniedHandler implements AccessDeniedHandler {
+public class FailFirstAccessDeniedHandler implements AccessDeniedHandler {
 
     @Override
     public void handle(String policy, Actor actor, Subject subject) {

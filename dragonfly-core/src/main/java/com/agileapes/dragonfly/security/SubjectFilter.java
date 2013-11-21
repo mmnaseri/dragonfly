@@ -20,6 +20,9 @@ package com.agileapes.dragonfly.security;
 import com.agileapes.couteau.basics.api.Filter;
 
 /**
+ * This interface allows for definition of filters which will allow for limiting the subject
+ * to which the policy being defined will apply
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/9, 16:53)
  */

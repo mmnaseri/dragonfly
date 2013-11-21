@@ -22,6 +22,8 @@ import com.agileapes.dragonfly.security.Actor;
 import java.lang.reflect.Method;
 
 /**
+ * This class defines an immutable actor.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/9, 17:04)
  */
@@ -29,7 +31,7 @@ public class ImmutableActor implements Actor {
 
     private final Method method;
 
-    public ImmutableActor(Class<?> actorClass, Method method) {
+    public ImmutableActor(Method method) {
         this.method = method;
     }
 

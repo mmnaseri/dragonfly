@@ -20,6 +20,8 @@ package com.agileapes.dragonfly.security;
 import com.agileapes.couteau.basics.api.Filter;
 
 /**
+ * This interface allows for filtering of actors, to limit the number of actors a policy applies to
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/9, 16:52)
  */

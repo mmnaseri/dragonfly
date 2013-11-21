@@ -19,10 +19,16 @@ package com.agileapes.dragonfly.security;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
- * @since 1.0 (2013/9/9, 16:54)
+ * @since 1.0 (2013/9/9, 16:52)
  */
-public enum SecurityPolicy {
+public interface DataSecurityPolicy {
 
-    ALLOW, DENY, UNDECIDED
+    String getName();
+
+    ActorFilter getActorFilter();
+
+    SubjectFilter getSubjectFilter();
+
+    PolicyDecisionType getDecisionType();
 
 }

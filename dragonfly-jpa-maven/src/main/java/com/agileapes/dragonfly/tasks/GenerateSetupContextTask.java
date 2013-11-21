@@ -44,7 +44,7 @@ import com.agileapes.dragonfly.mojo.PluginExecutor;
 import com.agileapes.dragonfly.security.AccessDeniedHandler;
 import com.agileapes.dragonfly.security.DataSecurityManager;
 import com.agileapes.dragonfly.security.impl.DefaultDataSecurityManager;
-import com.agileapes.dragonfly.security.impl.FatalAccessDeniedHandler;
+import com.agileapes.dragonfly.security.impl.FailFirstAccessDeniedHandler;
 import com.agileapes.dragonfly.statement.impl.StatementRegistry;
 import freemarker.template.Template;
 import org.apache.maven.plugin.MojoFailureException;
@@ -98,7 +98,7 @@ public class GenerateSetupContextTask extends PluginTask<PluginExecutor> {
         final BeanDefinitionModel metadataContext = new BeanDefinitionModel("metadataContext", DefaultTableMetadataContext.class.getCanonicalName());
         metadataContext.setProperty(new BeanPropertyModel("registries", metadataRegistry));
 
-        final BeanDefinitionModel accessDeniedHandler = new BeanDefinitionModel("_accessDeniedHandler", FatalAccessDeniedHandler.class.getCanonicalName());
+        final BeanDefinitionModel accessDeniedHandler = new BeanDefinitionModel("_accessDeniedHandler", FailFirstAccessDeniedHandler.class.getCanonicalName());
 
         final BeanDefinitionModel dataSecurityManager = new BeanDefinitionModel("_dataSecurityManager", DefaultDataSecurityManager.class.getCanonicalName());
         dataSecurityManager.addConstructorArgument(new BeanPropertyModel("", AccessDeniedHandler.class.getCanonicalName(), accessDeniedHandler));

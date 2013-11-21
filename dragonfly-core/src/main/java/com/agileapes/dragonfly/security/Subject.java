@@ -18,6 +18,8 @@
 package com.agileapes.dragonfly.security;
 
 /**
+ * This interface allows for definition of subjects for which policies can be defined
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/9, 16:50)
  */

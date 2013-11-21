@@ -30,7 +30,7 @@ import com.agileapes.dragonfly.metadata.TableMetadataRegistry;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.sample.entities.Person;
 import com.agileapes.dragonfly.security.impl.DefaultDataSecurityManager;
-import com.agileapes.dragonfly.security.impl.FatalAccessDeniedHandler;
+import com.agileapes.dragonfly.security.impl.FailFirstAccessDeniedHandler;
 import com.agileapes.dragonfly.statement.impl.StatementRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -57,7 +57,7 @@ public class InstantiationService {
     public void execute() {
         long normalTime = System.nanoTime();
         final int benchmarkSize = 10000;
-        final DefaultDataSecurityManager securityManager = new DefaultDataSecurityManager(new FatalAccessDeniedHandler());
+        final DefaultDataSecurityManager securityManager = new DefaultDataSecurityManager(new FailFirstAccessDeniedHandler());
         final SecuredDataAccess dataAccess = new SecuredDataAccess(new DefaultDataAccessSession(new Mysql5Dialect(), statementRegistry, tableMetadataRegistry), securityManager, new DefaultEntityContext(securityManager, session.getTableMetadataRegistry(), session), new DefaultEntityHandlerContext(null, null));
         for (int i = 0; i < benchmarkSize; i ++) {
             final TableMetadata<Person> tableMetadata = tableMetadataRegistry.getTableMetadata(Person.class);

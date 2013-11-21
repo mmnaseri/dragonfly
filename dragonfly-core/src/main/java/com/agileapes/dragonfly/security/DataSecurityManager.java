@@ -18,13 +18,23 @@
 package com.agileapes.dragonfly.security;
 
 /**
+ * This interface allows for simple security control over data operations
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/9, 16:49)
  */
 public interface DataSecurityManager {
 
-    void addPolicy(String name, ActorFilter actorFilter, SubjectFilter subjectFilter, SecurityPolicy securityPolicy);
+    /**
+     * Adds a new policy
+     * @param policy    the policy to be added
+     */
+    void addPolicy(DataSecurityPolicy policy);
 
+    /**
+     * Controls access to the given subject
+     * @param subject    the subject being accessed
+     */
     void checkAccess(Subject subject);
 
 }
