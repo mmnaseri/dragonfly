@@ -18,12 +18,41 @@
 package com.agileapes.dragonfly.statement;
 
 /**
+ * Determines the generic type of the manipulation statement as recognized by the framework.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/4, 18:09)
  */
 public enum StatementType {
 
-    QUERY("SELECT"), INSERT("INSERT"), UPDATE("UPDATE"), DELETE("DELETE"), TRUNCATE("TRUNCATE"), DEFINITION("<none>"), CALL("CALL");
+    /**
+     * Returns results by asking the database for a specific range of data items
+     */
+    QUERY("SELECT"),
+    /**
+     * Adds a new element to the database
+     */
+    INSERT("INSERT"),
+    /**
+     * Updates some elements in the database
+     */
+    UPDATE("UPDATE"),
+    /**
+     * Deletes some elements from the database
+     */
+    DELETE("DELETE"),
+    /**
+     * Attempts to truncate an entire table
+     */
+    TRUNCATE("TRUNCATE"),
+    /**
+     * Makes a call to a stored procedure
+     */
+    CALL("CALL"),
+    /**
+     * It's not a manipulation statement
+     */
+    DEFINITION("<none>");
 
     private final String starter;
 
@@ -31,11 +60,16 @@ public enum StatementType {
         this.starter = starter;
     }
 
-    public static StatementType getStatementType(String statement) {
-        if (statement.length() < 6) {
+    /**
+     * Returns the type of the statement as determined from the SQL being passed
+     * @param sql    the SQL statement to be evaluated
+     * @return the type of the statement
+     */
+    public static StatementType getStatementType(String sql) {
+        if (sql.length() < 6) {
             return DEFINITION;
         }
-        final String starter = statement.trim().substring(0, 6).toUpperCase();
+        final String starter = sql.trim().substring(0, 6).toUpperCase();
         for (StatementType type : StatementType.values()) {
             if (type.starter.startsWith(starter)) {
                 return type;

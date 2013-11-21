@@ -18,13 +18,25 @@
 package com.agileapes.dragonfly.statement;
 
 /**
+ * This is a context for handling complex statement builder registration and dispensing.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/5, 0:57)
  */
 public interface StatementBuilderContext {
 
+    /**
+     * Returns a statement builder for the specific definition statement type (DDL)
+     * @param type    the (DDL) statement type
+     * @return the statement builder
+     */
     StatementBuilder getDefinitionStatementBuilder(Statements.Definition type);
 
+    /**
+     * Returns a statement builder for the specific manipulation statement type (DML)
+     * @param type    the (DML) statement type
+     * @return the statement builder
+     */
     StatementBuilder getManipulationStatementBuilder(Statements.Manipulation type);
 
 }

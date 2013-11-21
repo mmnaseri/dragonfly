@@ -24,25 +24,80 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 
 /**
+ * This interface encapsulates all the behaviour and data expected of a statement throughout the framework's
+ * activities.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/3, 17:58)
  */
 public interface Statement {
 
+    /**
+     * Determines whether or not the statement is dynamic. If a statement is not dynamic, i.e. it is static,
+     * the SQL statement available through {@link #getSql()} needs no further processing and can be sent to
+     * the underlying data source. However, if the statement is marked as dynamic, it has to be processed to
+     * be presentable for final execution.
+     * @return {@code true} means that the statement is dynamic.
+     */
     boolean isDynamic();
 
+    /**
+     * Determines whether the statement requires parameters to be set, or if it is complete without any
+     * preparation.
+     * @return {@code true} means the statement cannot be prepared without passing some parameters
+     */
     boolean hasParameters();
 
+    /**
+     * @return the native statement in SQL language for the statement, which might require further processing
+     * depending on the values of {@link #isDynamic()} and {@link #hasParameters()}
+     */
     String getSql();
 
+    /**
+     * @return the type of the statement as understood by the framework
+     */
     StatementType getType();
 
+    /**
+     * @return the table metadata for the table on which this statement will operate.
+     */
     TableMetadata<?> getTableMetadata();
 
+    /**
+     * Prepares the statement via the given connection, assuming no parameters or processing is needed
+     * @param connection    the connection through which the statement must be prepared
+     * @return the prepared statement ready to be executed
+     */
     PreparedStatement prepare(Connection connection);
 
+    /**
+     * Prepares the statement via the given connection, assuming that the statement needs processing based
+     * on the given parameters. If the value of {@link #isDynamic()} is set to {@code true}, then the statement
+     * will undergo a second-pass parsing, as well.
+     * @param connection    the connection through which the statement must be prepared
+     * @param mapCreator    the helper which will produce a map from a given entity object. Can be set to
+     *                      {@code null} if the passed value is already a map
+     * @param value         the object from which values must be read and passed on to the statement for final
+     *                      processing before it is prepared for execution.
+     * @return the prepared statement ready to be executed
+     */
     PreparedStatement prepare(Connection connection, EntityMapCreator mapCreator, Object value);
 
+    /**
+     * Prepares the statement via the given connection, assuming that the statement needs processing based
+     * on the given parameters. If the value of {@link #isDynamic()} is set to {@code true}, then the statement
+     * will undergo a second-pass parsing, as well.
+     * @param connection    the connection through which the statement must be prepared
+     * @param mapCreator    the helper which will produce a map from a given entity object. Can be set to
+     *                      {@code null} if the passed value is already a map
+     * @param value         the object from which values must be read and passed on to the statement for final
+     *                      processing before it is prepared for execution.
+     * @param replacement   the values which are expected to replace the values represented by {@code value}. This
+     *                      is syntactically no different than passing the same arguments through the {@code value}
+     *                      parameter, but it arranges for a different semantics, when an update is intended.
+     * @return the prepared statement ready to be executed
+     */
     PreparedStatement prepare(Connection connection, EntityMapCreator mapCreator, Object value, Object replacement);
 
 }
