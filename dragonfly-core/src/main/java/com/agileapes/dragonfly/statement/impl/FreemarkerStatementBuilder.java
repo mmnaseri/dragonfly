@@ -33,6 +33,9 @@ import java.io.IOException;
 import java.io.StringWriter;
 
 /**
+ * This builder expands the given statement and create a final statement based on the given Freemarker
+ * template. Do note that the final product of this class might be dynamic and need a second pass.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/1, 1:25)
  */

@@ -25,6 +25,9 @@ import java.sql.*;
 import java.util.Calendar;
 
 /**
+ * This is an implementation of {@link java.sql.PreparedStatement} which delegates everything to the
+ * wrapped prepared statement except {@link #getConnection()}.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/10/6, 10:24)
  */

@@ -34,6 +34,8 @@ import java.sql.SQLException;
 import java.util.Map;
 
 /**
+ * This is a statement that represents a procedure call
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/10, 1:38)
  */

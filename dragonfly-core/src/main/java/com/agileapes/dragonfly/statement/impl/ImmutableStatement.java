@@ -37,6 +37,8 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 /**
+ * This is an immutable statement that cannot be changed once it is constructed
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/3, 18:02)
  */

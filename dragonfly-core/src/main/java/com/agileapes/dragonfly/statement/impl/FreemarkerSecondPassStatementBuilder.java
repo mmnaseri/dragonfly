@@ -33,6 +33,10 @@ import java.io.IOException;
 import java.io.StringWriter;
 
 /**
+ * This class is a statement builder that will take in a pre-created statement that is in need of
+ * a second processing (meaning that it is a dynamic statement) and based on the given properties
+ * and parameters process it to be ready for transfer.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/4, 17:53)
  */

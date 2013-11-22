@@ -21,6 +21,9 @@ import com.agileapes.couteau.context.impl.ConcurrentRegistry;
 import com.agileapes.dragonfly.statement.Statement;
 
 /**
+ * This is the default statement registry implementation, which is actually an extension to the
+ * concurrent extension registry provided through couteau.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/21, 13:50)
  */

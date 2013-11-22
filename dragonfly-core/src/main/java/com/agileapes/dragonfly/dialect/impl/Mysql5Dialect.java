@@ -32,8 +32,8 @@ import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.metadata.ValueGenerationType;
 import com.agileapes.dragonfly.statement.StatementBuilderContext;
 import com.agileapes.dragonfly.statement.Statements;
+import com.agileapes.dragonfly.statement.impl.DefaultStatementBuilderContext;
 import com.agileapes.dragonfly.statement.impl.FreemarkerStatementBuilder;
-import com.agileapes.dragonfly.statement.impl.FreemarkerStatementBuilderContext;
 import com.agileapes.dragonfly.tools.DatabaseUtils;
 import freemarker.template.Configuration;
 import org.apache.commons.logging.Log;
@@ -60,11 +60,11 @@ public class Mysql5Dialect extends GenericDatabaseDialect {
     public Mysql5Dialect() {
         StatementBuilderContext statementBuilderContext = getStatementBuilderContext();
         final Configuration configuration = FreemarkerUtils.getConfiguration(getClass(), "/sql/mysql5");
-        ((FreemarkerStatementBuilderContext) statementBuilderContext).register(Statements.Definition.BIND_SEQUENCE, new FreemarkerStatementBuilder(configuration, "bindSequence.sql.ftl", this));
-        ((FreemarkerStatementBuilderContext) statementBuilderContext).register(Statements.Definition.UNBIND_SEQUENCE, new FreemarkerStatementBuilder(configuration, "unbindSequence.sql.ftl", this));
-        ((FreemarkerStatementBuilderContext) statementBuilderContext).register(Statements.Definition.DROP_FOREIGN_KEY, new FreemarkerStatementBuilder(configuration, "dropForeignKey.sql.ftl", this));
-        ((FreemarkerStatementBuilderContext) statementBuilderContext).register(Statements.Definition.DROP_PRIMARY_KEY, new FreemarkerStatementBuilder(configuration, "dropPrimaryKey.sql.ftl", this));
-        ((FreemarkerStatementBuilderContext) statementBuilderContext).register(Statements.Definition.CREATE_TABLE, new FreemarkerStatementBuilder(configuration, "createTable.sql.ftl", this));
+        ((DefaultStatementBuilderContext) statementBuilderContext).register(Statements.Definition.BIND_SEQUENCE, new FreemarkerStatementBuilder(configuration, "bindSequence.sql.ftl", this));
+        ((DefaultStatementBuilderContext) statementBuilderContext).register(Statements.Definition.UNBIND_SEQUENCE, new FreemarkerStatementBuilder(configuration, "unbindSequence.sql.ftl", this));
+        ((DefaultStatementBuilderContext) statementBuilderContext).register(Statements.Definition.DROP_FOREIGN_KEY, new FreemarkerStatementBuilder(configuration, "dropForeignKey.sql.ftl", this));
+        ((DefaultStatementBuilderContext) statementBuilderContext).register(Statements.Definition.DROP_PRIMARY_KEY, new FreemarkerStatementBuilder(configuration, "dropPrimaryKey.sql.ftl", this));
+        ((DefaultStatementBuilderContext) statementBuilderContext).register(Statements.Definition.CREATE_TABLE, new FreemarkerStatementBuilder(configuration, "createTable.sql.ftl", this));
         this.rowHandler = new DefaultRowHandler();
         log.info("Initializing database dialect " + getClass().getSimpleName() + " for " + getName());
     }

@@ -31,6 +31,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 
 /**
+ * This is a statement registry that reflects only a part of a given statement registry, limited to a
+ * prefix.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/21, 13:49)
  */

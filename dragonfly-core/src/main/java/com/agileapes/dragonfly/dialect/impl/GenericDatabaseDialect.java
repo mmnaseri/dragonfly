@@ -24,8 +24,8 @@ import com.agileapes.dragonfly.metadata.ColumnMetadata;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.statement.StatementBuilderContext;
 import com.agileapes.dragonfly.statement.Statements;
+import com.agileapes.dragonfly.statement.impl.DefaultStatementBuilderContext;
 import com.agileapes.dragonfly.statement.impl.FreemarkerStatementBuilder;
-import com.agileapes.dragonfly.statement.impl.FreemarkerStatementBuilderContext;
 import freemarker.template.Configuration;
 
 import java.sql.Types;
@@ -41,11 +41,11 @@ import java.util.Map;
  */
 public abstract class GenericDatabaseDialect implements DatabaseDialect {
 
-    private final FreemarkerStatementBuilderContext statementBuilderContext;
+    private final DefaultStatementBuilderContext statementBuilderContext;
 
     public GenericDatabaseDialect() {
         final Configuration configuration = FreemarkerUtils.getConfiguration(getClass(), "/sql/standard");
-        statementBuilderContext = new FreemarkerStatementBuilderContext();
+        statementBuilderContext = new DefaultStatementBuilderContext();
         statementBuilderContext.register(Statements.Definition.CREATE_FOREIGN_KEY, new FreemarkerStatementBuilder(configuration, "createForeignKey.sql.ftl", this));
         statementBuilderContext.register(Statements.Definition.CREATE_PRIMARY_KEY, new FreemarkerStatementBuilder(configuration, "createPrimaryKey.sql.ftl", this));
         statementBuilderContext.register(Statements.Definition.CREATE_UNIQUE_CONSTRAINT, new FreemarkerStatementBuilder(configuration, "createUniqueConstraint.sql.ftl", this));

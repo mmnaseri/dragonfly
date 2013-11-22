@@ -30,6 +30,9 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
+ * This class is actually a helper that will take a dialect and a table metadata context and then fill
+ * a given statement registry with statements prepared for each and every table.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/8, 19:58)
  */

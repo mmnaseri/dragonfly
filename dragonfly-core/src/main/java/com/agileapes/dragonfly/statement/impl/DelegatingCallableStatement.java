@@ -26,6 +26,9 @@ import java.util.Calendar;
 import java.util.Map;
 
 /**
+ * This is an implementation of {@link java.sql.CallableStatement} which delegates everything to the
+ * underlying callable statement except {@link #getConnection()}.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/10/6, 10:59)
  */

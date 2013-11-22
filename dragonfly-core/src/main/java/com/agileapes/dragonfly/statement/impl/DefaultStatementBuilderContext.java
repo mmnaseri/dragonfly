@@ -26,10 +26,12 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
+ * This is a builder context that performs storage and access for different statement builders.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/5, 1:16)
  */
-public class FreemarkerStatementBuilderContext implements StatementBuilderContext {
+public class DefaultStatementBuilderContext implements StatementBuilderContext {
 
     private final Map<Statements.Definition, StatementBuilder> definitionStatements = new ConcurrentHashMap<Statements.Definition, StatementBuilder>();
     private final Map<Statements.Manipulation, StatementBuilder> manipulationStatements = new ConcurrentHashMap<Statements.Manipulation, StatementBuilder>();
