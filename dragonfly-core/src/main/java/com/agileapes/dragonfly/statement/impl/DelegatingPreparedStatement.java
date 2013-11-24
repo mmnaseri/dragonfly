@@ -518,6 +518,16 @@ public class DelegatingPreparedStatement implements PreparedStatement {
     }
 
     @Override
+    public void closeOnCompletion() throws SQLException {
+        preparedStatement.closeOnCompletion();
+    }
+
+    @Override
+    public boolean isCloseOnCompletion() throws SQLException {
+        return preparedStatement.isCloseOnCompletion();
+    }
+
+    @Override
     public <T> T unwrap(Class<T> iface) throws SQLException {
         return preparedStatement.unwrap(iface);
     }

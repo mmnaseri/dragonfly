@@ -22,6 +22,8 @@ import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.SQLFeatureNotSupportedException;
+import java.util.logging.Logger;
 
 /**
  * This class encapsulates a simple data source established through a simple connection
@@ -79,6 +81,11 @@ public class JdbcDataSource implements DataSource {
     @Override
     public int getLoginTimeout() throws SQLException {
         return loginTimeout;
+    }
+
+    @Override
+    public Logger getParentLogger() throws SQLFeatureNotSupportedException {
+        return Logger.getAnonymousLogger();
     }
 
     @Override

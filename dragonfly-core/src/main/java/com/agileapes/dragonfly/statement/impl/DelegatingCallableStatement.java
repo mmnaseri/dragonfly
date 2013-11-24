@@ -598,6 +598,16 @@ public class DelegatingCallableStatement implements CallableStatement {
     }
 
     @Override
+    public <T> T getObject(int parameterIndex, Class<T> type) throws SQLException {
+        return callableStatement.getObject(parameterIndex, type);
+    }
+
+    @Override
+    public <T> T getObject(String parameterName, Class<T> type) throws SQLException {
+        return callableStatement.getObject(parameterName, type);
+    }
+
+    @Override
     public ResultSet executeQuery() throws SQLException {
         return callableStatement.executeQuery();
     }
@@ -1070,6 +1080,16 @@ public class DelegatingCallableStatement implements CallableStatement {
     @Override
     public boolean isPoolable() throws SQLException {
         return callableStatement.isPoolable();
+    }
+
+    @Override
+    public void closeOnCompletion() throws SQLException {
+        callableStatement.closeOnCompletion();
+    }
+
+    @Override
+    public boolean isCloseOnCompletion() throws SQLException {
+        return callableStatement.isCloseOnCompletion();
     }
 
     @Override
