@@ -25,7 +25,7 @@ import com.agileapes.couteau.lang.compiler.impl.SimpleJavaSourceCompiler;
 import com.agileapes.couteau.maven.task.PluginTask;
 import com.agileapes.dragonfly.model.StatementGenerationModel;
 import com.agileapes.dragonfly.mojo.PluginExecutor;
-import com.agileapes.dragonfly.statement.impl.StatementRegistry;
+import com.agileapes.dragonfly.statement.StatementRegistry;
 import freemarker.template.Template;
 import org.apache.maven.plugin.MojoFailureException;
 import org.springframework.beans.factory.annotation.Value;

@@ -31,7 +31,7 @@ import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.sample.entities.Person;
 import com.agileapes.dragonfly.security.impl.DefaultDataSecurityManager;
 import com.agileapes.dragonfly.security.impl.FailFirstAccessDeniedHandler;
-import com.agileapes.dragonfly.statement.impl.StatementRegistry;
+import com.agileapes.dragonfly.statement.StatementRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

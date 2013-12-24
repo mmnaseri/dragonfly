@@ -34,7 +34,7 @@ import com.agileapes.dragonfly.metadata.impl.DefaultTableMetadataContext;
 import com.agileapes.dragonfly.metadata.impl.DefaultTableMetadataResolverContext;
 import com.agileapes.dragonfly.mojo.PluginExecutor;
 import com.agileapes.dragonfly.statement.impl.DefaultStatementRegistry;
-import com.agileapes.dragonfly.statement.impl.StatementRegistry;
+import com.agileapes.dragonfly.statement.StatementRegistry;
 import com.agileapes.dragonfly.statement.impl.StatementRegistryPreparator;
 import org.apache.maven.plugin.MojoFailureException;
 import org.springframework.beans.BeansException;

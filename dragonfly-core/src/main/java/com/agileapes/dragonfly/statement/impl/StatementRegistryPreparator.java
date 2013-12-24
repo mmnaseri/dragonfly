@@ -22,6 +22,7 @@ import com.agileapes.dragonfly.dialect.DatabaseDialect;
 import com.agileapes.dragonfly.error.MetadataCollectionError;
 import com.agileapes.dragonfly.metadata.*;
 import com.agileapes.dragonfly.statement.StatementBuilder;
+import com.agileapes.dragonfly.statement.StatementRegistry;
 import com.agileapes.dragonfly.statement.Statements;
 import freemarker.cache.StringTemplateLoader;
 import freemarker.template.Configuration;

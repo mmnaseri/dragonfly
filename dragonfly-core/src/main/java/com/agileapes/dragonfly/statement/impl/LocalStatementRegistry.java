@@ -23,6 +23,7 @@ import com.agileapes.couteau.context.error.InvalidBeanTypeException;
 import com.agileapes.couteau.context.error.NoSuchItemException;
 import com.agileapes.couteau.context.error.RegistryException;
 import com.agileapes.dragonfly.statement.Statement;
+import com.agileapes.dragonfly.statement.StatementRegistry;
 
 import java.util.Collection;
 import java.util.Map;

@@ -45,7 +45,7 @@ import com.agileapes.dragonfly.security.AccessDeniedHandler;
 import com.agileapes.dragonfly.security.DataSecurityManager;
 import com.agileapes.dragonfly.security.impl.DefaultDataSecurityManager;
 import com.agileapes.dragonfly.security.impl.FailFirstAccessDeniedHandler;
-import com.agileapes.dragonfly.statement.impl.StatementRegistry;
+import com.agileapes.dragonfly.statement.StatementRegistry;
 import freemarker.template.Template;
 import org.apache.maven.plugin.MojoFailureException;
 import org.springframework.beans.factory.annotation.Autowired;

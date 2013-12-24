@@ -4,7 +4,7 @@ package com.agileapes.dragonfly.statement;
 import com.agileapes.dragonfly.dialect.DatabaseDialect;
 import com.agileapes.dragonfly.error.MetadataCollectionError;
 import com.agileapes.dragonfly.metadata.TableMetadataRegistry;
-import com.agileapes.dragonfly.statement.impl.StatementRegistry;
+import com.agileapes.dragonfly.statement.StatementRegistry;
 import com.agileapes.dragonfly.statement.impl.ImmutableStatement;
 import com.agileapes.dragonfly.statement.impl.ProcedureCallStatement;
 

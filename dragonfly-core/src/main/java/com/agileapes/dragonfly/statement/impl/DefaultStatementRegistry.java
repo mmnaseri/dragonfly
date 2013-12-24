@@ -19,6 +19,7 @@ package com.agileapes.dragonfly.statement.impl;
 
 import com.agileapes.couteau.context.impl.ConcurrentRegistry;
 import com.agileapes.dragonfly.statement.Statement;
+import com.agileapes.dragonfly.statement.StatementRegistry;
 
 /**
  * This is the default statement registry implementation, which is actually an extension to the

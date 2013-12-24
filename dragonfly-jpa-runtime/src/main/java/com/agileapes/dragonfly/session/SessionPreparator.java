@@ -37,7 +37,7 @@ import com.agileapes.dragonfly.metadata.TableMetadataRegistry;
 import com.agileapes.dragonfly.metadata.TableMetadataResolverContext;
 import com.agileapes.dragonfly.metadata.impl.AnnotationTableMetadataResolver;
 import com.agileapes.dragonfly.metadata.impl.DefaultTableMetadataResolverContext;
-import com.agileapes.dragonfly.statement.impl.StatementRegistry;
+import com.agileapes.dragonfly.statement.StatementRegistry;
 import com.agileapes.dragonfly.statement.impl.StatementRegistryPreparator;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

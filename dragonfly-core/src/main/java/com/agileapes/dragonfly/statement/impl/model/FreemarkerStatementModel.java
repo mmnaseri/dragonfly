@@ -30,6 +30,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * This is a model used for stereotyping
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/1, 1:29)
  */

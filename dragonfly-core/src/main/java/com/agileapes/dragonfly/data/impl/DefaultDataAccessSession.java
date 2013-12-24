@@ -27,7 +27,7 @@ import com.agileapes.dragonfly.error.DatabaseConnectionError;
 import com.agileapes.dragonfly.error.DatabaseDriverNotFoundError;
 import com.agileapes.dragonfly.metadata.TableMetadataRegistry;
 import com.agileapes.dragonfly.statement.impl.LocalStatementRegistry;
-import com.agileapes.dragonfly.statement.impl.StatementRegistry;
+import com.agileapes.dragonfly.statement.StatementRegistry;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 

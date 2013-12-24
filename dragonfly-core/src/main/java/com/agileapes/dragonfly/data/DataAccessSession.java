@@ -19,7 +19,7 @@ package com.agileapes.dragonfly.data;
 
 import com.agileapes.dragonfly.dialect.DatabaseDialect;
 import com.agileapes.dragonfly.metadata.TableMetadataRegistry;
-import com.agileapes.dragonfly.statement.impl.StatementRegistry;
+import com.agileapes.dragonfly.statement.StatementRegistry;
 
 import java.sql.Connection;
 import java.util.Collection;
