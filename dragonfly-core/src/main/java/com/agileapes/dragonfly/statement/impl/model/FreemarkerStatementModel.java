@@ -30,7 +30,47 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * This is a model used for stereotyping
+ * <p>This is a model used for stereotyping the statements written by both end users and throughout the dragonfly
+ * allowing for efficient writing of dynamic queries.</p>
+ *
+ * <p>Such statements will benefit from the functions and values made available to them and can be expanded both
+ * dynamically and statically.</p>
+ *
+ * <p>The values are:</p>
+ *
+ * <ul>
+ *     <li><strong>dialect</strong>; which will give access to the dialect. This is an instance of {@link DatabaseDialect}</li>
+ *     <li><strong>table</strong>; which is the table for which the statement will be expanded. This is an instance of
+ *     {@link TableMetadata}</li>
+ *     <li><strong>value</strong>; which is a map of all the values and column values accessible to the model. Note that this
+ *     is applicable and expandable for queries which interact with data and not with structure.</li>
+ *     <li><strong>new</strong>; the new values that are not yet represented in the database. This is also not applicable
+ *     for structural queries.</li>
+ *     <li><strong>old</strong>; the values currently in the database. These are essentially the same as the stuff accessible
+ *     through {@code value}</li>
+ * </ul>
+ *
+ * <p>Other than the values accessible to queries, a number of helper methods are also available which will make it much
+ * easier to write universal, dynamic queries. These are:</p>
+ *
+ * <ul>
+ *     <li><strong>isGenerated</strong>; given a column object, will determine whether or not the value for that column
+ *     has a generation strategy or it should be always specified manually.</li>
+ *     <li><strong>isNotGenerated</strong>; does the exact opposite of <code>isGenerated</code></li>
+ *     <li><strong>isReference</strong>; determines whether or not the given column is a reference to a foreign column</li>
+ *     <li><strong>isNotReference</strong>; does the exact opposite of <code>isReference</code></li>
+ *     <li><strong>isSet</strong>; determines whether or not a column's value has been provided for the current query</li>
+ *     <li><strong>isVersion</strong>; picks out the version columns</li>
+ *     <li><strong>isNotVersion</strong>; picks out all columns other than the version column</li>
+ *     <li><strong>escape</strong>; escapes the given input text according to the conventions set forth by the database
+ *     dialect</li>
+ *     <li><strong>quote</strong>; adds vendor-specific quotation around the given identifier to separate it from
+ *     database identifiers</li>
+ *     <li><strong>type</strong>; Returns vendor-specific SQL type for the given column</li>
+ * </ul>
+ *
+ * <p>All methods starting with <code>is</code> can be applied to collections of items as well as items, which will
+ * result in a filtered collection.</p>
  *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/1, 1:29)

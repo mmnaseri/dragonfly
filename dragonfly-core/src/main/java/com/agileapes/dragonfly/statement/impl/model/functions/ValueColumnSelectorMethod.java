@@ -31,6 +31,8 @@ import java.util.Map;
 import java.util.Set;
 
 /**
+ * Picks out columns for which a value has been provided
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/1, 13:58)
  */

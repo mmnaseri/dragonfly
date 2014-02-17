@@ -26,6 +26,8 @@ import java.util.Collection;
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 
 /**
+ * Quotes identifiers according to dialectic rules and conventions
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/3, 14:38)
  */

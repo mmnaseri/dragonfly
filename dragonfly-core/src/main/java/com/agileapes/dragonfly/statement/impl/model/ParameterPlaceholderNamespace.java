@@ -26,6 +26,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * This is a template model that will discover all parameters in a certain namespace and turn them up
+ * for inspection and evaluation.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/3, 17:03)
  */

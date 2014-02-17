@@ -23,6 +23,8 @@ import com.agileapes.dragonfly.dialect.DatabaseDialect;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
 
 /**
+ * Resolves the SQL type of any given column
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/4, 13:43)
  */

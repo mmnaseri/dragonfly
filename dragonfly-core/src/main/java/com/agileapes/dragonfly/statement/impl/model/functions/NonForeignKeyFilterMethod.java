@@ -22,8 +22,11 @@ import com.agileapes.couteau.freemarker.model.FilteringMethodModel;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
 
 /**
+ * Picks out columns that are not foreign keys
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/5, 14:12)
+ * @see com.agileapes.dragonfly.statement.impl.model.functions.ForeignKeyFilterMethod
  */
 public class NonForeignKeyFilterMethod extends FilteringMethodModel<ColumnMetadata> {
 

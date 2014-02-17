@@ -19,8 +19,11 @@ package com.agileapes.dragonfly.statement.impl.model.functions;
 
 import com.agileapes.couteau.freemarker.api.Invokable;
 import com.agileapes.couteau.freemarker.model.TypedMethodModel;
+import com.agileapes.dragonfly.dialect.impl.Mysql5Dialect;
 
 /**
+ * Escapes the given input string
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/1, 13:55)
  */

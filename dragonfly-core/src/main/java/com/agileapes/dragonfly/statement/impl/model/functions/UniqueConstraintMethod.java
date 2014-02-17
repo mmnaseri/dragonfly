@@ -22,6 +22,8 @@ import com.agileapes.dragonfly.metadata.ConstraintMetadata;
 import com.agileapes.dragonfly.metadata.impl.UniqueConstraintMetadata;
 
 /**
+ * Filters those constraints which are unique constraints
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/4, 16:21)
  */

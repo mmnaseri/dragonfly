@@ -22,8 +22,11 @@ import com.agileapes.couteau.freemarker.model.FilteringMethodModel;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
 
 /**
+ * Picks out columns that are not version columns
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/10/28, 22:43)
+ * @see com.agileapes.dragonfly.statement.impl.model.functions.VersionColumnSelectorMethod
  */
 public class NonVersionColumnSelectorMethod extends FilteringMethodModel<ColumnMetadata> {
 

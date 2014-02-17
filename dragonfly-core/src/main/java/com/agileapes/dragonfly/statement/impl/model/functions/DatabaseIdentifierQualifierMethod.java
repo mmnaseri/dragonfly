@@ -28,6 +28,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 /**
+ * Returns the qualified name of the database elements.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/1, 1:38)
  */
@@ -76,6 +78,8 @@ public class DatabaseIdentifierQualifierMethod extends TypedMethodModel {
                 result.add(getTableName((TableMetadata<?>) item));
             } else if (item instanceof ColumnMetadata) {
                 result.add(getColumnName((ColumnMetadata) item));
+            } else if (item instanceof StoredProcedureMetadata) {
+                result.add(getProcedureName((StoredProcedureMetadata) item));
             } else {
                 throw new Error("Invalid item in collection. Items must be references to either columns, or tables.");
             }

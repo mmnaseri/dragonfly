@@ -22,6 +22,8 @@ import com.agileapes.couteau.freemarker.model.FilteringMethodModel;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
 
 /**
+ * Selects columns that are version columns.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/10/28, 22:41)
  */

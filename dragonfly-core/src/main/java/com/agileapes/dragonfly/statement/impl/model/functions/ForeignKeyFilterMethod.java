@@ -22,6 +22,8 @@ import com.agileapes.couteau.freemarker.model.FilteringMethodModel;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
 
 /**
+ * Picks out foreign key methods
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/5, 14:12)
  */

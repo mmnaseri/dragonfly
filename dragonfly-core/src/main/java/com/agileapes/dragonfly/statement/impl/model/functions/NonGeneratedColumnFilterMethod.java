@@ -30,8 +30,11 @@ import java.util.HashSet;
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 
 /**
+ * Picks out columns whose values are not auto-generated
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/1, 13:46)
+ * @see com.agileapes.dragonfly.statement.impl.model.functions.GeneratedColumnFilterMethod
  */
 public class NonGeneratedColumnFilterMethod extends FilteringMethodModel<ColumnMetadata> {
 
