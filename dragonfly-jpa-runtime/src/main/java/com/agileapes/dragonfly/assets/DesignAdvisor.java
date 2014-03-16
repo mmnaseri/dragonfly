@@ -3,10 +3,7 @@ package com.agileapes.dragonfly.assets;
 import com.agileapes.couteau.basics.api.Processor;
 import com.agileapes.couteau.concurrency.manager.TaskManager;
 import com.agileapes.couteau.concurrency.manager.impl.ThreadPoolTaskManager;
-import com.agileapes.dragonfly.assets.analysis.AnalyzerTask;
-import com.agileapes.dragonfly.assets.analysis.ExtensionFilterApplicabilityAnalyzer;
-import com.agileapes.dragonfly.assets.analysis.ExtensionPropertyAccessibilityAnalyzer;
-import com.agileapes.dragonfly.assets.analysis.ScanPackageDefinitionEfficiencyAnalyzer;
+import com.agileapes.dragonfly.assets.analysis.*;
 import com.agileapes.dragonfly.session.SessionPreparator;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -67,7 +64,8 @@ public class DesignAdvisor implements ApplicationContextAware, Ordered, Applicat
         with(
                 new ExtensionFilterApplicabilityAnalyzer(),
                 new ExtensionPropertyAccessibilityAnalyzer(),
-                new ScanPackageDefinitionEfficiencyAnalyzer()
+                new ScanPackageDefinitionEfficiencyAnalyzer(),
+                new IdentityCollisionAnalyzer()
         ).each(new Processor<ApplicationDesignAnalyzer>() {
             @Override
             public void process(ApplicationDesignAnalyzer applicationDesignAnalyzer) {
