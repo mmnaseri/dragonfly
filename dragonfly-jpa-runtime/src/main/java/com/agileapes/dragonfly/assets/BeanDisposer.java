@@ -24,12 +24,13 @@ import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.core.Ordered;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/10/2, 21:19)
  */
-public class BeanDisposer implements BeanNameAware, BeanFactoryPostProcessor {
+public class BeanDisposer implements BeanNameAware, BeanFactoryPostProcessor, Ordered {
 
     private static final Log log = LogFactory.getLog(BeanDisposer.class);
 
@@ -53,6 +54,11 @@ public class BeanDisposer implements BeanNameAware, BeanFactoryPostProcessor {
     private void dispose(BeanDefinitionRegistry definitionRegistry, String disposable) {
         log.info("Disposing of bean " + disposable);
         definitionRegistry.removeBeanDefinition(disposable);
+    }
+
+    @Override
+    public int getOrder() {
+        return LOWEST_PRECEDENCE;
     }
 
 }

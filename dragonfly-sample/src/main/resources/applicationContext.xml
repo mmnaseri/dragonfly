@@ -24,6 +24,8 @@
         <property name="maxWait" value="1500"/>
     </bean>
 
+    <bean class="com.agileapes.dragonfly.assets.DesignAdvisor"/>
+
     <context:annotation-config/>
     <context:component-scan base-package="com.agileapes.dragonfly"/>
 

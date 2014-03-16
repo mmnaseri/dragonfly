@@ -21,7 +21,6 @@ import com.agileapes.couteau.basics.api.Transformer;
 import com.agileapes.couteau.basics.api.impl.CastingTransformer;
 import com.agileapes.couteau.reflection.util.ClassUtils;
 import com.agileapes.dragonfly.annotations.Extension;
-import com.agileapes.dragonfly.assets.Disposable;
 import com.agileapes.dragonfly.dialect.DatabaseDialect;
 import com.agileapes.dragonfly.entity.EntityDefinition;
 import com.agileapes.dragonfly.entity.EntityDefinitionContext;
@@ -58,7 +57,7 @@ import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/18, 17:56)
  */
-public class SessionPreparator implements BeanFactoryPostProcessor, Disposable {
+public class SessionPreparator implements BeanFactoryPostProcessor {
 
     private final static Log log = LogFactory.getLog(SessionPreparator.class);
     
@@ -68,7 +67,7 @@ public class SessionPreparator implements BeanFactoryPostProcessor, Disposable {
     private final String[] basePackages;
 
     public SessionPreparator(String basePackages) {
-        this(basePackages.split("\\."));
+        this(basePackages.split(","));
     }
 
     public SessionPreparator(Properties basePackages) {
@@ -86,6 +85,22 @@ public class SessionPreparator implements BeanFactoryPostProcessor, Disposable {
         definitionContext = new DefaultEntityDefinitionContext();
         definitionContext.addInterceptor(extensionManager);
         resolverContext.addMetadataResolver(new AnnotationTableMetadataResolver());
+    }
+
+    public ExtensionManager getExtensionManager() {
+        return extensionManager;
+    }
+
+    public TableMetadataResolverContext getResolverContext() {
+        return resolverContext;
+    }
+
+    public EntityDefinitionContext getDefinitionContext() {
+        return definitionContext;
+    }
+
+    public String[] getBasePackages() {
+        return basePackages;
     }
 
     @Override

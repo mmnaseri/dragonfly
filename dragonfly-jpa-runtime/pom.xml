@@ -25,6 +25,11 @@
             <groupId>commons-logging</groupId>
             <artifactId>commons-logging</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.agileapes.couteau</groupId>
+            <artifactId>couteau-concurrency</artifactId>
+            <version>1.0</version>
+        </dependency>
     </dependencies>
 
 

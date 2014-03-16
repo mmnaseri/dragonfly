@@ -27,6 +27,7 @@ import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.metadata.TableMetadataInterceptor;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -45,6 +46,11 @@ public class DefaultExtensionManager implements ExtensionManager {
     @Override
     public void addExtension(ExtensionMetadata extensionMetadata) {
         extensions.add(extensionMetadata);
+    }
+
+    @Override
+    public Collection<ExtensionMetadata> getRegisteredExtensions() {
+        return Collections.unmodifiableCollection(extensions);
     }
 
     @Override
