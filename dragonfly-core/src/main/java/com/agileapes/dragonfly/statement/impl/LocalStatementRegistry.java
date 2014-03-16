@@ -71,6 +71,11 @@ public class LocalStatementRegistry implements StatementRegistry {
     }
 
     @Override
+    public void unregister(String name) throws RegistryException {
+        parent.unregister(getName(name));
+    }
+
+    @Override
     public Statement get(String name) throws RegistryException {
         if (!localBeans.containsKey(name)) {
             throw new NoSuchItemException(name);
