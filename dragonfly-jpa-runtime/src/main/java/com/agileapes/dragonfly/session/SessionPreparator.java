@@ -21,6 +21,7 @@ import com.agileapes.couteau.basics.api.Transformer;
 import com.agileapes.couteau.basics.api.impl.CastingTransformer;
 import com.agileapes.couteau.reflection.util.ClassUtils;
 import com.agileapes.dragonfly.annotations.Extension;
+import com.agileapes.dragonfly.annotations.Ignored;
 import com.agileapes.dragonfly.dialect.DatabaseDialect;
 import com.agileapes.dragonfly.entity.EntityDefinition;
 import com.agileapes.dragonfly.entity.EntityDefinitionContext;

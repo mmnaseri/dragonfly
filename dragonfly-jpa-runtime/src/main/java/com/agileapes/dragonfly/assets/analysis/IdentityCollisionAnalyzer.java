@@ -3,6 +3,7 @@ package com.agileapes.dragonfly.assets.analysis;
 import com.agileapes.couteau.basics.api.Filter;
 import com.agileapes.couteau.basics.api.Transformer;
 import com.agileapes.couteau.basics.api.impl.MirrorFilter;
+import com.agileapes.couteau.basics.api.impl.NullFilter;
 import com.agileapes.couteau.reflection.util.assets.AnnotatedElementFilter;
 import com.agileapes.couteau.reflection.util.assets.GetterMethodFilter;
 import com.agileapes.dragonfly.assets.ApplicationDesignAnalyzer;
@@ -33,7 +34,7 @@ public class IdentityCollisionAnalyzer implements ApplicationDesignAnalyzer {
     public List<DesignIssue> analyze(ApplicationContext applicationContext, SessionPreparator sessionPreparator) {
         final EntityDefinitionContext definitionContext = sessionPreparator.getDefinitionContext();
         final ExtensionManager extensionManager = sessionPreparator.getExtensionManager();
-        with(definitionContext.getDefinitions())
+        return with(definitionContext.getDefinitions())
                 .transform(new Transformer<EntityDefinition<?>, Class<?>>() {
                     @Override
                     public Class<?> map(EntityDefinition<?> entityDefinition) {
@@ -63,11 +64,15 @@ public class IdentityCollisionAnalyzer implements ApplicationDesignAnalyzer {
                                 return "extension '" + extensionMetadata.getExtension().getCanonicalName() + "'";
                             }
                         }).list();
+                if (extensionsTryingToIntroduceId.isEmpty()) {
+                    return null;
+                }
                 final ArrayList<Object> involvedParties = new ArrayList<Object>(extensionsTryingToIntroduceId);
                 involvedParties.add(0, "entity '" + entityType.getCanonicalName() + "'");
                 return new ComplexDesignIssueTarget(involvedParties);
             }
         })
+        .drop(new NullFilter<ComplexDesignIssueTarget>())
         .transform(new Transformer<ComplexDesignIssueTarget, DesignIssue>() {
             @Override
             public DesignIssue map(ComplexDesignIssueTarget complexDesignIssueTarget) {
@@ -76,8 +81,8 @@ public class IdentityCollisionAnalyzer implements ApplicationDesignAnalyzer {
                         "defines its own ID column, and also take a closer look at your extensions to make sure they " +
                         "do not apply the same sort of semantic modification to your entity, rendering them useless.");
             }
-        });
-        return null;
+        })
+        .list();
     }
 
 }

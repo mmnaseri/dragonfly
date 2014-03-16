@@ -19,6 +19,7 @@ package com.agileapes.dragonfly.data.impl;
 
 import com.agileapes.couteau.basics.api.Filter;
 import com.agileapes.couteau.basics.api.Processor;
+import com.agileapes.dragonfly.annotations.Ignored;
 import com.agileapes.dragonfly.data.DataAccessSession;
 import com.agileapes.dragonfly.data.DataStructureHandler;
 import com.agileapes.dragonfly.error.UnsuccessfulOperationError;
@@ -280,21 +281,39 @@ public class DefaultDataStructureHandler implements DataStructureHandler {
             }
         }
         for (Class<?> entity : undefinedEntities) {
+            if (entity.isAnnotationPresent(Ignored.class)) {
+                continue;
+            }
             defineTable(entity);
         }
         for (Class<?> entity : undefinedEntities) {
+            if (entity.isAnnotationPresent(Ignored.class)) {
+                continue;
+            }
             definePrimaryKey(entity);
         }
         for (Class<?> entity : undefinedEntities) {
+            if (entity.isAnnotationPresent(Ignored.class)) {
+                continue;
+            }
             defineSequences(entity);
         }
         for (Class<?> entity : undefinedEntities) {
+            if (entity.isAnnotationPresent(Ignored.class)) {
+                continue;
+            }
             bindSequences(entity);
         }
         for (Class<?> entity : undefinedEntities) {
+            if (entity.isAnnotationPresent(Ignored.class)) {
+                continue;
+            }
             defineUniqueConstraints(entity);
         }
         for (Class<?> entity : undefinedEntities) {
+            if (entity.isAnnotationPresent(Ignored.class)) {
+                continue;
+            }
             defineForeignKeys(entity);
         }
         if (session.getTableMetadataRegistry() instanceof DefaultTableMetadataContext) {
