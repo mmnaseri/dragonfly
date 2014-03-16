@@ -12,6 +12,8 @@
         <!--<constructor-arg value="${db.password}"/>-->
     <!--</bean>-->
 
+    <bean id="auditInterceptor" class="com.agileapes.dragonfly.sample.ext.AuditInterceptor"/>
+
     <bean id="jdbcDataSource" class="org.apache.commons.dbcp.BasicDataSource">
         <property name="driverClassName" value="#{databaseDialect.driverClassName}"/>
         <property name="url" value="jdbc:mysql://localhost"/>

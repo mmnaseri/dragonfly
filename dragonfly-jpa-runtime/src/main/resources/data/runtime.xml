@@ -32,8 +32,6 @@
                          ref="accessDeniedHandler"/>
     </bean>
 
-    <bean id="auditInterceptor" class="com.agileapes.dragonfly.sample.ext.AuditInterceptor"/>
-
     <bean class="com.agileapes.dragonfly.data.impl.DelegatingDataAccess">
         <constructor-arg>
             <bean id="dataAccess" class="com.agileapes.dragonfly.data.impl.SecuredDataAccess">
