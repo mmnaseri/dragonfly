@@ -1,4 +1,4 @@
-package com.agileapes.dragonfly.assets;
+package com.agileapes.dragonfly.analysis;
 
 import org.springframework.util.StringUtils;
 
@@ -15,11 +15,11 @@ public final class DesignIssue implements Comparable<DesignIssue> {
     }
 
     private final Severity severity;
-    private final Object target;
+    private final IssueTarget target;
     private final String message;
     private final String fix;
 
-    public DesignIssue(Severity severity, Object target, String message, String fix) {
+    public DesignIssue(Severity severity, IssueTarget target, String message, String fix) {
         this.severity = severity;
         this.target = target;
         this.message = message;
@@ -30,7 +30,7 @@ public final class DesignIssue implements Comparable<DesignIssue> {
         return severity;
     }
 
-    public Object getTarget() {
+    public IssueTarget getTarget() {
         return target;
     }
 

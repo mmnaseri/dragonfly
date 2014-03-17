@@ -1,9 +1,10 @@
-package com.agileapes.dragonfly.assets.analysis;
+package com.agileapes.dragonfly.analysis.analyzers;
 
 import com.agileapes.couteau.basics.api.Filter;
 import com.agileapes.couteau.basics.api.Transformer;
-import com.agileapes.dragonfly.assets.ApplicationDesignAnalyzer;
-import com.agileapes.dragonfly.assets.DesignIssue;
+import com.agileapes.dragonfly.analysis.ApplicationDesignAnalyzer;
+import com.agileapes.dragonfly.analysis.DesignIssue;
+import com.agileapes.dragonfly.analysis.impl.TableIssueTarget;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.metadata.TableMetadataRegistry;
 
@@ -42,7 +43,7 @@ public class VersionEntityWithoutKeyAnalyzer implements ApplicationDesignAnalyze
                 .transform(new Transformer<TableMetadata<?>, DesignIssue>() {
                     @Override
                     public DesignIssue map(TableMetadata<?> tableMetadata) {
-                        return new DesignIssue(DesignIssue.Severity.SEVERE, "entity '" + tableMetadata.getEntityType().getCanonicalName() + "'",
+                        return new DesignIssue(DesignIssue.Severity.SEVERE, new TableIssueTarget(tableMetadata),
                                 "Entities without an identity column cannot have a version column. This will result in" +
                                         "runtime errors that are sometimes hard to debug.", "Add an identity column to " +
                                 "your entity alongside its version column. It might be that you expected the identity " +

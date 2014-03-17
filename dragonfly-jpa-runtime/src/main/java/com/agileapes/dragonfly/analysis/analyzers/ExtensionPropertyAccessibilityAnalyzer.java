@@ -1,12 +1,13 @@
-package com.agileapes.dragonfly.assets.analysis;
+package com.agileapes.dragonfly.analysis.analyzers;
 
 import com.agileapes.couteau.basics.api.Filter;
 import com.agileapes.couteau.basics.api.Transformer;
 import com.agileapes.couteau.reflection.util.ReflectionUtils;
 import com.agileapes.couteau.reflection.util.assets.AnnotatedElementFilter;
 import com.agileapes.couteau.reflection.util.assets.GetterMethodFilter;
-import com.agileapes.dragonfly.assets.ApplicationDesignAnalyzer;
-import com.agileapes.dragonfly.assets.DesignIssue;
+import com.agileapes.dragonfly.analysis.ApplicationDesignAnalyzer;
+import com.agileapes.dragonfly.analysis.DesignIssue;
+import com.agileapes.dragonfly.analysis.impl.MethodIssueTarget;
 import com.agileapes.dragonfly.ext.ExtensionManager;
 import com.agileapes.dragonfly.ext.ExtensionMetadata;
 
@@ -43,7 +44,7 @@ public class ExtensionPropertyAccessibilityAnalyzer implements ApplicationDesign
             }).transform(new Transformer<Method, DesignIssue>() {
                 @Override
                 public DesignIssue map(Method method) {
-                    return new DesignIssue(DesignIssue.Severity.CRITICAL, "method declaration for '" + method.toGenericString() + "'", "Column method is declared by extension class. This might cause " +
+                    return new DesignIssue(DesignIssue.Severity.CRITICAL, new MethodIssueTarget(method), "Column method is declared by extension class. This might cause " +
                             "property access problems with data access", "Move the column value setter and getter to " +
                             "an interface which the extension implements.");
                 }

@@ -1,7 +1,10 @@
-package com.agileapes.dragonfly.assets;
+package com.agileapes.dragonfly.analysis.impl;
+
+import com.agileapes.dragonfly.analysis.IssueTarget;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
@@ -10,16 +13,21 @@ import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (14/3/17 AD, 2:09)
  */
-public final class ComplexDesignIssueTarget {
+public final class ComplexDesignIssueTarget implements IssueTarget<Collection<IssueTarget<?>>> {
 
-    private final List<Object> involvedParties = new ArrayList<Object>();
+    private final List<IssueTarget<?>> involvedParties = new ArrayList<IssueTarget<?>>();
 
-    public ComplexDesignIssueTarget(Collection<?> involvedParties) {
+    public ComplexDesignIssueTarget(Collection<IssueTarget<?>> involvedParties) {
         this.involvedParties.addAll(involvedParties);
     }
 
-    public ComplexDesignIssueTarget(Object... involvedParties) {
+    public ComplexDesignIssueTarget(IssueTarget<?>... involvedParties) {
         this.involvedParties.addAll(with(involvedParties).list());
+    }
+
+    @Override
+    public Collection<IssueTarget<?>> getTarget() {
+        return Collections.unmodifiableCollection(involvedParties);
     }
 
     @Override

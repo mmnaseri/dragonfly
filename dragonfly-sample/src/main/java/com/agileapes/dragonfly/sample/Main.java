@@ -33,6 +33,7 @@ public class Main {
         stopWatch.start("startup");
         final ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("/applicationContext.xml");
         stopWatch.stop();
+        if (true) return;
         stopWatch.start("clean-up");
         context.getBean(CleanUpService.class).execute();
         stopWatch.stop();

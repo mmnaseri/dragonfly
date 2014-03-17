@@ -1,9 +1,10 @@
-package com.agileapes.dragonfly.assets.analysis;
+package com.agileapes.dragonfly.analysis.analyzers;
 
 import com.agileapes.couteau.basics.api.Filter;
 import com.agileapes.couteau.basics.api.Transformer;
-import com.agileapes.dragonfly.assets.ApplicationDesignAnalyzer;
-import com.agileapes.dragonfly.assets.DesignIssue;
+import com.agileapes.dragonfly.analysis.ApplicationDesignAnalyzer;
+import com.agileapes.dragonfly.analysis.DesignIssue;
+import com.agileapes.dragonfly.analysis.impl.ExtensionIssueTarget;
 import com.agileapes.dragonfly.entity.EntityDefinition;
 import com.agileapes.dragonfly.entity.EntityDefinitionContext;
 import com.agileapes.dragonfly.ext.ExtensionManager;
@@ -48,7 +49,7 @@ public class ExtensionFilterApplicabilityAnalyzer implements ApplicationDesignAn
                 .transform(new Transformer<ExtensionMetadata, DesignIssue>() {
                     @Override
                     public DesignIssue map(ExtensionMetadata extensionMetadata) {
-                        return new DesignIssue(DesignIssue.Severity.IMPORTANT, "extension '" + extensionMetadata.getExtension().getCanonicalName() + "'",
+                        return new DesignIssue(DesignIssue.Severity.IMPORTANT, new ExtensionIssueTarget(extensionMetadata),
                                 "Extension does not apply to any of the defined entities. This might indicate that the filter for the " +
                                         "extension has not been written properly", "Inspect the indicated extension's filter and make sure " +
                                 "that it has been written and functions as intended, and the fact that it does not extend any entities " +

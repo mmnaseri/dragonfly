@@ -1,4 +1,4 @@
-package com.agileapes.dragonfly.assets.analysis;
+package com.agileapes.dragonfly.analysis.analyzers;
 
 import com.agileapes.couteau.basics.api.Filter;
 import com.agileapes.couteau.basics.api.Transformer;
@@ -6,9 +6,12 @@ import com.agileapes.couteau.basics.api.impl.MirrorFilter;
 import com.agileapes.couteau.basics.api.impl.NullFilter;
 import com.agileapes.couteau.reflection.util.assets.AnnotatedElementFilter;
 import com.agileapes.couteau.reflection.util.assets.GetterMethodFilter;
-import com.agileapes.dragonfly.assets.ApplicationDesignAnalyzer;
-import com.agileapes.dragonfly.assets.ComplexDesignIssueTarget;
-import com.agileapes.dragonfly.assets.DesignIssue;
+import com.agileapes.dragonfly.analysis.ApplicationDesignAnalyzer;
+import com.agileapes.dragonfly.analysis.IssueTarget;
+import com.agileapes.dragonfly.analysis.impl.ComplexDesignIssueTarget;
+import com.agileapes.dragonfly.analysis.DesignIssue;
+import com.agileapes.dragonfly.analysis.impl.EntityIssueTarget;
+import com.agileapes.dragonfly.analysis.impl.ExtensionIssueTarget;
 import com.agileapes.dragonfly.entity.EntityDefinition;
 import com.agileapes.dragonfly.entity.EntityDefinitionContext;
 import com.agileapes.dragonfly.ext.ExtensionManager;
@@ -54,7 +57,7 @@ public class IdentityCollisionAnalyzer implements ApplicationDesignAnalyzer {
         .transform(new Transformer<Class<?>, ComplexDesignIssueTarget>() {
             @Override
             public ComplexDesignIssueTarget map(Class<?> entityType) {
-                final List<String> extensionsTryingToIntroduceId = with(extensionManager.getRegisteredExtensions())
+                final List<IssueTarget<?>> extensionsTryingToIntroduceId = with(extensionManager.getRegisteredExtensions())
                         .keep(new MirrorFilter<Class<?>>(entityType))
                         .keep(new Filter<ExtensionMetadata>() {
                             @Override
@@ -62,17 +65,17 @@ public class IdentityCollisionAnalyzer implements ApplicationDesignAnalyzer {
                                 return !withMethods(extensionMetadata.getExtension()).keep(new GetterMethodFilter()).keep(new AnnotatedElementFilter(Id.class)).isEmpty();
                             }
                         })
-                        .transform(new Transformer<ExtensionMetadata, String>() {
+                        .transform(new Transformer<ExtensionMetadata, IssueTarget<?>>() {
                             @Override
-                            public String map(ExtensionMetadata extensionMetadata) {
-                                return "extension '" + extensionMetadata.getExtension().getCanonicalName() + "'";
+                            public IssueTarget<?> map(ExtensionMetadata extensionMetadata) {
+                                return new ExtensionIssueTarget(extensionMetadata);
                             }
                         }).list();
                 if (extensionsTryingToIntroduceId.isEmpty()) {
                     return null;
                 }
-                final ArrayList<Object> involvedParties = new ArrayList<Object>(extensionsTryingToIntroduceId);
-                involvedParties.add(0, "entity '" + entityType.getCanonicalName() + "'");
+                final ArrayList<IssueTarget<?>> involvedParties = new ArrayList<IssueTarget<?>>(extensionsTryingToIntroduceId);
+                involvedParties.add(0, new EntityIssueTarget(entityType));
                 return new ComplexDesignIssueTarget(involvedParties);
             }
         })

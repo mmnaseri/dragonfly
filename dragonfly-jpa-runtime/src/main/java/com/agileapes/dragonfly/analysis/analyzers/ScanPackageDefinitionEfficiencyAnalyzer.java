@@ -1,9 +1,10 @@
-package com.agileapes.dragonfly.assets.analysis;
+package com.agileapes.dragonfly.analysis.analyzers;
 
 import com.agileapes.couteau.basics.api.Filter;
 import com.agileapes.couteau.basics.api.Transformer;
-import com.agileapes.dragonfly.assets.ApplicationDesignAnalyzer;
-import com.agileapes.dragonfly.assets.DesignIssue;
+import com.agileapes.dragonfly.analysis.ApplicationDesignAnalyzer;
+import com.agileapes.dragonfly.analysis.DesignIssue;
+import com.agileapes.dragonfly.analysis.impl.PackageIssueTarget;
 import com.agileapes.dragonfly.entity.EntityDefinition;
 import com.agileapes.dragonfly.entity.EntityDefinitionContext;
 
@@ -62,7 +63,7 @@ public class ScanPackageDefinitionEfficiencyAnalyzer implements ApplicationDesig
         }).transform(new Transformer<Map.Entry<String, Integer>, DesignIssue>() {
             @Override
             public DesignIssue map(Map.Entry<String, Integer> descriptor) {
-                return new DesignIssue(DesignIssue.Severity.IMPORTANT, "scan package: " + descriptor.getKey() + "*",
+                return new DesignIssue(DesignIssue.Severity.IMPORTANT, new PackageIssueTarget(descriptor.getKey()),
                         "The package specified is too broad for scanning and this will significantly slow down the" +
                                 "process", "Add more base packages, but keep them narrower. Identify and remove " +
                         "packages under which no entities are defined.");

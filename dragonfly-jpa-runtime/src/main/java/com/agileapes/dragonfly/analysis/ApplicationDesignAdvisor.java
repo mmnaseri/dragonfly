@@ -1,12 +1,12 @@
-package com.agileapes.dragonfly.assets;
+package com.agileapes.dragonfly.analysis;
 
 import com.agileapes.couteau.basics.api.Processor;
 import com.agileapes.couteau.concurrency.manager.TaskManager;
 import com.agileapes.couteau.concurrency.manager.impl.ThreadPoolTaskManager;
-import com.agileapes.dragonfly.assets.analysis.*;
+import com.agileapes.dragonfly.analysis.analyzers.*;
+import com.agileapes.dragonfly.analysis.impl.AnalyzerTask;
 import com.agileapes.dragonfly.entity.EntityDefinitionContext;
 import com.agileapes.dragonfly.ext.ExtensionManager;
-import com.agileapes.dragonfly.metadata.TableMetadataContext;
 import com.agileapes.dragonfly.metadata.TableMetadataRegistry;
 import com.agileapes.dragonfly.session.SessionPreparator;
 import org.apache.commons.logging.Log;
@@ -29,9 +29,9 @@ import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
  * @since 1.0 (14/3/17 AD, 0:40)
  */
 @SuppressWarnings("unchecked")
-public final class DesignAdvisor implements ApplicationContextAware, Ordered, ApplicationDesignAnalyzer, BeanNameAware {
+public final class ApplicationDesignAdvisor implements ApplicationContextAware, Ordered, ApplicationDesignAnalyzer, BeanNameAware {
 
-    private static final Log log = LogFactory.getLog(DesignAdvisor.class);
+    private static final Log log = LogFactory.getLog(ApplicationDesignAdvisor.class);
     private String beanName;
     private ApplicationContext applicationContext;
 
@@ -81,7 +81,7 @@ public final class DesignAdvisor implements ApplicationContextAware, Ordered, Ap
         ).each(new Processor<ApplicationDesignAnalyzer>() {
             @Override
             public void process(ApplicationDesignAnalyzer applicationDesignAnalyzer) {
-                taskManager.schedule(new AnalyzerTask(applicationDesignAnalyzer, issues, applicationContext, sessionPreparator));
+                taskManager.schedule(new AnalyzerTask(applicationDesignAnalyzer, issues));
             }
         });
         try {
