@@ -21,6 +21,8 @@ import com.agileapes.couteau.basics.api.Filter;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
 
 /**
+ * Returns columns whose values are automatically generated
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/8, 17:59)
  */

@@ -21,6 +21,8 @@ import com.agileapes.couteau.basics.api.Filter;
 import com.agileapes.dragonfly.metadata.ConstraintMetadata;
 
 /**
+ * Filters table constraints by their type
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/8/29, 14:42)
  */

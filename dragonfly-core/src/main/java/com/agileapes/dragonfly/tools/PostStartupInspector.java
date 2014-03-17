@@ -30,9 +30,12 @@ import org.apache.commons.logging.LogFactory;
 import java.util.Collection;
 
 /**
+ * @deprecated we should not rely on core level inspections as the specific mode of entity handling is not yet
+ * decided
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/10/28, 14:01)
  */
+@Deprecated
 public class PostStartupInspector implements TableMetadataContextPostProcessor, OrderedBean {
 
     private static final Log log = LogFactory.getLog(PostStartupInspector.class);

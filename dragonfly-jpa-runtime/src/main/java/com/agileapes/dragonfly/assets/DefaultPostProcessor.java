@@ -72,7 +72,7 @@ class DefaultPostProcessor<C, P> implements PostProcessor<C, P>, Runnable, Appli
 
     @Override
     public void postProcess(C context, P postProcessor) {
-        this.postProcessor.postProcess(context, postProcessor);;
+        this.postProcessor.postProcess(context, postProcessor);
     }
 
 }

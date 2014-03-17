@@ -21,6 +21,8 @@ import com.agileapes.couteau.basics.api.Filter;
 import com.agileapes.dragonfly.metadata.impl.ResolvedRepresentationColumnMetadata;
 
 /**
+ * Filters columns from a many-to-many relation matching the actual property on the far side
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/10/3, 10:01)
  */

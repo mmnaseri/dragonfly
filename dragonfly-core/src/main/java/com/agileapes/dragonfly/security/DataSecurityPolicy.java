@@ -18,17 +18,33 @@
 package com.agileapes.dragonfly.security;
 
 /**
+ * This interface abstracts everything that is a participant in making a decision regarding an action
+ * taken about data through the {@link com.agileapes.dragonfly.data.DataAccess} interface.
+ *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/9, 16:52)
  */
 public interface DataSecurityPolicy {
 
+    /**
+     * @return the name of the security policy, which should be human readable in case a log request is
+     * placed regarding a policy failure
+     */
     String getName();
 
+    /**
+     * @return the filter deciding which actors are included in this policy
+     */
     ActorFilter getActorFilter();
 
+    /**
+     * @return the filter deciding to which subjects the policy needs apply
+     */
     SubjectFilter getSubjectFilter();
 
+    /**
+     * @return the type of decision attributed with actions that match the policy
+     */
     PolicyDecisionType getDecisionType();
 
 }
