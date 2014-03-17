@@ -6,8 +6,6 @@ import com.agileapes.dragonfly.assets.ApplicationDesignAnalyzer;
 import com.agileapes.dragonfly.assets.DesignIssue;
 import com.agileapes.dragonfly.entity.EntityDefinition;
 import com.agileapes.dragonfly.entity.EntityDefinitionContext;
-import com.agileapes.dragonfly.session.SessionPreparator;
-import org.springframework.context.ApplicationContext;
 
 import java.util.AbstractMap;
 import java.util.List;
@@ -21,10 +19,16 @@ import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
  */
 public class ScanPackageDefinitionEfficiencyAnalyzer implements ApplicationDesignAnalyzer {
 
+    private final String[] basePackages;
+    private final EntityDefinitionContext definitionContext;
+
+    public ScanPackageDefinitionEfficiencyAnalyzer(String[] basePackages, EntityDefinitionContext definitionContext) {
+        this.basePackages = basePackages;
+        this.definitionContext = definitionContext;
+    }
+
     @Override
-    public List<DesignIssue> analyze(ApplicationContext applicationContext, SessionPreparator sessionPreparator) {
-        final String[] basePackages = sessionPreparator.getBasePackages();
-        final EntityDefinitionContext definitionContext = sessionPreparator.getDefinitionContext();
+    public List<DesignIssue> analyze() {
         //noinspection unchecked
         return with(basePackages).transform(new Transformer<String, String>() {
             @Override

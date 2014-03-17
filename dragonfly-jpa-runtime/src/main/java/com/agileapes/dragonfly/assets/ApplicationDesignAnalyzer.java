@@ -11,6 +11,6 @@ import java.util.List;
  */
 public interface ApplicationDesignAnalyzer {
 
-    List<DesignIssue> analyze(ApplicationContext applicationContext, SessionPreparator sessionPreparator);
+    List<DesignIssue> analyze();
 
 }

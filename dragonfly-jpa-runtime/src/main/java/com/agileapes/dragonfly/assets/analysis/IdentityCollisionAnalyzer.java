@@ -13,8 +13,6 @@ import com.agileapes.dragonfly.entity.EntityDefinition;
 import com.agileapes.dragonfly.entity.EntityDefinitionContext;
 import com.agileapes.dragonfly.ext.ExtensionManager;
 import com.agileapes.dragonfly.ext.ExtensionMetadata;
-import com.agileapes.dragonfly.session.SessionPreparator;
-import org.springframework.context.ApplicationContext;
 
 import javax.persistence.Id;
 import java.util.ArrayList;
@@ -29,11 +27,17 @@ import static com.agileapes.couteau.reflection.util.ReflectionUtils.withMethods;
  */
 public class IdentityCollisionAnalyzer implements ApplicationDesignAnalyzer {
 
+    private final ExtensionManager extensionManager;
+    private final EntityDefinitionContext definitionContext;
+
+    public IdentityCollisionAnalyzer(ExtensionManager extensionManager, EntityDefinitionContext definitionContext) {
+        this.extensionManager = extensionManager;
+        this.definitionContext = definitionContext;
+    }
+
     @Override
     @SuppressWarnings("unchecked")
-    public List<DesignIssue> analyze(ApplicationContext applicationContext, SessionPreparator sessionPreparator) {
-        final EntityDefinitionContext definitionContext = sessionPreparator.getDefinitionContext();
-        final ExtensionManager extensionManager = sessionPreparator.getExtensionManager();
+    public List<DesignIssue> analyze() {
         return with(definitionContext.getDefinitions())
                 .transform(new Transformer<EntityDefinition<?>, Class<?>>() {
                     @Override

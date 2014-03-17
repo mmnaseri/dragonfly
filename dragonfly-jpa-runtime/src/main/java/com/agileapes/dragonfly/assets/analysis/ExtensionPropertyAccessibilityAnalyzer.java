@@ -9,8 +9,6 @@ import com.agileapes.dragonfly.assets.ApplicationDesignAnalyzer;
 import com.agileapes.dragonfly.assets.DesignIssue;
 import com.agileapes.dragonfly.ext.ExtensionManager;
 import com.agileapes.dragonfly.ext.ExtensionMetadata;
-import com.agileapes.dragonfly.session.SessionPreparator;
-import org.springframework.context.ApplicationContext;
 
 import javax.persistence.Column;
 import java.lang.reflect.Method;
@@ -25,10 +23,15 @@ import static com.agileapes.couteau.reflection.util.ReflectionUtils.withMethods;
  */
 public class ExtensionPropertyAccessibilityAnalyzer implements ApplicationDesignAnalyzer {
 
+    private final ExtensionManager extensionManager;
+
+    public ExtensionPropertyAccessibilityAnalyzer(ExtensionManager extensionManager) {
+        this.extensionManager = extensionManager;
+    }
+
     @Override
-    public List<DesignIssue> analyze(ApplicationContext applicationContext, SessionPreparator sessionPreparator) {
+    public List<DesignIssue> analyze() {
         final ArrayList<DesignIssue> issues = new ArrayList<DesignIssue>();
-        final ExtensionManager extensionManager = sessionPreparator.getExtensionManager();
         for (ExtensionMetadata extensionMetadata : extensionManager.getRegisteredExtensions()) {
             final Class<?> extension = extensionMetadata.getExtension();
             //noinspection unchecked

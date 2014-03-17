@@ -4,6 +4,10 @@ import com.agileapes.couteau.basics.api.Processor;
 import com.agileapes.couteau.concurrency.manager.TaskManager;
 import com.agileapes.couteau.concurrency.manager.impl.ThreadPoolTaskManager;
 import com.agileapes.dragonfly.assets.analysis.*;
+import com.agileapes.dragonfly.entity.EntityDefinitionContext;
+import com.agileapes.dragonfly.ext.ExtensionManager;
+import com.agileapes.dragonfly.metadata.TableMetadataContext;
+import com.agileapes.dragonfly.metadata.TableMetadataRegistry;
 import com.agileapes.dragonfly.session.SessionPreparator;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -25,14 +29,16 @@ import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
  * @since 1.0 (14/3/17 AD, 0:40)
  */
 @SuppressWarnings("unchecked")
-public class DesignAdvisor implements ApplicationContextAware, Ordered, ApplicationDesignAnalyzer, BeanNameAware {
+public final class DesignAdvisor implements ApplicationContextAware, Ordered, ApplicationDesignAnalyzer, BeanNameAware {
 
     private static final Log log = LogFactory.getLog(DesignAdvisor.class);
     private String beanName;
+    private ApplicationContext applicationContext;
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        reportIssues(analyze(applicationContext, applicationContext.getBean(SessionPreparator.class)));
+        this.applicationContext = applicationContext;
+        reportIssues(analyze());
         final BeanDefinitionRegistry definitionRegistry = (BeanDefinitionRegistry) applicationContext.getAutowireCapableBeanFactory();
         definitionRegistry.removeBeanDefinition(beanName);
     }
@@ -54,18 +60,24 @@ public class DesignAdvisor implements ApplicationContextAware, Ordered, Applicat
     }
 
     @Override
-    public List<DesignIssue> analyze(final ApplicationContext applicationContext, final SessionPreparator sessionPreparator) {
+    public List<DesignIssue> analyze() {
         final List<DesignIssue> issues = new CopyOnWriteArrayList<DesignIssue>();
         final StopWatch stopWatch = new StopWatch();
         stopWatch.start();
         log.info("Starting design advisor on " + applicationContext.getDisplayName());
         final TaskManager taskManager = new ThreadPoolTaskManager(Runtime.getRuntime().availableProcessors(), true);
         final Thread analyzerThread = new Thread(taskManager);
+        final SessionPreparator sessionPreparator = applicationContext.getBean(SessionPreparator.class);
+        final String[] basePackages = sessionPreparator.getBasePackages();
+        final EntityDefinitionContext definitionContext = sessionPreparator.getDefinitionContext();
+        final ExtensionManager extensionManager = sessionPreparator.getExtensionManager();
+        final TableMetadataRegistry metadataRegistry = sessionPreparator.getTableMetadataRegistry();
         with(
-                new ExtensionFilterApplicabilityAnalyzer(),
-                new ExtensionPropertyAccessibilityAnalyzer(),
-                new ScanPackageDefinitionEfficiencyAnalyzer(),
-                new IdentityCollisionAnalyzer()
+                new ExtensionFilterApplicabilityAnalyzer(extensionManager, definitionContext),
+                new ExtensionPropertyAccessibilityAnalyzer(extensionManager),
+                new ScanPackageDefinitionEfficiencyAnalyzer(basePackages, definitionContext),
+                new IdentityCollisionAnalyzer(extensionManager, definitionContext),
+                new VersionEntityWithoutKeyAnalyzer(metadataRegistry)
         ).each(new Processor<ApplicationDesignAnalyzer>() {
             @Override
             public void process(ApplicationDesignAnalyzer applicationDesignAnalyzer) {

@@ -66,6 +66,8 @@ public class SessionPreparator implements BeanFactoryPostProcessor {
     private final TableMetadataResolverContext resolverContext;
     private final EntityDefinitionContext definitionContext;
     private final String[] basePackages;
+    private TableMetadataRegistry tableMetadataRegistry;
+    private StatementRegistry statementRegistry;
 
     public SessionPreparator(String basePackages) {
         this(basePackages.split(","));
@@ -104,6 +106,14 @@ public class SessionPreparator implements BeanFactoryPostProcessor {
         return basePackages;
     }
 
+    public TableMetadataRegistry getTableMetadataRegistry() {
+        return tableMetadataRegistry;
+    }
+
+    public StatementRegistry getStatementRegistry() {
+        return statementRegistry;
+    }
+
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory context) throws BeansException {
         long time = System.nanoTime();
@@ -111,8 +121,8 @@ public class SessionPreparator implements BeanFactoryPostProcessor {
                 "the Maven plugin.");
         log.debug("Looking up the necessary components ...");
         final DatabaseDialect databaseDialect = context.getBean(DatabaseDialect.class);
-        final TableMetadataRegistry tableMetadataRegistry = context.getBean(TableMetadataRegistry.class);
-        final StatementRegistry statementRegistry = context.getBean(StatementRegistry.class);
+        tableMetadataRegistry = context.getBean(TableMetadataRegistry.class);
+        statementRegistry = context.getBean(StatementRegistry.class);
         final ModifiableEntityContext entityContext = context.getBean(ModifiableEntityContext.class);
         final ClassPathScanningCandidateComponentProvider componentProvider = new ClassPathScanningCandidateComponentProvider(false);
         log.info("Finding entity classes ...");

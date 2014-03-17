@@ -29,7 +29,9 @@ public class AnalyzerTask implements Task {
 
     @Override
     public void perform() throws TaskFailureException {
-        issues.addAll(analyzer.analyze(applicationContext, sessionPreparator));
+        System.err.println("Performing " + analyzer);
+        issues.addAll(analyzer.analyze());
+        System.err.println("Done with  " + analyzer);
     }
     
 }
