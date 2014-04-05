@@ -77,7 +77,8 @@ public final class ApplicationDesignAdvisor implements ApplicationContextAware, 
                 new ExtensionPropertyAccessibilityAnalyzer(extensionManager),
                 new ScanPackageDefinitionEfficiencyAnalyzer(basePackages, definitionContext),
                 new IdentityCollisionAnalyzer(extensionManager, definitionContext),
-                new VersionEntityWithoutKeyAnalyzer(metadataRegistry)
+                new VersionEntityWithoutKeyAnalyzer(metadataRegistry),
+                new PrimitiveColumnTypeAnalyzer(metadataRegistry)
         ).each(new Processor<ApplicationDesignAnalyzer>() {
             @Override
             public void process(ApplicationDesignAnalyzer applicationDesignAnalyzer) {

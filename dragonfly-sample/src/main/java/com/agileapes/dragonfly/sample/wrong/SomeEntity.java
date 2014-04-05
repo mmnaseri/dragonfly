@@ -20,6 +20,7 @@ import javax.persistence.Table;
 public class SomeEntity {
 
     private String id;
+    private int count;
 
     @Column
     @Id
@@ -29,5 +30,14 @@ public class SomeEntity {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    @Column
+    public int getCount() {
+        return count;
+    }
+
+    public void setCount(int count) {
+        this.count = count;
     }
 }
