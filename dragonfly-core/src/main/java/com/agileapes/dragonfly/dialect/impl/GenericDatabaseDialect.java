@@ -107,10 +107,10 @@ public abstract class GenericDatabaseDialect implements DatabaseDialect {
         } else if (columnType == Types.DOUBLE) {
             return "DOUBLE";
         } else if (columnType == Types.NUMERIC) {
-            return "NUMERIC (" + (columnMetadata.getPrecision() <= 0 ? "M" : columnMetadata.getPrecision()) +
+            return "NUMERIC (" + (columnMetadata.getPrecision() <= 0 ? 1 : columnMetadata.getPrecision()) +
                     (columnMetadata.getScale() <= 0 ? "" : "," + columnMetadata.getScale()) + ")";
         } else if (columnType == Types.DECIMAL) {
-            return "DECIMAL (" + (columnMetadata.getPrecision() <= 0 ? "M" : columnMetadata.getPrecision()) +
+            return "DECIMAL (" + (columnMetadata.getPrecision() <= 0 ? 1 : columnMetadata.getPrecision()) +
                     (columnMetadata.getScale() <= 0 ? "" : "," + columnMetadata.getScale()) + ")";
         } else if (columnType == Types.CHAR) {
             return "CHAR (" + (columnMetadata.getLength() <= 0 ? 1 : (columnMetadata.getLength() > 255 ? 255 : columnMetadata.getLength())) + ")";
