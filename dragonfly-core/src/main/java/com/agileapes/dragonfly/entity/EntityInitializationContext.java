@@ -99,4 +99,10 @@ public interface EntityInitializationContext {
      */
     DataAccess getDataAccess();
 
+    /**
+     * Removes all entities associated with the given type from the context
+     * @param entityType    the type of the entity
+     * @param <E>           the type parameter for the entity
+     */
+    <E> void delete(Class<E> entityType);
 }

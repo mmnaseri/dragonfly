@@ -17,6 +17,7 @@
 
 package com.agileapes.dragonfly.entity.impl;
 
+import com.agileapes.couteau.basics.api.Filter;
 import com.agileapes.couteau.basics.api.impl.CachingDataDispenser;
 import com.agileapes.dragonfly.data.DataAccess;
 import com.agileapes.dragonfly.entity.EntityInitializationContext;
@@ -118,6 +119,20 @@ public abstract class AbstractLockingEntityInitializationContext extends Caching
             }
         }
         remove(descriptor);
+    }
+
+    @Override
+    public <E> void delete(final Class<E> entityType) {
+        if (parent != null) {
+            parent.delete(entityType);
+            return;
+        }
+        remove(new Filter<EntityInstanceDescriptor>() {
+            @Override
+            public boolean accepts(EntityInstanceDescriptor entityInstanceDescriptor) {
+                return entityInstanceDescriptor.getEntityType().equals(entityType);
+            }
+        });
     }
 
     @Override

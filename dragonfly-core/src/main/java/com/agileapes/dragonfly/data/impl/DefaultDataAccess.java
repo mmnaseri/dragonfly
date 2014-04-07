@@ -829,6 +829,9 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         saveQueueLock.set(saveQueueLock.get() + 1);
         final EntityHandler<E> entityHandler = entityHandlerContext.getHandler(entity);
         final E enhancedEntity = getEnhancedEntity(entity);
+        if (entityHandler.hasKey() && entityHandler.getKey(enhancedEntity) != null) {
+            initializationContext.delete(entityHandler.getEntityType(), entityHandler.getKey(enhancedEntity));
+        }
         saveQueue.put(entity, enhancedEntity);
         final InitializedEntity<E> initializedEntity = getInitializedEntity(enhancedEntity);
         entityHandler.saveDependencyRelations(enhancedEntity, this);
@@ -872,6 +875,9 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
             deferredSaveQueue.get().add(entity);
         }
         entityHandler.copy(enhancedEntity, entity);
+        if (entityHandler.hasKey() && entityHandler.getKey(enhancedEntity) != null) {
+            initializationContext.register(entityHandler.getEntityType(), entityHandler.getKey(enhancedEntity), enhancedEntity);
+        }
         initializedEntity.unfreeze();
         return enhancedEntity;
     }
@@ -952,6 +958,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         entityHandler.setKey(instance, key);
         eventHandler.beforeDelete(entityType, key);
         delete(instance);
+        initializationContext.delete(entityType, key);
         eventHandler.afterDelete(entityType, key);
     }
 
@@ -960,6 +967,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         eventHandler.beforeDeleteAll(entityType);
         deleteDependents(entityType);
         cleanUpStatement(internalExecuteUpdate(entityType, Statements.Manipulation.DELETE_ALL));
+        initializationContext.delete(entityType);
         deleteDependencies(entityType);
         eventHandler.afterDeleteAll(entityType);
     }
@@ -1013,6 +1021,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     public <E> void truncate(Class<E> entityType) {
         eventHandler.beforeTruncate(entityType);
         internalExecuteUpdate(entityType, Statements.Manipulation.TRUNCATE);
+        initializationContext.delete(entityType);
         eventHandler.afterTruncate(entityType);
     }
 
