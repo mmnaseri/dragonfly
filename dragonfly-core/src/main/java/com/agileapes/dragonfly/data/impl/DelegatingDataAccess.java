@@ -168,7 +168,7 @@ public class DelegatingDataAccess implements PartialDataAccess, EventHandlerCont
             protected void executeWithoutResults(IdentifiableDataOperation operation) {
                 dataAccess.delete(operation.getEntityType(), operation.getKey());
             }
-        }));
+        })).execute();
     }
 
     @Override
