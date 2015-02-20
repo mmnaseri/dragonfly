@@ -32,6 +32,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (14/8/13 AD, 15:35)
@@ -48,7 +52,9 @@ public class JpaDataConfiguration {
     @Bean
     public SessionPreparator sessionPreparator(@Value("${dragonfly.basePackages}") String basePackages, ApplicationContext applicationContext) {
         final JpaSessionPreparator preparator = new JpaSessionPreparator(applicationContext.getClassLoader());
-        preparator.setBasePackages(basePackages.trim().split("\\s*,\\s*"));
+        final List<String> packages = new ArrayList<String>(Arrays.asList(basePackages.trim().split("\\s*,\\s*")));
+        packages.add("com.agileapes.dragonfly.runtime.ext");
+        preparator.setBasePackages(packages.toArray(new String[packages.size()]));
         preparator.setInitializeSession(true);
         return preparator;
     }
