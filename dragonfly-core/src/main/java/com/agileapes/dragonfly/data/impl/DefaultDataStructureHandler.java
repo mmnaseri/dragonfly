@@ -1,18 +1,24 @@
 /*
+ * The MIT License (MIT)
+ *
  * Copyright (c) 2013 AgileApes, Ltd.
  *
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or
- * sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall
- * be included in all copies or substantial portions of the
- * Software.
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package com.agileapes.dragonfly.data.impl;
@@ -38,7 +44,6 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Set;
 
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
@@ -55,9 +60,11 @@ public class DefaultDataStructureHandler implements DataStructureHandler {
 
     private static final Log log = LogFactory.getLog(DataStructureHandler.class);
     private final DataAccessSession session;
+    private final TableMetadataRegistry auxiliaryRegistry;
 
-    public DefaultDataStructureHandler(DataAccessSession session) {
+    public DefaultDataStructureHandler(DataAccessSession session, TableMetadataRegistry auxiliaryRegistry) {
         this.session = session;
+        this.auxiliaryRegistry = auxiliaryRegistry;
     }
 
     private <E> void executeStatement(TableMetadata<E> tableMetadata, Statements.Definition statementType, Metadata metadata) {
@@ -137,11 +144,13 @@ public class DefaultDataStructureHandler implements DataStructureHandler {
         unbindSequences(session.getTableMetadataRegistry().getTableMetadata(entityType));
     }
 
+    @Override
     public <E> void defineTable(TableMetadata<E> tableMetadata) {
         log.info("Defining table for type " + tableMetadata.getName());
         executeStatement(tableMetadata, CREATE_TABLE, null);
     }
 
+    @Override
     public <E> void definePrimaryKey(TableMetadata<E> tableMetadata) {
         log.info("Defining primary key for " + tableMetadata.getName());
         if (tableMetadata.hasPrimaryKey()) {
@@ -149,6 +158,7 @@ public class DefaultDataStructureHandler implements DataStructureHandler {
         }
     }
 
+    @Override
     public <E> void defineSequences(final TableMetadata<E> tableMetadata) {
         with(tableMetadata.getSequences()).each(new Processor<SequenceMetadata>() {
             @Override
@@ -159,6 +169,7 @@ public class DefaultDataStructureHandler implements DataStructureHandler {
         });
     }
 
+    @Override
     public <E> void defineForeignKeys(final TableMetadata<E> tableMetadata) {
         with(tableMetadata.getConstraints(ForeignKeyConstraintMetadata.class)).each(new Processor<ForeignKeyConstraintMetadata>() {
             @Override
@@ -169,6 +180,7 @@ public class DefaultDataStructureHandler implements DataStructureHandler {
         });
     }
 
+    @Override
     public <E> void defineUniqueConstraints(final TableMetadata<E> tableMetadata) {
         with(tableMetadata.getConstraints(UniqueConstraintMetadata.class)).each(new Processor<UniqueConstraintMetadata>() {
             @Override
@@ -193,16 +205,19 @@ public class DefaultDataStructureHandler implements DataStructureHandler {
         );
     }
 
+    @Override
     public <E> void removeTable(TableMetadata<E> tableMetadata) {
         log.warn("Removing table " + tableMetadata.getName());
         executeStatement(tableMetadata, DROP_TABLE, null);
     }
 
+    @Override
     public <E> void removePrimaryKeys(TableMetadata<E> tableMetadata) {
         log.info("Removing primary key definition " + tableMetadata.getName());
         executeStatement(tableMetadata, DROP_PRIMARY_KEY, null);
     }
 
+    @Override
     public <E> void removeSequences(final TableMetadata<E> tableMetadata) {
         with(tableMetadata.getSequences()).each(new Processor<SequenceMetadata>() {
             @Override
@@ -213,6 +228,7 @@ public class DefaultDataStructureHandler implements DataStructureHandler {
         });
     }
 
+    @Override
     public <E> void removeForeignKeys(final TableMetadata<E> tableMetadata) {
         with(tableMetadata.getConstraints(ForeignKeyConstraintMetadata.class)).each(new Processor<ForeignKeyConstraintMetadata>() {
             @Override
@@ -223,6 +239,7 @@ public class DefaultDataStructureHandler implements DataStructureHandler {
         });
     }
 
+    @Override
     public <E> void removeUniqueConstraints(final TableMetadata<E> tableMetadata) {
         with(tableMetadata.getConstraints(UniqueConstraintMetadata.class)).each(new Processor<UniqueConstraintMetadata>() {
             @Override
@@ -233,6 +250,7 @@ public class DefaultDataStructureHandler implements DataStructureHandler {
         });
     }
 
+    @Override
     public <E> void bindSequences(final TableMetadata<E> tableMetadata) {
         with(tableMetadata.getColumns()).keep(new SequenceColumnFilter()).each(new Processor<ColumnMetadata>() {
             @Override
@@ -243,6 +261,7 @@ public class DefaultDataStructureHandler implements DataStructureHandler {
         });
     }
 
+    @Override
     public <E> void unbindSequences(final TableMetadata<E> tableMetadata) {
         with(tableMetadata.getColumns()).keep(new SequenceColumnFilter()).each(new Processor<ColumnMetadata>() {
             @Override
@@ -258,7 +277,8 @@ public class DefaultDataStructureHandler implements DataStructureHandler {
         return isDefined(session.getTableMetadataRegistry().getTableMetadata(entityType));
     }
 
-    private <E> boolean isDefined(TableMetadata<E> tableMetadata) {
+    @Override
+    public <E> boolean isDefined(TableMetadata<E> tableMetadata) {
         try {
             final Connection connection = session.getConnection();
             final boolean result = session.getDatabaseDialect().hasTable(connection.getMetaData(), tableMetadata);
@@ -272,78 +292,70 @@ public class DefaultDataStructureHandler implements DataStructureHandler {
     @Override
     public synchronized void initialize() {
         log.info("Initializing entity table structures");
-        final Set<Class<?>> undefinedEntities = new HashSet<Class<?>>();
-        final Collection<Class<?>> registeredEntities = session.getRegisteredEntities();
-        for (Class<?> registeredEntity : registeredEntities) {
-            if (!isDefined(registeredEntity)) {
-                log.info("Found undefined entity " + registeredEntity.getCanonicalName());
-                undefinedEntities.add(registeredEntity);
-            }
-        }
-        for (Class<?> entity : undefinedEntities) {
-            if (entity.isAnnotationPresent(Ignored.class)) {
-                continue;
-            }
-            defineTable(entity);
-        }
-        for (Class<?> entity : undefinedEntities) {
-            if (entity.isAnnotationPresent(Ignored.class)) {
-                continue;
-            }
-            definePrimaryKey(entity);
-        }
-        for (Class<?> entity : undefinedEntities) {
-            if (entity.isAnnotationPresent(Ignored.class)) {
-                continue;
-            }
-            defineSequences(entity);
-        }
-        for (Class<?> entity : undefinedEntities) {
-            if (entity.isAnnotationPresent(Ignored.class)) {
-                continue;
-            }
-            bindSequences(entity);
-        }
-        for (Class<?> entity : undefinedEntities) {
-            if (entity.isAnnotationPresent(Ignored.class)) {
-                continue;
-            }
-            defineUniqueConstraints(entity);
-        }
-        for (Class<?> entity : undefinedEntities) {
-            if (entity.isAnnotationPresent(Ignored.class)) {
-                continue;
-            }
-            defineForeignKeys(entity);
-        }
-        if (session.getTableMetadataRegistry() instanceof DefaultTableMetadataContext) {
+        initialize(session.getTableMetadataRegistry().getTables());
+        if (auxiliaryRegistry != null && auxiliaryRegistry instanceof DefaultTableMetadataContext) {
             DefaultTableMetadataContext context = (DefaultTableMetadataContext) session.getTableMetadataRegistry();
             final Set<TableMetadata<?>> tables = context.getVirtualTables();
-            final Set<TableMetadata<?>> undefinedTables = new HashSet<TableMetadata<?>>();
-            for (TableMetadata<?> table : tables) {
-                if (!isDefined(table)) {
-                    undefinedTables.add(table);
-                }
-            }
-            for (TableMetadata<?> table : undefinedTables) {
-                defineTable(table);
-            }
-            for (TableMetadata<?> table : undefinedTables) {
-                definePrimaryKey(table);
-            }
-            for (TableMetadata<?> table : undefinedTables) {
-                defineSequences(table);
-            }
-            for (TableMetadata<?> table : undefinedTables) {
-                bindSequences(table);
-            }
-            for (TableMetadata<?> table : undefinedTables) {
-                defineUniqueConstraints(table);
-            }
-            for (TableMetadata<?> table : undefinedTables) {
-                defineForeignKeys(table);
-            }
+            initialize(tables);
         }
+    }
+
+    @Override
+    public void initialize(Collection<TableMetadata<?>> tables) {
+        //noinspection unchecked
+        tables = with(tables)
+                //ignore entities which are marked as such
+                .drop(new Filter<TableMetadata<?>>() {
+                    @Override
+                    public boolean accepts(TableMetadata<?> item) {
+                        return item.getEntityType().isAnnotationPresent(Ignored.class);
+                    }
+                })
+                //ignore any item for which a table definition already exists
+                .drop(new Filter<TableMetadata<?>>() {
+                    @Override
+                    public boolean accepts(TableMetadata<?> item) {
+                        return isDefined(item);
+                    }
+                })
+                .list();
+        with(tables)
+                .each(new Processor<TableMetadata<?>>() {
+                    @Override
+                    public void process(TableMetadata<?> input) {
+                        defineTable(input);
+                    }
+                })
+                .each(new Processor<TableMetadata<?>>() {
+                    @Override
+                    public void process(TableMetadata<?> input) {
+                        definePrimaryKey(input);
+                    }
+                })
+                .each(new Processor<TableMetadata<?>>() {
+                    @Override
+                    public void process(TableMetadata<?> input) {
+                        defineSequences(input);
+                    }
+                })
+                .each(new Processor<TableMetadata<?>>() {
+                    @Override
+                    public void process(TableMetadata<?> input) {
+                        bindSequences(input);
+                    }
+                })
+                .each(new Processor<TableMetadata<?>>() {
+                    @Override
+                    public void process(TableMetadata<?> input) {
+                        defineUniqueConstraints(input);
+                    }
+                })
+                .each(new Processor<TableMetadata<?>>() {
+                    @Override
+                    public void process(TableMetadata<?> input) {
+                        defineForeignKeys(input);
+                    }
+                });
     }
 
 }

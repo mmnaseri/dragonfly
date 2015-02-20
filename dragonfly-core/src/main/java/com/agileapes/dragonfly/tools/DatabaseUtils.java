@@ -1,24 +1,32 @@
 /*
+ * The MIT License (MIT)
+ *
  * Copyright (c) 2013 AgileApes, Ltd.
  *
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or
- * sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall
- * be included in all copies or substantial portions of the
- * Software.
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package com.agileapes.dragonfly.tools;
 
 import com.agileapes.dragonfly.dialect.DatabaseDialect;
+import com.agileapes.dragonfly.metadata.ColumnMetadata;
 import com.agileapes.dragonfly.metadata.TableMetadata;
+import com.agileapes.dragonfly.metadata.impl.TableMetadataCopier;
 
 import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 
@@ -110,6 +118,18 @@ public abstract class DatabaseUtils {
     }
 
     /**
+     * Same as {@link #qualifyTable(com.agileapes.dragonfly.metadata.TableMetadata, Character, Character)}, only for columns
+     * @param columnMetadata     column metadata
+     * @param databaseDialect    the database dialect in use
+     * @return the qualified name
+     */
+    public static String qualifyColumn(ColumnMetadata columnMetadata, DatabaseDialect databaseDialect) {
+        final Character schemaSeparator = databaseDialect.getSchemaSeparator();
+        final Character identifierQuotation = databaseDialect.getIdentifierEscapeCharacter();
+        return identifierQuotation + columnMetadata.getTable().getName() + identifierQuotation + schemaSeparator + identifierQuotation + columnMetadata.getName() + identifierQuotation;
+    }
+
+    /**
      * Escapes a given string literal for use within quotations inside a database query
      * @param string                   the string literal to be escaped
      * @param stringEscapeCharacter    the character used for escaping (normally '\')
@@ -118,6 +138,26 @@ public abstract class DatabaseUtils {
     public static String escapeString(String string, Character stringEscapeCharacter) {
         final String escapeCharacter = String.valueOf('\\' == stringEscapeCharacter ? "\\\\" : stringEscapeCharacter);
         return string.replace("\n", "\\n").replaceAll("(^|[^" + escapeCharacter + "])\"", "$1" + escapeCharacter + "\"");
+    }
+
+    /**
+     * Copies the entire data structure of the table
+     * @param table    source table
+     * @return copied instance
+     */
+    public static <E> TableMetadata<E> copyTable(TableMetadata<E> table) {
+        return new TableMetadataCopier<E>(table).copy();
+    }
+
+    /**
+     * Copies the entire data structure of the column, even its table so that no two references are shared between the
+     * column being passed through and the one returned
+     * @param column    source column
+     * @return copied instance
+     */
+    public static ColumnMetadata copyColumn(ColumnMetadata column) {
+        //noinspection unchecked
+        return (ColumnMetadata) with(new TableMetadataCopier(column.getTable()).copy().getColumns()).find(new ColumnNameFilter(column.getName()));
     }
 
 }

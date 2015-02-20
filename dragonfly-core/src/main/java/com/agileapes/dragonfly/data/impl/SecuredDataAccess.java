@@ -1,18 +1,24 @@
 /*
+ * The MIT License (MIT)
+ *
  * Copyright (c) 2013 AgileApes, Ltd.
  *
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or
- * sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall
- * be included in all copies or substantial portions of the
- * Software.
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package com.agileapes.dragonfly.data.impl;
@@ -26,6 +32,7 @@ import com.agileapes.dragonfly.entity.EntityContext;
 import com.agileapes.dragonfly.entity.EntityHandlerContext;
 import com.agileapes.dragonfly.events.DataAccessEventHandler;
 import com.agileapes.dragonfly.events.EventHandlerContext;
+import com.agileapes.dragonfly.fluent.SelectQueryInitiator;
 import com.agileapes.dragonfly.security.DataSecurityManager;
 import com.agileapes.dragonfly.security.impl.MethodSubject;
 import com.agileapes.dragonfly.security.impl.StoredProcedureSubject;
@@ -78,6 +85,15 @@ public class SecuredDataAccess extends DefaultDataAccess implements PartialDataA
         methodDescriptors.put(27, new ImmutableMethodDescriptor(DefaultDataAccess.class, boolean.class, "exists", new Class[]{Class.class, Serializable.class}, NO_ANNOTATIONS));
         methodDescriptors.put(28, new ImmutableMethodDescriptor(DefaultDataAccess.class, List.class, "find", new Class[]{Object.class, String.class}, NO_ANNOTATIONS));
         methodDescriptors.put(29, new ImmutableMethodDescriptor(DefaultDataAccess.class, List.class, "findAll", new Class[]{Class.class, String.class}, NO_ANNOTATIONS));
+        methodDescriptors.put(30, new ImmutableMethodDescriptor(DefaultDataAccess.class, List.class, "executeTypedQuery", new Class[]{Class.class, String.class, Class.class, Map.class}, NO_ANNOTATIONS));
+        methodDescriptors.put(31, new ImmutableMethodDescriptor(DefaultDataAccess.class, List.class, "executeTypedQuery", new Class[]{Class.class, String.class, Map.class}, NO_ANNOTATIONS));
+        methodDescriptors.put(32, new ImmutableMethodDescriptor(DefaultDataAccess.class, SelectQueryInitiator.class, "from", new Class[]{Object.class}, NO_ANNOTATIONS));
+        methodDescriptors.put(33, new ImmutableMethodDescriptor(DefaultDataAccess.class, List.class, "find", new Class[]{Object.class, int.class, int.class}, NO_ANNOTATIONS));
+        methodDescriptors.put(34, new ImmutableMethodDescriptor(DefaultDataAccess.class, List.class, "find", new Class[]{Object.class, String.class, int.class, int.class}, NO_ANNOTATIONS));
+        methodDescriptors.put(35, new ImmutableMethodDescriptor(DefaultDataAccess.class, Object.class, "insert", new Class[]{Object.class}, NO_ANNOTATIONS));
+        methodDescriptors.put(36, new ImmutableMethodDescriptor(DefaultDataAccess.class, Object.class, "update", new Class[]{Object.class}, NO_ANNOTATIONS));
+        methodDescriptors.put(37, new ImmutableMethodDescriptor(DefaultDataAccess.class, List.class, "findAll", new Class[]{Class.class, String.class, int.class, int.class}, NO_ANNOTATIONS));
+        methodDescriptors.put(38, new ImmutableMethodDescriptor(DefaultDataAccess.class, List.class, "findAll", new Class[]{Class.class, int.class, int.class}, NO_ANNOTATIONS));
     }
 
     private final DataSecurityManager securityManager;
@@ -209,6 +225,18 @@ public class SecuredDataAccess extends DefaultDataAccess implements PartialDataA
     }
 
     @Override
+    public <E, R> List<R> executeTypedQuery(Class<E> entityType, String queryName, Class<R> resultType, Map<String, Object> values) {
+        securityManager.checkAccess(new MethodSubject(methodDescriptors.get(30)));
+        return super.executeTypedQuery(entityType, queryName, resultType, values);
+    }
+
+    @Override
+    public <E> List<Object> executeTypedQuery(Class<E> entityType, String queryName, Map<String, Object> values) {
+        securityManager.checkAccess(new MethodSubject(methodDescriptors.get(31)));
+        return super.executeTypedQuery(entityType, queryName, values);
+    }
+
+    @Override
     public <E> long countAll(Class<E> entityType) {
         securityManager.checkAccess(new MethodSubject(methodDescriptors.get(24)));
         return super.countAll(entityType);
@@ -233,6 +261,12 @@ public class SecuredDataAccess extends DefaultDataAccess implements PartialDataA
     }
 
     @Override
+    public <E> SelectQueryInitiator<E> from(E alias) {
+        securityManager.checkAccess(new MethodSubject(methodDescriptors.get(32)));
+        return super.from(alias);
+    }
+
+    @Override
     public boolean equals(final Object that) {
         return super.equals(that);
     }
@@ -249,12 +283,49 @@ public class SecuredDataAccess extends DefaultDataAccess implements PartialDataA
 
     @Override
     public <E> List<E> find(E sample, String order) {
+        securityManager.checkAccess(new MethodSubject(methodDescriptors.get(28)));
         return super.find(sample, order);
     }
 
     @Override
     public <E> List<E> findAll(Class<E> entityType, String order) {
+        securityManager.checkAccess(new MethodSubject(methodDescriptors.get(29)));
         return super.findAll(entityType, order);
     }
 
+    @Override
+    public <E> List<E> find(E sample, int pageSize, int pageNumber) {
+        securityManager.checkAccess(new MethodSubject(methodDescriptors.get(33)));
+        return super.find(sample, pageSize, pageNumber);
+    }
+
+    @Override
+    public <E> List<E> find(E sample, String order, int pageSize, int pageNumber) {
+        securityManager.checkAccess(new MethodSubject(methodDescriptors.get(34)));
+        return super.find(sample, order, pageSize, pageNumber);
+    }
+
+    @Override
+    public <E> E insert(E entity) {
+        securityManager.checkAccess(new MethodSubject(methodDescriptors.get(35)));
+        return super.insert(entity);
+    }
+
+    @Override
+    public <E> E update(E entity) {
+        securityManager.checkAccess(new MethodSubject(methodDescriptors.get(36)));
+        return super.update(entity);
+    }
+
+    @Override
+    public <E> List<E> findAll(Class<E> entityType, String order, int pageSize, int pageNumber) {
+        securityManager.checkAccess(new MethodSubject(methodDescriptors.get(37)));
+        return super.findAll(entityType, order, pageSize, pageNumber);
+    }
+
+    @Override
+    public <E> List<E> findAll(Class<E> entityType, int pageSize, int pageNumber) {
+        securityManager.checkAccess(new MethodSubject(methodDescriptors.get(38)));
+        return super.findAll(entityType, pageSize, pageNumber);
+    }
 }

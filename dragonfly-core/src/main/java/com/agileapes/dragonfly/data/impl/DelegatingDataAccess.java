@@ -1,18 +1,24 @@
 /*
+ * The MIT License (MIT)
+ *
  * Copyright (c) 2013 AgileApes, Ltd.
  *
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or
- * sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall
- * be included in all copies or substantial portions of the
- * Software.
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package com.agileapes.dragonfly.data.impl;
@@ -24,6 +30,7 @@ import com.agileapes.dragonfly.data.*;
 import com.agileapes.dragonfly.data.impl.op.*;
 import com.agileapes.dragonfly.events.DataAccessEventHandler;
 import com.agileapes.dragonfly.events.EventHandlerContext;
+import com.agileapes.dragonfly.fluent.SelectQueryInitiator;
 
 import java.io.Serializable;
 import java.util.List;
@@ -142,14 +149,13 @@ public class DelegatingDataAccess implements PartialDataAccess, EventHandlerCont
 
     @Override
     public <E> E update(E entity) {
-        return (E) given(new SampledDataOperation(dataAccess, OperationType.UPDATE, entity, new AbstractDefaultDataCallback() {
+        return (E) given(new SampledDataOperation(dataAccess, OperationType.UPDATE, entity, new AbstractDefaultDataCallback<SampledDataOperation>() {
             @Override
-            public Object execute(DataOperation operation) {
-                return dataAccess.update(operation);
+            public Object execute(SampledDataOperation operation) {
+                return dataAccess.update(operation.getSample());
             }
         })).execute();
     }
-
 
     @Override
     public <E> void delete(E entity) {
@@ -212,6 +218,26 @@ public class DelegatingDataAccess implements PartialDataAccess, EventHandlerCont
     }
 
     @Override
+    public <E> List<E> find(E sample, final int pageSize, final int pageNumber) {
+        return (List<E>) given(new SampledDataOperation(dataAccess, OperationType.FIND, sample, new AbstractDefaultDataCallback<SampledDataOperation>() {
+            @Override
+            public Object execute(SampledDataOperation operation) {
+                return dataAccess.find(operation.getSample(), pageSize, pageNumber);
+            }
+        })).execute();
+    }
+
+    @Override
+    public <E> List<E> find(E sample, final String order, final int pageSize, final int pageNumber) {
+        return (List<E>) given(new SampledDataOperation(dataAccess, OperationType.FIND, sample, new AbstractDefaultDataCallback<SampledDataOperation>() {
+            @Override
+            public Object execute(SampledDataOperation operation) {
+                return dataAccess.find(operation.getSample(), order, pageSize, pageNumber);
+            }
+        })).execute();
+    }
+
+    @Override
     public <E, K extends Serializable> E find(Class<E> entityType, K key) {
         return (E) given(new IdentifiableDataOperation(dataAccess, OperationType.FIND, entityType, key, new AbstractDefaultDataCallback<IdentifiableDataOperation>() {
             @Override
@@ -237,6 +263,26 @@ public class DelegatingDataAccess implements PartialDataAccess, EventHandlerCont
             @Override
             public Object execute(TypedDataOperation operation) {
                 return dataAccess.findAll(operation.getEntityType(), order);
+            }
+        })).execute();
+    }
+
+    @Override
+    public <E> List<E> findAll(Class<E> entityType, final String order, final int pageSize, final int pageNumber) {
+        return (List<E>) given(new TypedDataOperation(dataAccess, OperationType.FIND, entityType, new AbstractDefaultDataCallback<TypedDataOperation>() {
+            @Override
+            public Object execute(TypedDataOperation operation) {
+                return dataAccess.findAll(operation.getEntityType(), order, pageSize, pageNumber);
+            }
+        })).execute();
+    }
+
+    @Override
+    public <E> List<E> findAll(Class<E> entityType, final int pageSize, final int pageNumber) {
+        return (List<E>) given(new TypedDataOperation(dataAccess, OperationType.FIND, entityType, new AbstractDefaultDataCallback<TypedDataOperation>() {
+            @Override
+            public Object execute(TypedDataOperation operation) {
+                return dataAccess.findAll(operation.getEntityType(), pageSize, pageNumber);
             }
         })).execute();
     }
@@ -342,6 +388,11 @@ public class DelegatingDataAccess implements PartialDataAccess, EventHandlerCont
     }
 
     @Override
+    public <E> SelectQueryInitiator<E> from(E alias) {
+        return dataAccess.from(alias);
+    }
+
+    @Override
     public <O> List<O> executeQuery(O sample) {
         if (dataAccess instanceof PartialDataAccess) {
             return ((PartialDataAccess) dataAccess).executeQuery(sample);
@@ -369,6 +420,22 @@ public class DelegatingDataAccess implements PartialDataAccess, EventHandlerCont
     public <E> List<Map<String, Object>> executeUntypedQuery(Class<E> entityType, String queryName, Map<String, Object> values) {
         if (dataAccess instanceof PartialDataAccess) {
             return ((PartialDataAccess) dataAccess).executeUntypedQuery(entityType, queryName, values);
+        }
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <E, R> List<R> executeTypedQuery(Class<E> entityType, String queryName, Class<R> resultType, Map<String, Object> values) {
+        if (dataAccess instanceof PartialDataAccess) {
+            return ((PartialDataAccess) dataAccess).executeTypedQuery(entityType, queryName, resultType, values);
+        }
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <E> List<Object> executeTypedQuery(Class<E> entityType, String queryName, Map<String, Object> values) {
+        if (dataAccess instanceof PartialDataAccess) {
+            return ((PartialDataAccess) dataAccess).executeTypedQuery(entityType, queryName, values);
         }
         throw new UnsupportedOperationException();
     }

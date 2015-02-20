@@ -1,18 +1,24 @@
 /*
+ * The MIT License (MIT)
+ *
  * Copyright (c) 2013 AgileApes, Ltd.
  *
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or
- * sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall
- * be included in all copies or substantial portions of the
- * Software.
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package com.agileapes.dragonfly.data.impl;
@@ -57,9 +63,9 @@ public class TableKeyGeneratorEntity {
     public static TableMetadata<TableKeyGeneratorEntity> getTableMetadata(String schema) {
         final HashSet<ConstraintMetadata> constraints = new HashSet<ConstraintMetadata>();
         final HashSet<ColumnMetadata> columns = new HashSet<ColumnMetadata>();
-        final ResolvedColumnMetadata nameColumn = new ResolvedColumnMetadata(null, TableKeyGeneratorEntity.class, "name", Types.VARCHAR, "name", String.class, false, 256, 0, 0);
+        final ResolvedColumnMetadata nameColumn = new ResolvedColumnMetadata(null, TableKeyGeneratorEntity.class, "name", Types.VARCHAR, "name", String.class, false, 256, 0, 0, false, false);
         columns.add(nameColumn);
-        columns.add(new ResolvedColumnMetadata(null, TableKeyGeneratorEntity.class, "value", Types.BIGINT, "value", Long.class, false, 0, 0, 0));
+        columns.add(new ResolvedColumnMetadata(null, TableKeyGeneratorEntity.class, "value", Types.BIGINT, "value", Long.class, false, 0, 0, 0, false, false));
         final List<NamedQueryMetadata> namedQueries = new ArrayList<NamedQueryMetadata>();
         final ResolvedTableMetadata<TableKeyGeneratorEntity> tableMetadata = new ResolvedTableMetadata<TableKeyGeneratorEntity>(TableKeyGeneratorEntity.class, schema, "dragonfly_sequences", constraints, columns, namedQueries, Collections.<SequenceMetadata>emptyList(), Collections.<StoredProcedureMetadata>emptyList(), Collections.<RelationMetadata<TableKeyGeneratorEntity, ?>>emptyList(), null, null);
         namedQueries.add(new ImmutableNamedQueryMetadata("increment", "UPDATE ${qualify(table)} SET ${escape('value')} = ${escape('value')} + 1 WHERE ${escape('name')} = ${value.name}", tableMetadata, QueryType.NATIVE));

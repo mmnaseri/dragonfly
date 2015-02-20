@@ -1,18 +1,24 @@
 /*
+ * The MIT License (MIT)
+ *
  * Copyright (c) 2013 AgileApes, Ltd.
  *
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or
- * sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall
- * be included in all copies or substantial portions of the
- * Software.
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package com.agileapes.dragonfly.metadata.impl;
@@ -34,27 +40,29 @@ public class ResolvedColumnMetadata extends AbstractColumnMetadata {
     private final String propertyName;
     private final Class<?> propertyType;
     private final Class<?> declaringClass;
+    private final boolean complex;
     private ColumnMetadata foreignReference;
     private final ValueGenerationType generationType;
     private final String valueGenerator;
+    private final boolean collection;
     private final boolean nullable;
     private final int length;
     private final int precision;
     private final int scale;
 
-    public ResolvedColumnMetadata(TableMetadata<?> table, Class<?> declaringClass, String name, int type, String propertyName, Class<?> propertyType, boolean nullable, int length, int precision, int scale) {
-        this(table, declaringClass, name, type, propertyName, propertyType, nullable, length, precision, scale, null, null);
+    public ResolvedColumnMetadata(TableMetadata<?> table, Class<?> declaringClass, String name, int type, String propertyName, Class<?> propertyType, boolean nullable, int length, int precision, int scale, boolean collection, boolean complex) {
+        this(table, declaringClass, name, type, propertyName, propertyType, nullable, length, precision, scale, null, null, collection, complex);
     }
 
-    public ResolvedColumnMetadata(TableMetadata<?> table, Class<?> declaringClass, String name, int type, String propertyName, Class<?> propertyType, boolean nullable, int length, int precision, int scale, ValueGenerationType generationType, String valueGenerator) {
-        this(table, declaringClass, name, type, propertyName, propertyType, nullable, length, precision, scale, generationType, valueGenerator, null);
+    public ResolvedColumnMetadata(TableMetadata<?> table, Class<?> declaringClass, String name, int type, String propertyName, Class<?> propertyType, boolean nullable, int length, int precision, int scale, ValueGenerationType generationType, String valueGenerator, boolean collection, boolean complex) {
+        this(table, declaringClass, name, type, propertyName, propertyType, nullable, length, precision, scale, generationType, valueGenerator, null, collection, complex);
     }
 
-    public ResolvedColumnMetadata(TableMetadata<?> table, Class<?> declaringClass, String name, int type, String propertyName, Class<?> propertyType, boolean nullable, int length, int precision, int scale, ColumnMetadata foreignReference) {
-        this(table, declaringClass, name, type, propertyName, propertyType, nullable, length, precision, scale, null, null, foreignReference);
+    public ResolvedColumnMetadata(TableMetadata<?> table, Class<?> declaringClass, String name, int type, String propertyName, Class<?> propertyType, boolean nullable, int length, int precision, int scale, ColumnMetadata foreignReference, boolean collection, boolean complex) {
+        this(table, declaringClass, name, type, propertyName, propertyType, nullable, length, precision, scale, null, null, foreignReference, collection, complex);
     }
 
-    public ResolvedColumnMetadata(TableMetadata<?> table, Class<?> declaringClass, String name, int type, String propertyName, Class<?> propertyType, boolean nullable, int length, int precision, int scale, ValueGenerationType generationType, String valueGenerator, ColumnMetadata foreignReference) {
+    public ResolvedColumnMetadata(TableMetadata<?> table, Class<?> declaringClass, String name, int type, String propertyName, Class<?> propertyType, boolean nullable, int length, int precision, int scale, ValueGenerationType generationType, String valueGenerator, ColumnMetadata foreignReference, boolean collection, boolean complex) {
         super(name, table);
         this.type = type;
         this.propertyName = propertyName;
@@ -67,6 +75,8 @@ public class ResolvedColumnMetadata extends AbstractColumnMetadata {
         this.generationType = generationType;
         this.valueGenerator = valueGenerator;
         this.declaringClass = declaringClass;
+        this.collection = collection;
+        this.complex = complex;
     }
 
     @Override
@@ -102,6 +112,16 @@ public class ResolvedColumnMetadata extends AbstractColumnMetadata {
     @Override
     public boolean isNullable() {
         return nullable;
+    }
+
+    @Override
+    public boolean isCollection() {
+        return collection;
+    }
+
+    @Override
+    public boolean isComplex() {
+        return complex;
     }
 
     @Override

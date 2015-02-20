@@ -1,0 +1,1 @@
+ALTER TABLE ${qualify(table)} DROP CONSTRAINT ${escape(table.primaryKey.name)};

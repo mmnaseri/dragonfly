@@ -1,23 +1,33 @@
 /*
+ * The MIT License (MIT)
+ *
  * Copyright (c) 2013 AgileApes, Ltd.
  *
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or
- * sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall
- * be included in all copies or substantial portions of the
- * Software.
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package com.agileapes.dragonfly.data.impl;
 
+import com.agileapes.couteau.basics.api.Filter;
+import com.agileapes.couteau.basics.api.Processor;
+import com.agileapes.couteau.basics.api.Transformer;
 import com.agileapes.couteau.basics.api.impl.NegatingFilter;
+import com.agileapes.couteau.context.error.RegistryException;
 import com.agileapes.dragonfly.data.EntityPreparationCallback;
 import com.agileapes.dragonfly.entity.*;
 import com.agileapes.dragonfly.entity.impl.DefaultEntityMapCreator;
@@ -29,6 +39,7 @@ import com.agileapes.dragonfly.metadata.RelationMetadata;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.statement.Statement;
 import com.agileapes.dragonfly.statement.StatementBuilderContext;
+import com.agileapes.dragonfly.statement.StatementPreparator;
 import com.agileapes.dragonfly.statement.Statements;
 import com.agileapes.dragonfly.tools.ColumnNameFilter;
 import com.agileapes.dragonfly.tools.MapTools;
@@ -79,7 +90,11 @@ public class ManyToManyActionHelper {
         this.selectStatement = relationMetadata == null ? statementBuilderContext.getManipulationStatementBuilder(Statements.Manipulation.FIND_LIKE).getStatement(tableMetadata) : statementBuilderContext.getManipulationStatementBuilder(Statements.Manipulation.LOAD_MANY_TO_MANY).getStatement(tableMetadata, relationMetadata);
         this.mapCreator = new DefaultEntityMapCreator();
         this.rowHandler = new DefaultRowHandler();
-        this.entityCreator = new DefaultMapEntityCreator();
+        try {
+            this.entityCreator = new DefaultMapEntityCreator();
+        } catch (RegistryException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public PreparedStatement getPreparedDeleteStatement(ManyToManyMiddleEntity entity) {
@@ -140,17 +155,32 @@ public class ManyToManyActionHelper {
         }
     }
 
-    public List<Object> find(ManyToManyMiddleEntity entity, EntityPreparationCallback callback) {
+    public <E> List<E> find(ManyToManyMiddleEntity entity, EntityPreparationCallback callback, Transformer<E, E> transformer) {
+        if (transformer == null) {
+            transformer = new Transformer<E, E>() {
+                @Override
+                public E map(E input) {
+                    return null;
+                }
+            };
+        }
         try {
-            final List<Object> result = new ArrayList<Object>();
+            final List<E> result = new ArrayList<E>();
             final ResultSet resultSet = getPreparedSelectStatement(entity).executeQuery();
             final TableMetadata<?> otherTable = with(tableMetadata.getColumns()).find(new NegatingFilter<ColumnMetadata>(new ColumnNameFilter(currentTable.getName()))).getForeignReference().getTable();
             while (resultSet.next()) {
                 final Map<String, Object> map = rowHandler.handleRow(resultSet);
-                final Object instance = entityCreator.fromMap(entityContext.getInstance(otherTable), otherTable.getColumns(), map);
+                //noinspection unchecked
+                final E instance = (E) entityCreator.fromMap(entityContext.getInstance(otherTable), otherTable.getColumns(), map);
+                final E mapped = transformer.map(instance);
+                if (mapped != null) {
+                    result.add(mapped);
+                    continue;
+                }
                 if (callback != null) {
                     callback.prepare(instance, map);
                 }
+                //noinspection unchecked
                 result.add(instance);
             }
             return result;
@@ -173,6 +203,24 @@ public class ManyToManyActionHelper {
         } catch (SQLException e) {
             throw new UnsuccessfulOperationError("Failed to close statements", e);
         }
+    }
+
+    public void invalidate(ManyToManyMiddleEntity relation, final EntityInitializationContext initializationContext, final EntityHandlerContext entityHandlerContext) {
+        //noinspection unchecked
+        with(relation.getFirst(), relation.getSecond()).drop(new Filter<Object>() {
+            @Override
+            public boolean accepts(Object item) {
+                return currentTable.getEntityType().isInstance(item);
+            }
+        }).each(new Processor<Object>() {
+            @Override
+            public void process(Object entity) {
+                final EntityHandler<Object> entityHandler = entityHandlerContext.getHandler(entity);
+                if (entityHandler.hasKey() && entityHandler.getKey(entity) != null) {
+                    initializationContext.delete(entityHandler.getEntityType(), entityHandler.getKey(entity));
+                }
+            }
+        });
     }
 
 }

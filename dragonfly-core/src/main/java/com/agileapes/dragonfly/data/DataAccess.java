@@ -1,23 +1,30 @@
 /*
+ * The MIT License (MIT)
+ *
  * Copyright (c) 2013 AgileApes, Ltd.
  *
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or
- * sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall
- * be included in all copies or substantial portions of the
- * Software.
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package com.agileapes.dragonfly.data;
 
 import com.agileapes.dragonfly.entity.EntityContext;
+import com.agileapes.dragonfly.fluent.SelectQueryInitiator;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 
 import java.io.Serializable;
@@ -137,6 +144,10 @@ public interface DataAccess {
      */
     <E> List<E> find(E sample, String order);
 
+    <E> List<E> find(E sample, int pageSize, int pageNumber);
+
+    <E> List<E> find(E sample, String order, int pageSize, int pageNumber);
+
     /**
      * Attempts to find a single entry in the database matching the given type and having
      * the designated key.
@@ -169,6 +180,10 @@ public interface DataAccess {
      * @see com.agileapes.dragonfly.data.impl.OrderExpressionParser
      */
     <E> List<E> findAll(Class<E> entityType, String order);
+
+    <E> List<E> findAll(Class<E> entityType, String order, int pageSize, int pageNumber);
+
+    <E> List<E> findAll(Class<E> entityType, int pageSize, int pageNumber);
 
     /**
      * Executes the named query for the item, injecting values as necessary from the
@@ -282,5 +297,12 @@ public interface DataAccess {
      * @return the result of the update operations
      */
     List<Integer> run(BatchOperation batchOperation);
+
+    /**
+     * @param alias    the entity alias to
+     * @param <E>      the type of entity on which the query is being made
+     * @return a query builder which will help with creating a complex "SELECT" statement
+     */
+    <E> SelectQueryInitiator<E> from(E alias);
 
 }

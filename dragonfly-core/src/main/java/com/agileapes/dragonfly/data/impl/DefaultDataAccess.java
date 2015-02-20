@@ -1,18 +1,24 @@
 /*
+ * The MIT License (MIT)
+ *
  * Copyright (c) 2013 AgileApes, Ltd.
  *
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or
- * sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall
- * be included in all copies or substantial portions of the
- * Software.
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package com.agileapes.dragonfly.data.impl;
@@ -20,6 +26,7 @@ package com.agileapes.dragonfly.data.impl;
 import com.agileapes.couteau.basics.api.Cache;
 import com.agileapes.couteau.basics.api.Filter;
 import com.agileapes.couteau.basics.api.Processor;
+import com.agileapes.couteau.basics.api.Transformer;
 import com.agileapes.couteau.basics.api.impl.EqualityFilter;
 import com.agileapes.couteau.basics.api.impl.SimpleDataDispenser;
 import com.agileapes.couteau.context.error.RegistryException;
@@ -38,12 +45,14 @@ import com.agileapes.dragonfly.error.*;
 import com.agileapes.dragonfly.events.DataAccessEventHandler;
 import com.agileapes.dragonfly.events.EventHandlerContext;
 import com.agileapes.dragonfly.events.impl.CompositeDataAccessEventHandler;
+import com.agileapes.dragonfly.fluent.SelectQueryInitiator;
+import com.agileapes.dragonfly.fluent.impl.DefaultSelectQueryInitiator;
 import com.agileapes.dragonfly.metadata.*;
 import com.agileapes.dragonfly.metadata.impl.ColumnMappingMetadataCollector;
+import com.agileapes.dragonfly.metadata.impl.DefaultPagedResultOrderMetadata;
 import com.agileapes.dragonfly.statement.Statement;
-import com.agileapes.dragonfly.statement.StatementBuilder;
-import com.agileapes.dragonfly.statement.StatementType;
-import com.agileapes.dragonfly.statement.Statements;
+import com.agileapes.dragonfly.statement.*;
+import com.agileapes.dragonfly.statement.impl.DefaultStatementPreparator;
 import com.agileapes.dragonfly.statement.impl.DelegatingPreparedStatement;
 import com.agileapes.dragonfly.statement.impl.FreemarkerSecondPassStatementBuilder;
 import com.agileapes.dragonfly.statement.impl.ProcedureCallStatement;
@@ -89,6 +98,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
 
     private static final Log log = LogFactory.getLog(DataAccess.class);
     private static final Map<Statements.Manipulation, String> STATEMENTS = new ConcurrentHashMap<Statements.Manipulation, String>();
+    private static final long SESSION_INITIALIZATION_TIMEOUT = 5000L;
 
     static {
         STATEMENTS.put(Statements.Manipulation.CALL, "call");
@@ -141,7 +151,11 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         this.initializationContext = new ThreadLocalEntityInitializationContext(this);
         this.rowHandler = new DefaultRowHandler();
         this.mapCreator = new DefaultEntityMapCreator();
-        this.entityCreator = new DefaultMapEntityCreator();
+        try {
+            this.entityCreator = new DefaultMapEntityCreator();
+        } catch (RegistryException e) {
+            throw new DataAccessSessionInitializationError("Failed to initialize the map-to-entity converter", e);
+        }
         this.saveQueue = new ThreadLocal<Map<Object, Object>>() {
             @Override
             protected Map<Object, Object> initialValue() {
@@ -204,6 +218,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
             synchronized (this.session) {
                 if (!this.session.isInitialized()) {
                     this.session.initialize();
+                    this.session.markInitialized();
                 }
             }
         }
@@ -260,14 +275,15 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     }
 
     private PreparedStatement internalExecuteUpdate(Class<?> entityType, Statements.Manipulation statement, Map<String, Object> values) {
-        return internalExecuteUpdate(getStatement(entityType, statement, null, StatementType.INSERT, StatementType.DELETE, StatementType.UPDATE), values);
+        return internalExecuteUpdate(getStatement(entityType, statement, null, StatementType.INSERT, StatementType.DELETE, StatementType.UPDATE, StatementType.TRUNCATE), values);
     }
 
     private PreparedStatement internalExecuteUpdate(Class<?> entityType, String statement, Map<String, Object> values) {
-        return internalExecuteUpdate(getStatement(entityType, statement, null, StatementType.INSERT, StatementType.DELETE, StatementType.UPDATE), values);
+        return internalExecuteUpdate(getStatement(entityType, statement, null, StatementType.INSERT, StatementType.DELETE, StatementType.UPDATE, StatementType.TRUNCATE), values);
     }
 
     private PreparedStatement internalExecuteUpdate(Statement statement, Map<String, Object> values) {
+        waitForSessionInitialization();
         if (isInBatchMode()) {
             if (batchOperation.get() == null) {
                 batchOperation.set(new Stack<BatchOperationDescriptor>());
@@ -304,6 +320,20 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
                 throw new UnsuccessfulOperationError("Failed to execute update", e);
             }
             return preparedStatement;
+        }
+    }
+
+    private void waitForSessionInitialization() {
+        long time = System.currentTimeMillis();
+        while (!session.isInitialized()) {
+            if (System.currentTimeMillis() - time > SESSION_INITIALIZATION_TIMEOUT) {
+                throw new DataAccessSessionInitializationError("Session initialization timed out after " + (System.currentTimeMillis() - time) + " milliseconds");
+            }
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                throw new DataAccessSessionInitializationError("Session initialization was interrupted", e);
+            }
         }
     }
 
@@ -366,6 +396,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         if (isInBatchMode() && !statementName.startsWith("count")) {
             throw new BatchOperationInterruptedByReadError();
         }
+        waitForSessionInitialization();
         final Statement statement = getStatement(entityType, statementName, ordering, StatementType.QUERY);
         final Connection connection = openConnection();
         final PreparedStatement preparedStatement = openStatement(statement.prepare(connection, null, values));
@@ -426,6 +457,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
                         return STATEMENTS.get(item).equals(statementName);
                     }
                 }));
+                ordering = new DefaultPagedResultOrderMetadata(ordering);
                 result = statementBuilder.getStatement(session.getTableMetadataRegistry().getTableMetadata(entityType), ordering);
             }
         } catch (RegistryException e) {
@@ -458,10 +490,19 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         final EntityHandler<E> entityHandler = entityHandlerContext.getHandler(entity);
         final E result = entityContext.getInstance(entityHandler.getEntityType());
         entityHandler.copy(entity, result);
+        if (result instanceof DataAccessAware) {
+            ((DataAccessAware) result).setDataAccess(this);
+        }
+        if (result instanceof DataAccessSessionAware) {
+            ((DataAccessSessionAware) result).setDataAccessSession(session);
+        }
+        if (session instanceof DefaultDataAccessSession && result instanceof DataStructureHandlerAware) {
+            ((DataStructureHandlerAware) result).setDataStructureHandler(((DefaultDataAccessSession) session).getDataStructureHandler());
+        }
         return result;
     }
 
-    private <E> void prepareEntity(E entity, Map<String, Object> values) {
+    private <E> void prepareEntity(final E entity, Map<String, Object> values) {
         final E enhancedEntity = getEnhancedEntity(entity);
         final InitializedEntity<E> initializedEntity = getInitializedEntity(enhancedEntity);
         initializedEntity.setOriginalCopy(enhancedEntity);
@@ -506,6 +547,21 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
                                         @Override
                                         public void prepare(Object entity, Map<String, Object> values) {
                                             prepareEntity(entity, values);
+                                        }
+                                    }, new Transformer<Object, Object>() {
+                                        @Override
+                                        public Object map(Object input) {
+                                            final EntityHandler<Object> handler = entityHandlerContext.getHandler(input);
+                                            if (handler.hasKey() && handler.getKey(input) != null && initializationContext.contains(handler.getEntityType(), handler.getKey(input))) {
+                                                final Object cached;
+                                                if (entityHandler.hasKey()) {
+                                                    cached = initializationContext.get(handler.getEntityType(), handler.getKey(input), entityHandler.getEntityType(), entityHandler.getKey(entity));
+                                                } else {
+                                                    cached = initializationContext.get(handler.getEntityType(), handler.getKey(input));
+                                                }
+                                                return cached;
+                                            }
+                                            return null;
                                         }
                                     }));
                                     wrapper.setPropertyValue(reference.getPropertyName(), collection);
@@ -663,6 +719,31 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     }
 
     @Override
+    public <E, R> List<R> executeTypedQuery(Class<E> entityType, String queryName, Class<R> resultType, Map<String, Object> values) {
+        final List<Map<String, Object>> maps = executeUntypedQuery(entityType, queryName, values);
+        final ArrayList<R> list = new ArrayList<R>();
+        for (Map<String, Object> map : maps) {
+            if (map.size() > 1) {
+                throw new QueryDefinitionError(entityType, queryName, "Query has more than one column to choose from");
+            } else if (map.isEmpty()) {
+                continue;
+            }
+            final Object value = map.values().iterator().next();
+            if (resultType.isInstance(value)) {
+                list.add(resultType.cast(value));
+            } else {
+                throw new QueryDefinitionError(entityType, queryName, "Expected value to be of type " + resultType.getCanonicalName() + " while it was " + value);
+            }
+        }
+        return list;
+    }
+
+    @Override
+    public <E> List<Object> executeTypedQuery(Class<E> entityType, String queryName, Map<String, Object> values) {
+        return executeTypedQuery(entityType, queryName, Object.class, values);
+    }
+
+    @Override
     public <O> int executeUpdate(O sample) {
         final Class<?> resultType = sample.getClass();
         if (!resultType.isAnnotationPresent(Partial.class)) {
@@ -749,6 +830,11 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
                     if (generatedKeys.next()) {
                         entityHandler.setKey(enhancedEntity, session.getDatabaseDialect().retrieveKey(generatedKeys));
                     }
+                    if (initializedEntity.getInitializationContext() == null) {
+                        final DefaultEntityInitializationContext entityInitializationContext = new DefaultEntityInitializationContext(this, initializationContext);
+                        entityInitializationContext.register(entityHandler.getEntityType(), entityHandler.getKey(enhancedEntity), enhancedEntity);
+                        initializedEntity.setInitializationContext(entityInitializationContext);
+                    }
                 } catch (SQLException e) {
                     throw new UnsupportedOperationException("Failed to retrieve auto-generated keys", e);
                 }
@@ -794,12 +880,13 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
                 final ManyToManyMiddleEntity someRelation = entry.getValue().iterator().next();
                 final ManyToManyActionHelper helper = helpers.read(entry.getKey());
                 helper.delete(someRelation);
-                if (entry.getValue().size() == 1 && !someRelation.isComplete()) {
+                 if (entry.getValue().size() == 1 && !someRelation.isComplete()) {
                     helper.close();
                     continue;
                 }
                 for (ManyToManyMiddleEntity middleEntity : entry.getValue()) {
                     helper.insert(middleEntity);
+                    helper.invalidate(middleEntity, initializationContext, entityHandlerContext);
                 }
                 helper.close();
             }
@@ -858,6 +945,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
             if (entityHandler.isLockable() && !updated) {
                 throw new OptimisticLockingFailureError(entityHandler.getEntityType());
             }
+            entityHandler.incrementVersion(enhancedEntity);
             eventHandler.afterUpdate(enhancedEntity, updated);
         } catch (SQLException e) {
             throw new UnsuccessfulOperationError("Failed to count the number of updated elements", e);
@@ -936,7 +1024,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
                                     throw new EntityInitializationError(entityHandler.getEntityType(), e);
                                 }
                                 //delete foreign relations by cascading
-                                final List<Object> found = helper.find(middleEntity, null);
+                                final List<Object> found = helper.find(middleEntity, null, null);
                                 helper.delete(middleEntity);
                                 for (Object instance : found) {
                                     delete(instance);
@@ -1032,15 +1120,32 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
 
     @Override
     public <E> List<E> find(E sample, String order) {
+        return find(sample, order, -1, -1);
+    }
+
+    @Override
+    public <E> List<E> find(E sample, int pageSize, int pageNumber) {
+        return find(sample, null, pageSize, pageNumber);
+    }
+
+    @Override
+    public <E> List<E> find(E sample, String order, int pageSize, int pageNumber) {
         final E enhancedEntity = getEnhancedEntity(sample);
         final InitializedEntity<E> initializedEntity = getInitializedEntity(enhancedEntity);
         initializedEntity.freeze();
         final EntityHandler<E> entityHandler = entityHandlerContext.getHandler(sample);
-        final ResultOrderMetadata ordering;
+        ResultOrderMetadata ordering;
         if (order != null) {
             ordering = new OrderExpressionParser(session.getTableMetadataRegistry().getTableMetadata(entityHandler.getEntityType())).map(order);
         } else {
             ordering = null;
+        }
+        if (pageSize > 0 && pageNumber > 0) {
+            if (ordering == null) {
+                ordering = new DefaultPagedResultOrderMetadata(pageSize, pageNumber);
+            } else {
+                ordering = new DefaultPagedResultOrderMetadata(ordering, pageSize, pageNumber);
+            }
         }
         eventHandler.beforeFind(enhancedEntity);
         final List<E> found = internalExecuteQuery(entityHandler.getEntityType(), Statements.Manipulation.FIND_LIKE, MapTools.prefixKeys(entityHandler.toMap(enhancedEntity), "value."), ordering);
@@ -1077,12 +1182,24 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
 
     @Override
     public <E> List<E> findAll(Class<E> entityType, String order) {
+        return findAll(entityType, order, -1, -1);
+    }
+
+    @Override
+    public <E> List<E> findAll(Class<E> entityType, String order, int pageSize, int pageNumber) {
         final EntityHandler<E> entityHandler = entityHandlerContext.getHandler(entityType);
-        final ResultOrderMetadata ordering;
+        ResultOrderMetadata ordering;
         if (order != null) {
             ordering = new OrderExpressionParser(session.getTableMetadataRegistry().getTableMetadata(entityHandler.getEntityType())).map(order);
         } else {
             ordering = null;
+        }
+        if (pageSize > 0 && pageNumber > 0) {
+            if (ordering == null) {
+                ordering = new DefaultPagedResultOrderMetadata(pageSize, pageNumber);
+            } else {
+                ordering = new DefaultPagedResultOrderMetadata(ordering, pageSize, pageNumber);
+            }
         }
         eventHandler.beforeFindAll(entityType);
         final List<E> found = internalExecuteQuery(entityHandler.getEntityType(), Statements.Manipulation.FIND_ALL, ordering);
@@ -1091,9 +1208,14 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     }
 
     @Override
+    public <E> List<E> findAll(Class<E> entityType, int pageSize, int pageNumber) {
+        return findAll(entityType, null, pageSize, pageNumber);
+    }
+
+    @Override
     public <E> int executeUpdate(Class<E> entityType, String queryName, Map<String, Object> values) {
         eventHandler.beforeExecuteUpdate(entityType, queryName, values);
-        final int affectedItems = getUpdateCount(internalExecuteUpdate(entityType, queryName, values));
+        final int affectedItems = getUpdateCount(internalExecuteUpdate(entityType, queryName, MapTools.prefixKeys(values, "value.")));
         eventHandler.afterExecuteUpdate(entityType, queryName, values, affectedItems);
         return affectedItems;
     }
@@ -1111,7 +1233,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
     @Override
     public <E> List<E> executeQuery(Class<E> entityType, String queryName, Map<String, Object> values) {
         eventHandler.beforeExecuteQuery(entityType, queryName, values);
-        final List<E> list = internalExecuteQuery(entityType, queryName, values, null);
+        final List<E> list = internalExecuteQuery(entityType, queryName, MapTools.prefixKeys(values, "value."), null);
         eventHandler.afterExecuteQuery(entityType, queryName, values, list);
         return list;
     }
@@ -1196,6 +1318,7 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
                             throw new EntityInitializationError(procedureMetadata.getResultType(), e);
                         }
                     } else {
+                        assert entityHandler != null;
                         Object instance = entityContext.getInstance(entityHandler.getEntityType());
                         instance = entityHandler.fromMap(instance, map);
                         if (entityHandler.hasKey() && entityHandler.getKey(instance) != null) {
@@ -1265,6 +1388,11 @@ public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext
         log.info("Stacking operations for batch execution");
         batchOperation.execute(this);
         return endBatch();
+    }
+
+    @Override
+    public <E> SelectQueryInitiator<E> from(E alias) {
+        return new DefaultSelectQueryInitiator<E>(session, alias);
     }
 
     /**

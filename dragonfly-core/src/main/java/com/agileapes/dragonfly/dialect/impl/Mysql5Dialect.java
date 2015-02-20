@@ -1,18 +1,24 @@
 /*
+ * The MIT License (MIT)
+ *
  * Copyright (c) 2013 AgileApes, Ltd.
  *
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or
- * sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall
- * be included in all copies or substantial portions of the
- * Software.
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package com.agileapes.dragonfly.dialect.impl;
@@ -22,6 +28,7 @@ import com.agileapes.couteau.basics.api.Processor;
 import com.agileapes.couteau.freemarker.utils.FreemarkerUtils;
 import com.agileapes.dragonfly.data.DataAccessSession;
 import com.agileapes.dragonfly.dialect.DatabaseDialect;
+import com.agileapes.dragonfly.dialect.QueryPagingDecorator;
 import com.agileapes.dragonfly.entity.RowHandler;
 import com.agileapes.dragonfly.entity.impl.DefaultRowHandler;
 import com.agileapes.dragonfly.error.DatabaseMetadataAccessError;
@@ -55,7 +62,8 @@ import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
 public class Mysql5Dialect extends GenericDatabaseDialect {
 
     private static final Log log = LogFactory.getLog(DatabaseDialect.class);
-    private RowHandler rowHandler;
+    private final RowHandler rowHandler;
+    private final QueryPagingDecorator pagingDecorator;
 
     public Mysql5Dialect() {
         StatementBuilderContext statementBuilderContext = getStatementBuilderContext();
@@ -65,8 +73,18 @@ public class Mysql5Dialect extends GenericDatabaseDialect {
         ((DefaultStatementBuilderContext) statementBuilderContext).register(Statements.Definition.DROP_FOREIGN_KEY, new FreemarkerStatementBuilder(configuration, "dropForeignKey.sql.ftl", this));
         ((DefaultStatementBuilderContext) statementBuilderContext).register(Statements.Definition.DROP_PRIMARY_KEY, new FreemarkerStatementBuilder(configuration, "dropPrimaryKey.sql.ftl", this));
         ((DefaultStatementBuilderContext) statementBuilderContext).register(Statements.Definition.CREATE_TABLE, new FreemarkerStatementBuilder(configuration, "createTable.sql.ftl", this));
+        ((DefaultStatementBuilderContext) statementBuilderContext).register(Statements.Manipulation.FIND_LIKE, new FreemarkerStatementBuilder(configuration, "findBySample.sql.ftl", this));
+        ((DefaultStatementBuilderContext) statementBuilderContext).register(Statements.Manipulation.FIND_ALL, new FreemarkerStatementBuilder(configuration, "findAll.sql.ftl", this));
         this.rowHandler = new DefaultRowHandler();
         log.info("Initializing database dialect " + getClass().getSimpleName() + " for " + getName());
+        pagingDecorator = new QueryPagingDecorator() {
+            @Override
+            public String decorate(String query, int pageSize, int pageNumber) {
+                query = query.replaceAll(";\\s*$", ""); //trim the ending semi-colon, if any exists
+                query += " LIMIT " + ((pageNumber - 1) * pageSize) + ", " + pageSize + ";";
+                return query;
+            }
+        };
     }
 
     @Override
@@ -157,6 +175,21 @@ public class Mysql5Dialect extends GenericDatabaseDialect {
     }
 
     @Override
+    public ValueGenerationType getDefaultGenerationType() {
+        return ValueGenerationType.IDENTITY;
+    }
+
+    @Override
+    public QueryPagingDecorator getPagingDecorator() {
+        return pagingDecorator;
+    }
+
+    @Override
+    public boolean isGenerationTypeSupported(ValueGenerationType generationType) {
+        return ValueGenerationType.SEQUENCE.equals(generationType);
+    }
+
+    @Override
     public String getDriverClassName() {
         return "com.mysql.jdbc.Driver";
     }
@@ -177,4 +210,11 @@ public class Mysql5Dialect extends GenericDatabaseDialect {
         }
     }
 
+    @Override
+    public String getType(ColumnMetadata columnMetadata) {
+        if (columnMetadata.getType() == Types.BOOLEAN) {
+            return "BIT";
+        }
+        return super.getType(columnMetadata);
+    }
 }

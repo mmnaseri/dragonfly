@@ -1,18 +1,24 @@
 /*
+ * The MIT License (MIT)
+ *
  * Copyright (c) 2013 AgileApes, Ltd.
  *
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or
- * sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall
- * be included in all copies or substantial portions of the
- * Software.
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package com.agileapes.dragonfly.metadata.impl;
@@ -51,9 +57,9 @@ public class TableMetadataCopier<E> {
                             foreignReference = null;
                         } else {
                             //noinspection unchecked
-                            foreignReference = new ResolvedColumnMetadata(new UnresolvedTableMetadata<Object>((Class<Object>) input.getForeignReference().getTable().getEntityType()), input.getForeignReference().getDeclaringClass(), input.getForeignReference().getName(), input.getForeignReference().getType(), input.getForeignReference().getPropertyName(), input.getForeignReference().getPropertyType(), input.getForeignReference().isNullable(), input.getForeignReference().getLength(), input.getForeignReference().getPrecision(), input.getForeignReference().getScale(), input.getForeignReference().getGenerationType(), input.getForeignReference().getValueGenerator(), null);
+                            foreignReference = new ResolvedColumnMetadata(new UnresolvedTableMetadata<Object>((Class<Object>) input.getForeignReference().getTable().getEntityType()), input.getForeignReference().getDeclaringClass(), input.getForeignReference().getName(), input.getForeignReference().getType(), input.getForeignReference().getPropertyName(), input.getForeignReference().getPropertyType(), input.getForeignReference().isNullable(), input.getForeignReference().getLength(), input.getForeignReference().getPrecision(), input.getForeignReference().getScale(), input.getForeignReference().getGenerationType(), input.getForeignReference().getValueGenerator(), null, input.isCollection(), input.isComplex());
                         }
-                        return new ResolvedColumnMetadata(null, input.getDeclaringClass(), input.getName(), input.getType(), input.getPropertyName(), input.getPropertyType(), input.isNullable(), input.getLength(), input.getPrecision(), input.getScale(), input.getGenerationType(), input.getValueGenerator(), foreignReference);
+                        return new ResolvedColumnMetadata(null, input.getDeclaringClass(), input.getName(), input.getType(), input.getPropertyName(), input.getPropertyType(), input.isNullable(), input.getLength(), input.getPrecision(), input.getScale(), input.getGenerationType(), input.getValueGenerator(), foreignReference, input.isCollection(), input.isComplex());
                     }
                 }).list();
         final ArrayList<ConstraintMetadata> constraints = new ArrayList<ConstraintMetadata>();
@@ -65,7 +71,7 @@ public class TableMetadataCopier<E> {
         final List<OrderMetadata> ordering = with(tableMetadata.getOrdering()).transform(new Transformer<OrderMetadata, OrderMetadata>() {
             @Override
             public OrderMetadata map(OrderMetadata input) {
-                return new DefaultOrderMetadata(with(columns).find(new ColumnNameFilter(input.getColumn().getName())), input.getOrder());
+                return new ImmutableOrderMetadata(with(columns).find(new ColumnNameFilter(input.getColumn().getName())), input.getOrder());
             }
         }).list();
         final ResolvedTableMetadata<E> metadata = new ResolvedTableMetadata<E>(tableMetadata.getEntityType(), tableMetadata.getSchema(), tableMetadata.getName(), constraints, columns, namedQueries, sequences, storedProcedures, foreignReferences, versionColumn, ordering);

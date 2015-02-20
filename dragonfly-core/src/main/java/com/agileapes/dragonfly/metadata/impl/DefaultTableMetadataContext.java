@@ -1,18 +1,24 @@
 /*
+ * The MIT License (MIT)
+ *
  * Copyright (c) 2013 AgileApes, Ltd.
  *
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or
- * sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall
- * be included in all copies or substantial portions of the
- * Software.
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package com.agileapes.dragonfly.metadata.impl;
@@ -60,6 +66,19 @@ public class DefaultTableMetadataContext extends DefaultTableMetadataRegistry im
             rebuildCache();
         }
         return new HashSet<Class<?>>(entityTypes);
+    }
+
+    @Override
+    public Collection<TableMetadata<?>> getTables() {
+        final HashSet<TableMetadata<?>> tables = new HashSet<TableMetadata<?>>();
+        for (TableMetadataRegistry registry : registries) {
+            if (registry == this) {
+                tables.addAll(super.getTables());
+                continue;
+            }
+            tables.addAll(registry.getTables());
+        }
+        return tables;
     }
 
     public void setRegistries(Set<TableMetadataRegistry> registries) {
@@ -138,7 +157,7 @@ public class DefaultTableMetadataContext extends DefaultTableMetadataRegistry im
                 //finally we settle by resolving all column references for reference orderings
                 for (OrderMetadata orderMetadata : relationMetadata.getOrdering()) {
                     if (orderMetadata.getColumn() instanceof UnresolvedColumnMetadata) {
-                        ((DefaultOrderMetadata) orderMetadata).setColumn(resolveColumn(map, tableMetadata, orderMetadata.getColumn()));
+                        ((ImmutableOrderMetadata) orderMetadata).setColumn(resolveColumn(map, tableMetadata, orderMetadata.getColumn()));
                     }
                 }
                 if (RelationType.MANY_TO_MANY.equals(relationMetadata.getType())) {
@@ -182,9 +201,9 @@ public class DefaultTableMetadataContext extends DefaultTableMetadataRegistry im
                         final HashSet<ColumnMetadata> columns = new HashSet<ColumnMetadata>();
                         final ColumnMetadata firstKey = firstTable.getPrimaryKey().getColumns().iterator().next();
                         final ColumnMetadata secondKey = secondTable.getPrimaryKey().getColumns().iterator().next();
-                        final ResolvedColumnMetadata firstColumn = new ResolvedRepresentationColumnMetadata(null, ManyToManyMiddleEntity.class, firstTable.getName(), firstKey.getType(), "first", Object.class, false, firstKey.getLength(), firstKey.getPrecision(), firstKey.getScale(), null, null, firstKey, key.getTargetProperty());
+                        final ResolvedColumnMetadata firstColumn = new ResolvedRepresentationColumnMetadata(null, ManyToManyMiddleEntity.class, firstTable.getName(), firstKey.getType(), "first", Object.class, false, firstKey.getLength(), firstKey.getPrecision(), firstKey.getScale(), null, null, firstKey, key.getTargetProperty(), false);
                         columns.add(firstColumn);
-                        final ResolvedColumnMetadata secondColumn = new ResolvedRepresentationColumnMetadata(null, ManyToManyMiddleEntity.class, secondTable.getName(), secondKey.getType(), "second", Object.class, false, secondKey.getLength(), secondKey.getPrecision(), secondKey.getScale(), null, null, secondKey, key.getLocalProperty());
+                        final ResolvedColumnMetadata secondColumn = new ResolvedRepresentationColumnMetadata(null, ManyToManyMiddleEntity.class, secondTable.getName(), secondKey.getType(), "second", Object.class, false, secondKey.getLength(), secondKey.getPrecision(), secondKey.getScale(), null, null, secondKey, key.getLocalProperty(), false);
                         columns.add(secondColumn);
                         final List<ConstraintMetadata> constraints = new ArrayList<ConstraintMetadata>();
                         //noinspection unchecked
