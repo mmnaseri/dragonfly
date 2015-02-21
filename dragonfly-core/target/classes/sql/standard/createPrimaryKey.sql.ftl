@@ -1,1 +1,0 @@
-ALTER TABLE ${qualify(table)} ADD CONSTRAINT ${escape(table.primaryKey.name)} PRIMARY KEY (<#list table.primaryKey.columns as column>${escape(column.name)}<#if column_has_next>,</#if></#list>);

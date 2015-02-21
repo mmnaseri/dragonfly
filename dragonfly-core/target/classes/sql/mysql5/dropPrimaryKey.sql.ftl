@@ -1,1 +1,0 @@
-ALTER TABLE ${qualify(table)} DROP PRIMARY KEY;

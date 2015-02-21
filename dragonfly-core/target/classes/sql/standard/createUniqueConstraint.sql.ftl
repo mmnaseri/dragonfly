@@ -1,1 +1,0 @@
-ALTER TABLE ${qualify(table)} ADD CONSTRAINT ${escape(metadata.name)} UNIQUE (<#list metadata.columns as column>${escape(column.name)}<#if column_has_next>,</#if></#list>);

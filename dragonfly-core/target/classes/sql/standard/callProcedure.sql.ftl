@@ -1,1 +1,0 @@
-CALL ${qualify(metadata)}(<#list metadata.parameters as parameter>${value["parameter" + parameter_index]}<#if parameter_has_next>, </#if></#list>);

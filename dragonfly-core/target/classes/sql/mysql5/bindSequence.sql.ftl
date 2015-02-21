@@ -1,1 +1,0 @@
-<#if metadata.generationType == "IDENTITY">ALTER TABLE ${qualify(table)} CHANGE ${qualify(metadata)} ${qualify(metadata)} ${type(metadata)}<#if !metadata.nullable> NOT NULL</#if> AUTO_INCREMENT;</#if>

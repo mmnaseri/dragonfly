@@ -1,1 +1,0 @@
-DELETE FROM ${qualify(metadata.foreignTable)} WHERE ${qualify(metadata.foreignColumn)} IN (SELECT DISTINCT ${qualify(metadata.localTable.primaryKey.columns?first)} FROM ${qualify(metadata.localTable)} WHERE ${qualify(metadata.localTable.primaryKey.columns?first)} IS NOT NULL);
