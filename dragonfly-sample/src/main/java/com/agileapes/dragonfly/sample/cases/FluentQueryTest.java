@@ -25,7 +25,7 @@ package com.agileapes.dragonfly.sample.cases;
 
 import com.agileapes.couteau.basics.api.Processor;
 import com.agileapes.dragonfly.annotations.Ordering;
-import com.agileapes.dragonfly.data.DataAccess;
+import com.agileapes.dragonfly.data.FluentDataAccess;
 import com.agileapes.dragonfly.fluent.SelectQueryExecution;
 import com.agileapes.dragonfly.fluent.generation.FunctionInvocation;
 import com.agileapes.dragonfly.fluent.generation.impl.ImmutableFunction;
@@ -53,7 +53,7 @@ import static com.agileapes.dragonfly.fluent.tools.Query.projection;
 public class FluentQueryTest extends BaseTestCase {
 
     @Autowired
-    private DataAccess dataAccess;
+    private FluentDataAccess dataAccess;
 
     private static final long ONE_SECOND = 1000;
     private static final long ONE_MINUTE = 60 * ONE_SECOND;

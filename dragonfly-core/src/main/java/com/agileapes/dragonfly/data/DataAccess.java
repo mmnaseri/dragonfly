@@ -298,11 +298,4 @@ public interface DataAccess {
      */
     List<Integer> run(BatchOperation batchOperation);
 
-    /**
-     * @param alias    the entity alias to
-     * @param <E>      the type of entity on which the query is being made
-     * @return a query builder which will help with creating a complex "SELECT" statement
-     */
-    <E> SelectQueryInitiator<E> from(E alias);
-
 }

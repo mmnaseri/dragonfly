@@ -52,7 +52,7 @@ import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
  * @since 1.0 (2013/9/26, 2:24)
  */
 @SuppressWarnings("unchecked")
-public class DelegatingDataAccess implements PartialDataAccess, EventHandlerContext {
+public class DelegatingDataAccess implements PartialDataAccess, EventHandlerContext, FluentDataAccess {
 
     public static final NoOpCallback DEFAULT_CALLBACK = new NoOpCallback();
 
@@ -389,7 +389,10 @@ public class DelegatingDataAccess implements PartialDataAccess, EventHandlerCont
 
     @Override
     public <E> SelectQueryInitiator<E> from(E alias) {
-        return dataAccess.from(alias);
+        if (dataAccess instanceof FluentDataAccess) {
+            return ((FluentDataAccess) dataAccess).from(alias);
+        }
+        throw new UnsupportedOperationException();
     }
 
     @Override

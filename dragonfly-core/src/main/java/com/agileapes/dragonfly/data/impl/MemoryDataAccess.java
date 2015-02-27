@@ -25,7 +25,6 @@ package com.agileapes.dragonfly.data.impl;
 
 import com.agileapes.dragonfly.data.BatchOperation;
 import com.agileapes.dragonfly.data.DataAccess;
-import com.agileapes.dragonfly.fluent.SelectQueryInitiator;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -174,11 +173,6 @@ public class MemoryDataAccess implements DataAccess {
     @Override
     public List<Integer> run(BatchOperation batchOperation) {
         return null;
-    }
-
-    @Override
-    public <E> SelectQueryInitiator<E> from(E alias) {
-        throw new UnsupportedOperationException("Fluent API is not accessible for in-memory usage");
     }
 
 }

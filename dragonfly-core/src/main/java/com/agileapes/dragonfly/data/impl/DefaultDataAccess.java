@@ -94,7 +94,7 @@ import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/20, 23:29)
  */
-public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext {
+public class DefaultDataAccess implements PartialDataAccess, EventHandlerContext, FluentDataAccess {
 
     private static final Log log = LogFactory.getLog(DataAccess.class);
     private static final Map<Statements.Manipulation, String> STATEMENTS = new ConcurrentHashMap<Statements.Manipulation, String>();
