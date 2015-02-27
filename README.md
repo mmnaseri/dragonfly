@@ -176,6 +176,28 @@ You can now use this interface as though it was already implemented:
         //do something
     }
 
+### Domain-driven persistence
+
+If you get instances of your entities from the entity context or are working with entities that have been
+retrieved via the default data access instance, you can always use the domain-driven approach:
+
+    @Autowired
+    private EntityContext entityContext;
+
+    public void doSomething() {
+        final Person sample = entityContext.getInstance(Person.class);
+        sample.setName("Milad");
+        final List<Person> milads = ((DataAccessObject<Person, Long>) sample).findLike();
+        //do something
+        //later on, you can do stuff with these entities in a domain-driven fashion
+        final Person first = milads.get(0);
+        first.setName("John");
+        ((DataAccessObject) first).save();
+        //or you can delete it, after which any method call or property access on the object will
+        //result in an exception
+        ((DataAccessObject) first).delete();
+    }
+
 ### Other features
 
 There are many other features as well. I have benchmarked many of the same operations with Hibernate 4 and

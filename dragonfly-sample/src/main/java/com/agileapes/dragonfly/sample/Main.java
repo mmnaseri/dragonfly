@@ -34,9 +34,7 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 public class Main {
 
     public static void main(String[] args) throws Exception {
-        final AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(Config.class);
-        context.getBean(TestSuite.class).run();
-//        final ApplicationContext context = new ClassPathXmlApplicationContext("applicationContext.xml");
+        new AnnotationConfigApplicationContext(Config.class).getBean(TestSuite.class).run();
     }
 
 }
