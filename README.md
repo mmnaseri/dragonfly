@@ -4,12 +4,12 @@ Dragonfly
 The lightweight object-relational mapping tool for Java.
 
 There are showcases for what this ORM does differently than other such products, as well as some of its
-basic features is available under `com.agileapes.dragonfly.sample.cases` in the `dragonfly-sample` module.
+basic features is available under `com.mmnaseri.dragonfly.sample.cases` in the `dragonfly-sample` module.
 
 Sample Execution
 ----------------
 
-Sample module can be executed by running `com.agileapes.dragonfly.sample.Main`. This will execute all
+Sample module can be executed by running `com.mmnaseri.dragonfly.sample.Main`. This will execute all
 test cases using the defined in the aforementioned package.
 
 Before you can do that, however, you will need to prepare the database. For your convenience, there are
