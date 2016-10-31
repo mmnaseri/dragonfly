@@ -1,4 +1,4 @@
-<#-- @ftlvariable name="metadata" type="com.agileapes.dragonfly.metadata.ColumnMetadata" -->
-<#-- @ftlvariable name="qualify" type="com.agileapes.dragonfly.statement.impl.model.functions.DatabaseIdentifierQualifierMethod" -->
-<#-- @ftlvariable name="table" type="com.agileapes.dragonfly.metadata.TableMetadata" -->
+<#-- @ftlvariable name="metadata" type="com.mmnaseri.dragonfly.metadata.ColumnMetadata" -->
+<#-- @ftlvariable name="qualify" type="com.mmnaseri.dragonfly.statement.impl.model.functions.DatabaseIdentifierQualifierMethod" -->
+<#-- @ftlvariable name="table" type="com.mmnaseri.dragonfly.metadata.TableMetadata" -->
 SELECT * FROM ${qualify(table)} WHERE ${qualify(metadata)} = ${value.key} AND ${qualify(table.versionColumn)} > ${value.version};

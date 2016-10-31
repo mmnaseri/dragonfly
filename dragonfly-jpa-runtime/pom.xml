@@ -2,7 +2,7 @@
 <!--
   ~ The MIT License (MIT)
   ~
-  ~ Copyright (c) 2013 AgileApes, Ltd.
+  ~ Copyright (c) 2013 Milad Naseri.
   ~
   ~ Permission is hereby granted, free of charge, to any person obtaining a copy of
   ~ this software and associated documentation files (the "Software"), to deal in
@@ -27,7 +27,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <parent>
-        <groupId>com.agileapes.dragonfly</groupId>
+        <groupId>com.mmnaseri.dragonfly</groupId>
         <artifactId>dragonfly-parent</artifactId>
         <version>1.0</version>
         <relativePath>../dragonfly-parent/pom.xml</relativePath>
@@ -39,12 +39,12 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.agileapes.dragonfly</groupId>
+            <groupId>com.mmnaseri.dragonfly</groupId>
             <artifactId>dragonfly-jpa</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.agileapes.dragonfly</groupId>
+            <groupId>com.mmnaseri.dragonfly</groupId>
             <artifactId>dragonfly-runtime</artifactId>
             <version>${project.version}</version>
         </dependency>

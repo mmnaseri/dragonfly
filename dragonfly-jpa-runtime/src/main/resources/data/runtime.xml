@@ -2,7 +2,7 @@
 <!--
   ~ The MIT License (MIT)
   ~
-  ~ Copyright (c) 2013 AgileApes, Ltd.
+  ~ Copyright (c) 2013 Milad Naseri.
   ~
   ~ Permission is hereby granted, free of charge, to any person obtaining a copy of
   ~ this software and associated documentation files (the "Software"), to deal in
@@ -26,11 +26,11 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <bean id="dataAccessSession" class="com.agileapes.dragonfly.data.impl.DefaultDataAccessSession">
-        <constructor-arg index="0" type="com.agileapes.dragonfly.dialect.DatabaseDialect" ref="databaseDialect"/>
-        <constructor-arg index="1" type="com.agileapes.dragonfly.statement.StatementRegistry"
+    <bean id="dataAccessSession" class="com.mmnaseri.dragonfly.data.impl.DefaultDataAccessSession">
+        <constructor-arg index="0" type="com.mmnaseri.dragonfly.dialect.DatabaseDialect" ref="databaseDialect"/>
+        <constructor-arg index="1" type="com.mmnaseri.dragonfly.statement.StatementRegistry"
                          ref="statementRegistry"/>
-        <constructor-arg index="2" type="com.agileapes.dragonfly.metadata.TableMetadataRegistry" ref="metadataContext"/>
+        <constructor-arg index="2" type="com.mmnaseri.dragonfly.metadata.TableMetadataRegistry" ref="metadataContext"/>
         <constructor-arg index="3" type="javax.sql.DataSource" ref="${db.dataSource}"/>
     </bean>
 
@@ -38,57 +38,57 @@
         <property name="locations" value="classpath:db.properties"/>
     </bean>
 
-    <bean id="statementRegistry" class="com.agileapes.dragonfly.statement.impl.DefaultStatementRegistry"/>
+    <bean id="statementRegistry" class="com.mmnaseri.dragonfly.statement.impl.DefaultStatementRegistry"/>
 
-    <bean id="metadataContext" class="com.agileapes.dragonfly.metadata.impl.DefaultTableMetadataContext"/>
+    <bean id="metadataContext" class="com.mmnaseri.dragonfly.metadata.impl.DefaultTableMetadataContext"/>
 
-    <bean id="accessDeniedHandler" class="com.agileapes.dragonfly.security.impl.FailFirstAccessDeniedHandler"/>
+    <bean id="accessDeniedHandler" class="com.mmnaseri.dragonfly.security.impl.FailFirstAccessDeniedHandler"/>
 
-    <bean id="entityHandlerContext" class="com.agileapes.dragonfly.entity.impl.DefaultEntityHandlerContext">
-        <constructor-arg index="0" type="com.agileapes.dragonfly.entity.EntityContext"
+    <bean id="entityHandlerContext" class="com.mmnaseri.dragonfly.entity.impl.DefaultEntityHandlerContext">
+        <constructor-arg index="0" type="com.mmnaseri.dragonfly.entity.EntityContext"
                          ref="entityContext"/>
-        <constructor-arg index="1" type="com.agileapes.dragonfly.metadata.TableMetadataRegistry" ref="metadataContext"/>
+        <constructor-arg index="1" type="com.mmnaseri.dragonfly.metadata.TableMetadataRegistry" ref="metadataContext"/>
     </bean>
 
-    <bean id="dataSecurityManager" class="com.agileapes.dragonfly.security.impl.DefaultDataSecurityManager">
-        <constructor-arg index="0" type="com.agileapes.dragonfly.security.AccessDeniedHandler"
+    <bean id="dataSecurityManager" class="com.mmnaseri.dragonfly.security.impl.DefaultDataSecurityManager">
+        <constructor-arg index="0" type="com.mmnaseri.dragonfly.security.AccessDeniedHandler"
                          ref="accessDeniedHandler"/>
     </bean>
 
-    <bean id="dataAccess" class="com.agileapes.dragonfly.data.impl.DelegatingDataAccess">
+    <bean id="dataAccess" class="com.mmnaseri.dragonfly.data.impl.DelegatingDataAccess">
         <constructor-arg>
-            <bean class="com.agileapes.dragonfly.data.impl.SecuredDataAccess">
-                <constructor-arg index="0" type="com.agileapes.dragonfly.data.DataAccessSession" ref="dataAccessSession"/>
-                <constructor-arg index="1" type="com.agileapes.dragonfly.security.DataSecurityManager"
+            <bean class="com.mmnaseri.dragonfly.data.impl.SecuredDataAccess">
+                <constructor-arg index="0" type="com.mmnaseri.dragonfly.data.DataAccessSession" ref="dataAccessSession"/>
+                <constructor-arg index="1" type="com.mmnaseri.dragonfly.security.DataSecurityManager"
                                  ref="dataSecurityManager"/>
-                <constructor-arg index="2" type="com.agileapes.dragonfly.entity.EntityContext"
+                <constructor-arg index="2" type="com.mmnaseri.dragonfly.entity.EntityContext"
                                  ref="entityContext"/>
-                <constructor-arg index="3" type="com.agileapes.dragonfly.entity.EntityHandlerContext"
+                <constructor-arg index="3" type="com.mmnaseri.dragonfly.entity.EntityHandlerContext"
                                  ref="entityHandlerContext"/>
                 <constructor-arg index="4" type="boolean" value="false"/>
             </bean>
         </constructor-arg>
     </bean>
 
-    <bean id="entityContext" class="com.agileapes.dragonfly.entity.impl.DefaultEntityContext">
-        <constructor-arg index="0" type="com.agileapes.dragonfly.security.DataSecurityManager"
+    <bean id="entityContext" class="com.mmnaseri.dragonfly.entity.impl.DefaultEntityContext">
+        <constructor-arg index="0" type="com.mmnaseri.dragonfly.security.DataSecurityManager"
                          ref="dataSecurityManager"/>
-        <constructor-arg index="1" type="com.agileapes.dragonfly.metadata.TableMetadataRegistry" ref="metadataContext"/>
-        <constructor-arg index="2" type="com.agileapes.dragonfly.data.DataAccessSession" ref="dataAccessSession"/>
+        <constructor-arg index="1" type="com.mmnaseri.dragonfly.metadata.TableMetadataRegistry" ref="metadataContext"/>
+        <constructor-arg index="2" type="com.mmnaseri.dragonfly.data.DataAccessSession" ref="dataAccessSession"/>
     </bean>
 
     <bean id="databaseDialect" class="${db.dialect}"/>
 
-    <bean id="sessionPreparator" class="com.agileapes.dragonfly.runtime.session.ApplicationSessionPreparator">
+    <bean id="sessionPreparator" class="com.mmnaseri.dragonfly.runtime.session.ApplicationSessionPreparator">
         <constructor-arg index="0" value="${dragonfly.basePackages}"/>
         <constructor-arg index="1" ref="databaseDialect"/>
         <constructor-arg index="2" value="true"/>
     </bean>
 
-    <bean class="com.agileapes.dragonfly.runtime.assets.BeanDisposer"/>
+    <bean class="com.mmnaseri.dragonfly.runtime.assets.BeanDisposer"/>
 
-    <bean class="com.agileapes.dragonfly.runtime.assets.DataAccessPreparator"/>
+    <bean class="com.mmnaseri.dragonfly.runtime.assets.DataAccessPreparator"/>
 
-    <bean class="com.agileapes.dragonfly.events.CallbackResolver"/>
+    <bean class="com.mmnaseri.dragonfly.events.CallbackResolver"/>
 
 </beans>
