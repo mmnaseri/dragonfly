@@ -23,18 +23,18 @@
 
 package com.agileapes.dragonfly.metadata.impl;
 
-import com.agileapes.couteau.basics.api.Processor;
-import com.agileapes.couteau.basics.api.Transformer;
-import com.agileapes.couteau.context.contract.Registry;
-import com.agileapes.couteau.context.error.RegistryException;
-import com.agileapes.couteau.context.impl.ConcurrentRegistry;
+import com.mmnaseri.couteau.basics.api.Processor;
+import com.mmnaseri.couteau.basics.api.Transformer;
+import com.mmnaseri.couteau.context.contract.Registry;
+import com.mmnaseri.couteau.context.error.RegistryException;
+import com.mmnaseri.couteau.context.impl.ConcurrentRegistry;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.metadata.TableMetadataRegistry;
 
 import java.util.Collection;
 import java.util.Collections;
 
-import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
+import static com.mmnaseri.couteau.basics.collections.CollectionWrapper.with;
 
 /**
  * This class is a simple metadata registry that will employ an instance of {@link Registry}

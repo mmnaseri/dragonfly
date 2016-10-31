@@ -23,7 +23,7 @@
 
 package com.agileapes.dragonfly.security.impl;
 
-import com.agileapes.couteau.enhancer.api.MethodDescriptor;
+import com.mmnaseri.couteau.enhancer.api.MethodDescriptor;
 import com.agileapes.dragonfly.security.Subject;
 
 /**

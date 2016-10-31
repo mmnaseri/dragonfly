@@ -23,8 +23,8 @@
 
 package com.agileapes.dragonfly.data.impl;
 
-import com.agileapes.couteau.enhancer.api.MethodDescriptor;
-import com.agileapes.couteau.enhancer.impl.ImmutableMethodDescriptor;
+import com.mmnaseri.couteau.enhancer.api.MethodDescriptor;
+import com.mmnaseri.couteau.enhancer.impl.ImmutableMethodDescriptor;
 import com.agileapes.dragonfly.data.DataAccess;
 import com.agileapes.dragonfly.data.DataAccessSession;
 import com.agileapes.dragonfly.data.PartialDataAccess;

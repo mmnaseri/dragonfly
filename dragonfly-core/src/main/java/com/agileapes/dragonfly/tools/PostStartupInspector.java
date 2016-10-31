@@ -23,7 +23,7 @@
 
 package com.agileapes.dragonfly.tools;
 
-import com.agileapes.couteau.context.contract.OrderedBean;
+import com.mmnaseri.couteau.context.contract.OrderedBean;
 import com.agileapes.dragonfly.data.impl.TableKeyGeneratorEntity;
 import com.agileapes.dragonfly.error.EntityDefinitionError;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;

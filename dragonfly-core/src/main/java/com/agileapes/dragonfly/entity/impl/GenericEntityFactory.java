@@ -23,7 +23,7 @@
 
 package com.agileapes.dragonfly.entity.impl;
 
-import com.agileapes.couteau.enhancer.api.Interceptible;
+import com.mmnaseri.couteau.enhancer.api.Interceptible;
 import com.agileapes.dragonfly.entity.EntityFactory;
 import com.agileapes.dragonfly.error.EntityInitializationError;
 

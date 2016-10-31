@@ -23,9 +23,9 @@
 
 package com.agileapes.dragonfly.cg;
 
-import com.agileapes.couteau.enhancer.api.MethodDescriptor;
-import com.agileapes.couteau.enhancer.api.MethodProxy;
-import com.agileapes.couteau.enhancer.impl.InterfaceInterceptor;
+import com.mmnaseri.couteau.enhancer.api.MethodDescriptor;
+import com.mmnaseri.couteau.enhancer.api.MethodProxy;
+import com.mmnaseri.couteau.enhancer.impl.InterfaceInterceptor;
 import com.agileapes.dragonfly.security.DataSecurityManager;
 import com.agileapes.dragonfly.security.impl.MethodSubject;
 import org.apache.commons.logging.Log;

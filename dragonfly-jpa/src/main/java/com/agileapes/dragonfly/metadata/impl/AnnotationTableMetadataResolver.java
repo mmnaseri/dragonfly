@@ -23,14 +23,14 @@
 
 package com.agileapes.dragonfly.metadata.impl;
 
-import com.agileapes.couteau.basics.api.Filter;
-import com.agileapes.couteau.basics.api.Processor;
-import com.agileapes.couteau.basics.api.Transformer;
-import com.agileapes.couteau.reflection.util.ReflectionUtils;
-import com.agileapes.couteau.reflection.util.assets.AnnotatedElementFilter;
-import com.agileapes.couteau.reflection.util.assets.GetterMethodFilter;
-import com.agileapes.couteau.reflection.util.assets.MethodReturnTypeFilter;
-import com.agileapes.couteau.reflection.util.assets.PropertyAccessorFilter;
+import com.mmnaseri.couteau.basics.api.Filter;
+import com.mmnaseri.couteau.basics.api.Processor;
+import com.mmnaseri.couteau.basics.api.Transformer;
+import com.mmnaseri.couteau.reflection.util.ReflectionUtils;
+import com.mmnaseri.couteau.reflection.util.assets.AnnotatedElementFilter;
+import com.mmnaseri.couteau.reflection.util.assets.GetterMethodFilter;
+import com.mmnaseri.couteau.reflection.util.assets.MethodReturnTypeFilter;
+import com.mmnaseri.couteau.reflection.util.assets.PropertyAccessorFilter;
 import com.agileapes.dragonfly.annotations.*;
 import com.agileapes.dragonfly.dialect.DatabaseDialect;
 import com.agileapes.dragonfly.error.*;
@@ -52,8 +52,8 @@ import java.sql.Types;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
-import static com.agileapes.couteau.reflection.util.ReflectionUtils.withMethods;
+import static com.mmnaseri.couteau.basics.collections.CollectionWrapper.with;
+import static com.mmnaseri.couteau.reflection.util.ReflectionUtils.withMethods;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)

@@ -23,7 +23,7 @@
 
 package com.agileapes.dragonfly.sample.test;
 
-import com.agileapes.couteau.basics.api.Filter;
+import com.mmnaseri.couteau.basics.api.Filter;
 
 import java.util.Collection;
 

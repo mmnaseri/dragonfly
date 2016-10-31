@@ -23,7 +23,7 @@
 
 package com.agileapes.dragonfly.entity.impl;
 
-import com.agileapes.couteau.reflection.cp.MappedClassLoader;
+import com.mmnaseri.couteau.reflection.cp.MappedClassLoader;
 import com.agileapes.dragonfly.entity.EntityFactory;
 import com.agileapes.dragonfly.error.EntityInitializationError;
 

@@ -23,9 +23,9 @@
 
 package com.agileapes.dragonfly.runtime.session;
 
-import com.agileapes.couteau.basics.api.Transformer;
-import com.agileapes.couteau.basics.api.impl.CastingTransformer;
-import com.agileapes.couteau.reflection.util.ClassUtils;
+import com.mmnaseri.couteau.basics.api.Transformer;
+import com.mmnaseri.couteau.basics.api.impl.CastingTransformer;
+import com.mmnaseri.couteau.reflection.util.ClassUtils;
 import com.agileapes.dragonfly.annotations.Extension;
 import com.agileapes.dragonfly.data.DataAccessSession;
 import com.agileapes.dragonfly.dialect.DatabaseDialect;
@@ -58,7 +58,7 @@ import org.springframework.core.type.filter.AnnotationTypeFilter;
 import javax.persistence.Entity;
 import java.util.*;
 
-import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
+import static com.mmnaseri.couteau.basics.collections.CollectionWrapper.with;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)

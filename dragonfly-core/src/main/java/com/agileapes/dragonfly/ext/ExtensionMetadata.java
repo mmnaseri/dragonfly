@@ -23,7 +23,7 @@
 
 package com.agileapes.dragonfly.ext;
 
-import com.agileapes.couteau.basics.api.Filter;
+import com.mmnaseri.couteau.basics.api.Filter;
 import com.agileapes.dragonfly.entity.EntityDefinitionInterceptor;
 import com.agileapes.dragonfly.metadata.TableMetadataInterceptor;
 

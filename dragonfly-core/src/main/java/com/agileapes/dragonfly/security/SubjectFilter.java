@@ -23,7 +23,7 @@
 
 package com.agileapes.dragonfly.security;
 
-import com.agileapes.couteau.basics.api.Filter;
+import com.mmnaseri.couteau.basics.api.Filter;
 
 /**
  * This interface allows for definition of filters which will allow for limiting the subject

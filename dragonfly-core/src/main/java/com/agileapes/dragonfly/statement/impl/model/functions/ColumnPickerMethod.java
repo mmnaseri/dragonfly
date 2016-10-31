@@ -23,13 +23,13 @@
 
 package com.agileapes.dragonfly.statement.impl.model.functions;
 
-import com.agileapes.couteau.freemarker.api.Invokable;
-import com.agileapes.couteau.freemarker.model.TypedMethodModel;
+import com.mmnaseri.couteau.freemarker.api.Invokable;
+import com.mmnaseri.couteau.freemarker.model.TypedMethodModel;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.tools.ColumnNameFilter;
 
-import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
+import static com.mmnaseri.couteau.basics.collections.CollectionWrapper.with;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)

@@ -23,9 +23,9 @@
 
 package com.agileapes.dragonfly.dialect.impl;
 
-import com.agileapes.couteau.basics.api.Filter;
-import com.agileapes.couteau.basics.api.Processor;
-import com.agileapes.couteau.freemarker.utils.FreemarkerUtils;
+import com.mmnaseri.couteau.basics.api.Filter;
+import com.mmnaseri.couteau.basics.api.Processor;
+import com.mmnaseri.couteau.freemarker.utils.FreemarkerUtils;
 import com.agileapes.dragonfly.data.DataAccessSession;
 import com.agileapes.dragonfly.dialect.DatabaseDialect;
 import com.agileapes.dragonfly.dialect.QueryPagingDecorator;
@@ -51,7 +51,7 @@ import java.sql.*;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
+import static com.mmnaseri.couteau.basics.collections.CollectionWrapper.with;
 
 /**
  * Adds vendor-specific details for MySQL 5

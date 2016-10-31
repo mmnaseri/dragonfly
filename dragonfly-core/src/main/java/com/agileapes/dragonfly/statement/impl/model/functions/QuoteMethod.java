@@ -23,13 +23,13 @@
 
 package com.agileapes.dragonfly.statement.impl.model.functions;
 
-import com.agileapes.couteau.basics.api.Transformer;
-import com.agileapes.couteau.freemarker.api.Invokable;
-import com.agileapes.couteau.freemarker.model.TypedMethodModel;
+import com.mmnaseri.couteau.basics.api.Transformer;
+import com.mmnaseri.couteau.freemarker.api.Invokable;
+import com.mmnaseri.couteau.freemarker.model.TypedMethodModel;
 
 import java.util.Collection;
 
-import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
+import static com.mmnaseri.couteau.basics.collections.CollectionWrapper.with;
 
 /**
  * Quotes identifiers according to dialectic rules and conventions

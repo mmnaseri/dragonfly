@@ -23,8 +23,8 @@
 
 package com.agileapes.dragonfly.data.impl;
 
-import com.agileapes.couteau.basics.api.Filter;
-import com.agileapes.couteau.basics.api.Processor;
+import com.mmnaseri.couteau.basics.api.Filter;
+import com.mmnaseri.couteau.basics.api.Processor;
 import com.agileapes.dragonfly.annotations.Ignored;
 import com.agileapes.dragonfly.data.DataAccessSession;
 import com.agileapes.dragonfly.data.DataStructureHandler;
@@ -46,7 +46,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
 
-import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
+import static com.mmnaseri.couteau.basics.collections.CollectionWrapper.with;
 import static com.agileapes.dragonfly.statement.Statements.Definition.*;
 
 /**

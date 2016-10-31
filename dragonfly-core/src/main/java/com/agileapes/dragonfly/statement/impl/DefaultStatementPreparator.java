@@ -41,7 +41,7 @@ import java.sql.Statement;
 import java.util.List;
 import java.util.Map;
 
-import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
+import static com.mmnaseri.couteau.basics.collections.CollectionWrapper.with;
 
 /**
  * This class will prepare an SQL statement by interpolating property values as defined in

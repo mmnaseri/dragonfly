@@ -23,12 +23,12 @@
 
 package com.agileapes.dragonfly.metadata.impl;
 
-import com.agileapes.couteau.basics.api.Cache;
-import com.agileapes.couteau.basics.api.Transformer;
-import com.agileapes.couteau.basics.api.impl.ConcurrentCache;
-import com.agileapes.couteau.reflection.util.ReflectionUtils;
-import com.agileapes.couteau.reflection.util.assets.AnnotatedElementFilter;
-import com.agileapes.couteau.reflection.util.assets.GetterMethodFilter;
+import com.mmnaseri.couteau.basics.api.Cache;
+import com.mmnaseri.couteau.basics.api.Transformer;
+import com.mmnaseri.couteau.basics.api.impl.ConcurrentCache;
+import com.mmnaseri.couteau.reflection.util.ReflectionUtils;
+import com.mmnaseri.couteau.reflection.util.assets.AnnotatedElementFilter;
+import com.mmnaseri.couteau.reflection.util.assets.GetterMethodFilter;
 import com.agileapes.dragonfly.annotations.MappedColumn;
 import com.agileapes.dragonfly.annotations.Partial;
 import com.agileapes.dragonfly.error.PartialEntityDefinitionError;
@@ -38,7 +38,7 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
 
-import static com.agileapes.couteau.reflection.util.ReflectionUtils.withMethods;
+import static com.mmnaseri.couteau.reflection.util.ReflectionUtils.withMethods;
 
 /**
  * This is a class that will resolve column metadata for a given partial entity.

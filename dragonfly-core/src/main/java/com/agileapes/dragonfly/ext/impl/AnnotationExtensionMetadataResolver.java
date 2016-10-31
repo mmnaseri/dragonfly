@@ -23,8 +23,8 @@
 
 package com.agileapes.dragonfly.ext.impl;
 
-import com.agileapes.couteau.basics.api.Filter;
-import com.agileapes.couteau.basics.api.Transformer;
+import com.mmnaseri.couteau.basics.api.Filter;
+import com.mmnaseri.couteau.basics.api.Transformer;
 import com.agileapes.dragonfly.annotations.Extension;
 import com.agileapes.dragonfly.entity.EntityDefinition;
 import com.agileapes.dragonfly.entity.EntityDefinitionInterceptor;
@@ -42,7 +42,7 @@ import com.agileapes.dragonfly.metadata.impl.TableMetadataCopier;
 
 import java.util.HashMap;
 
-import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
+import static com.mmnaseri.couteau.basics.collections.CollectionWrapper.with;
 
 /**
  * This resolver will accept classes marked with {@link Extension}. After that, all interfaces

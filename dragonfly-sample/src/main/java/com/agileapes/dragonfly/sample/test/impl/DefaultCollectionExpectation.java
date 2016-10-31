@@ -23,13 +23,13 @@
 
 package com.agileapes.dragonfly.sample.test.impl;
 
-import com.agileapes.couteau.basics.api.Filter;
+import com.mmnaseri.couteau.basics.api.Filter;
 import com.agileapes.dragonfly.sample.test.CollectionExpectation;
 import com.agileapes.dragonfly.sample.test.ExpectationContext;
 
 import java.util.Collection;
 
-import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
+import static com.mmnaseri.couteau.basics.collections.CollectionWrapper.with;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)

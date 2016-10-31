@@ -23,8 +23,8 @@
 
 package com.agileapes.dragonfly.fluent.generation.impl;
 
-import com.agileapes.couteau.reflection.beans.BeanWrapper;
-import com.agileapes.couteau.reflection.beans.impl.MethodBeanWrapper;
+import com.mmnaseri.couteau.reflection.beans.BeanWrapper;
+import com.mmnaseri.couteau.reflection.beans.impl.MethodBeanWrapper;
 import com.agileapes.dragonfly.fluent.error.AliasInitializationException;
 import com.agileapes.dragonfly.fluent.generation.BookKeeper;
 import com.agileapes.dragonfly.fluent.tools.QueryBuilderTools;

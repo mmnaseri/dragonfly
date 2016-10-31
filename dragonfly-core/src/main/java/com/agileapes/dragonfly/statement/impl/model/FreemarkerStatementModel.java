@@ -23,7 +23,7 @@
 
 package com.agileapes.dragonfly.statement.impl.model;
 
-import com.agileapes.couteau.freemarker.model.UnresolvedMapModel;
+import com.mmnaseri.couteau.freemarker.model.UnresolvedMapModel;
 import com.agileapes.dragonfly.dialect.DatabaseDialect;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.statement.impl.model.functions.*;

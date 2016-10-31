@@ -23,9 +23,9 @@
 
 package com.agileapes.dragonfly.runtime.analysis;
 
-import com.agileapes.couteau.basics.api.Processor;
-import com.agileapes.couteau.concurrency.manager.TaskManager;
-import com.agileapes.couteau.concurrency.manager.impl.ThreadPoolTaskManager;
+import com.mmnaseri.couteau.basics.api.Processor;
+import com.mmnaseri.couteau.concurrency.manager.TaskManager;
+import com.mmnaseri.couteau.concurrency.manager.impl.ThreadPoolTaskManager;
 import com.agileapes.dragonfly.runtime.analysis.impl.AnalyzerTask;
 import com.agileapes.dragonfly.runtime.session.SessionPreparator;
 import org.apache.commons.logging.Log;
@@ -42,7 +42,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
+import static com.mmnaseri.couteau.basics.collections.CollectionWrapper.with;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)

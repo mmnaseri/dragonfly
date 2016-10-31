@@ -23,7 +23,7 @@
 
 package com.agileapes.dragonfly.runtime.repo;
 
-import com.agileapes.couteau.basics.api.Filter;
+import com.mmnaseri.couteau.basics.api.Filter;
 import org.springframework.cglib.proxy.MethodInterceptor;
 
 import java.lang.reflect.Method;

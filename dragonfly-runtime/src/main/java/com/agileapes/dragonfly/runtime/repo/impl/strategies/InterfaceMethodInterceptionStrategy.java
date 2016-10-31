@@ -23,10 +23,10 @@
 
 package com.agileapes.dragonfly.runtime.repo.impl.strategies;
 
-import com.agileapes.couteau.reflection.util.ReflectionUtils;
-import com.agileapes.couteau.reflection.util.assets.MemberNameFilter;
-import com.agileapes.couteau.reflection.util.assets.MethodArgumentsFilter;
-import com.agileapes.couteau.reflection.util.assets.MethodReturnTypeFilter;
+import com.mmnaseri.couteau.reflection.util.ReflectionUtils;
+import com.mmnaseri.couteau.reflection.util.assets.MemberNameFilter;
+import com.mmnaseri.couteau.reflection.util.assets.MethodArgumentsFilter;
+import com.mmnaseri.couteau.reflection.util.assets.MethodReturnTypeFilter;
 import com.agileapes.dragonfly.runtime.repo.MethodInterceptionStrategy;
 import org.springframework.cglib.proxy.MethodProxy;
 

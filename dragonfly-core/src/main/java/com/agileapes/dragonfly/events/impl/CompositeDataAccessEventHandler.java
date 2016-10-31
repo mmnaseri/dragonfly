@@ -23,7 +23,7 @@
 
 package com.agileapes.dragonfly.events.impl;
 
-import com.agileapes.couteau.context.impl.OrderedBeanComparator;
+import com.mmnaseri.couteau.context.impl.OrderedBeanComparator;
 import com.agileapes.dragonfly.events.DataAccessEventHandler;
 import com.agileapes.dragonfly.events.EventHandlerContext;
 
@@ -32,12 +32,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
+import static com.mmnaseri.couteau.basics.collections.CollectionWrapper.with;
 
 /**
  * This event handler is capable of taking different handler instances, and calling to them
  * one by one, in a chained fashion. The handlers are sorted, if the implement the
- * {@link com.agileapes.couteau.context.contract.OrderedBean} interface
+ * {@link com.mmnaseri.couteau.context.contract.OrderedBean} interface
  *
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)
  * @since 1.0 (2013/9/9, 1:32)

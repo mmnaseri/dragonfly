@@ -23,14 +23,14 @@
 
 package com.agileapes.dragonfly.runtime.assets;
 
-import com.agileapes.couteau.context.impl.OrderedBeanComparator;
+import com.mmnaseri.couteau.context.impl.OrderedBeanComparator;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
 import java.util.List;
 
-import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
+import static com.mmnaseri.couteau.basics.collections.CollectionWrapper.with;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)

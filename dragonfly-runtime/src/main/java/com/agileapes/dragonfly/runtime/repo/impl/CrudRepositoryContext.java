@@ -23,8 +23,8 @@
 
 package com.agileapes.dragonfly.runtime.repo.impl;
 
-import com.agileapes.couteau.basics.api.Filter;
-import com.agileapes.couteau.reflection.util.ClassUtils;
+import com.mmnaseri.couteau.basics.api.Filter;
+import com.mmnaseri.couteau.reflection.util.ClassUtils;
 import com.agileapes.dragonfly.runtime.repo.CrudRepository;
 import com.agileapes.dragonfly.runtime.repo.EntityRepository;
 import org.apache.commons.logging.Log;
@@ -37,7 +37,7 @@ import org.springframework.core.Ordered;
 
 import java.util.List;
 
-import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
+import static com.mmnaseri.couteau.basics.collections.CollectionWrapper.with;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)

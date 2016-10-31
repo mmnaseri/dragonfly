@@ -23,8 +23,8 @@
 
 package com.agileapes.dragonfly.runtime.analysis.impl;
 
-import com.agileapes.couteau.concurrency.error.TaskFailureException;
-import com.agileapes.couteau.concurrency.task.Task;
+import com.mmnaseri.couteau.concurrency.error.TaskFailureException;
+import com.mmnaseri.couteau.concurrency.task.Task;
 import com.agileapes.dragonfly.runtime.analysis.ApplicationDesignAnalyzer;
 import com.agileapes.dragonfly.runtime.analysis.DesignIssue;
 

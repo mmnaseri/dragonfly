@@ -23,10 +23,10 @@
 
 package com.agileapes.dragonfly.entity.impl;
 
-import com.agileapes.couteau.reflection.beans.BeanAccessor;
-import com.agileapes.couteau.reflection.beans.impl.MethodBeanAccessor;
-import com.agileapes.couteau.reflection.error.NoSuchPropertyException;
-import com.agileapes.couteau.reflection.error.PropertyAccessException;
+import com.mmnaseri.couteau.reflection.beans.BeanAccessor;
+import com.mmnaseri.couteau.reflection.beans.impl.MethodBeanAccessor;
+import com.mmnaseri.couteau.reflection.error.NoSuchPropertyException;
+import com.mmnaseri.couteau.reflection.error.PropertyAccessException;
 import com.agileapes.dragonfly.entity.EntityMapCreator;
 import com.agileapes.dragonfly.error.EntityDefinitionError;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
@@ -47,7 +47,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
+import static com.mmnaseri.couteau.basics.collections.CollectionWrapper.with;
 
 /**
  * This is the default entity map creator that relies on reflections API and generic assumptions

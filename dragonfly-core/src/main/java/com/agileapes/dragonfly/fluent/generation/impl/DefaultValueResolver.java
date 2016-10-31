@@ -23,7 +23,7 @@
 
 package com.agileapes.dragonfly.fluent.generation.impl;
 
-import com.agileapes.couteau.basics.api.Transformer;
+import com.mmnaseri.couteau.basics.api.Transformer;
 import com.agileapes.dragonfly.data.DataAccessSession;
 import com.agileapes.dragonfly.fluent.generation.FunctionInvocation;
 import com.agileapes.dragonfly.fluent.generation.SelectionSource;
@@ -32,7 +32,7 @@ import com.agileapes.dragonfly.metadata.ColumnMetadata;
 import java.util.List;
 import java.util.Map;
 
-import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
+import static com.mmnaseri.couteau.basics.collections.CollectionWrapper.with;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)

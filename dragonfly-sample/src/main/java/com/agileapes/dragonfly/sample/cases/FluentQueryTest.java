@@ -23,7 +23,7 @@
 
 package com.agileapes.dragonfly.sample.cases;
 
-import com.agileapes.couteau.basics.api.Processor;
+import com.mmnaseri.couteau.basics.api.Processor;
 import com.agileapes.dragonfly.annotations.Ordering;
 import com.agileapes.dragonfly.data.FluentDataAccess;
 import com.agileapes.dragonfly.fluent.SelectQueryExecution;
@@ -41,7 +41,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
-import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
+import static com.mmnaseri.couteau.basics.collections.CollectionWrapper.with;
 import static com.agileapes.dragonfly.fluent.tools.Functions.*;
 import static com.agileapes.dragonfly.fluent.tools.Query.projection;
 

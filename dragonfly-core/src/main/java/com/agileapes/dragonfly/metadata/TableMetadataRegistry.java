@@ -23,7 +23,7 @@
 
 package com.agileapes.dragonfly.metadata;
 
-import com.agileapes.couteau.basics.api.Processor;
+import com.mmnaseri.couteau.basics.api.Processor;
 
 import java.util.Collection;
 

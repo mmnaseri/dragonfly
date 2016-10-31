@@ -23,10 +23,10 @@
 
 package com.agileapes.dragonfly.runtime.repo.impl.strategies;
 
-import com.agileapes.couteau.reflection.beans.BeanWrapper;
-import com.agileapes.couteau.reflection.beans.impl.MethodBeanWrapper;
-import com.agileapes.couteau.strings.document.DocumentReader;
-import com.agileapes.couteau.strings.document.impl.DefaultDocumentReader;
+import com.mmnaseri.couteau.reflection.beans.BeanWrapper;
+import com.mmnaseri.couteau.reflection.beans.impl.MethodBeanWrapper;
+import com.mmnaseri.couteau.strings.document.DocumentReader;
+import com.mmnaseri.couteau.strings.document.impl.DefaultDocumentReader;
 import com.agileapes.dragonfly.runtime.repo.MethodInterceptionStrategy;
 import org.springframework.cglib.proxy.MethodProxy;
 import org.springframework.util.StringUtils;

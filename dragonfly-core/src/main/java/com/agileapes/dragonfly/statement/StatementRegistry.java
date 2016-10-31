@@ -23,7 +23,7 @@
 
 package com.agileapes.dragonfly.statement;
 
-import com.agileapes.couteau.context.contract.Registry;
+import com.mmnaseri.couteau.context.contract.Registry;
 
 /**
  * This interface provides necessary functions to keep a running registry of statements.

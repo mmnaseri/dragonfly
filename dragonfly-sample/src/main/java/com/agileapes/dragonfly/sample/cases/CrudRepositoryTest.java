@@ -23,7 +23,7 @@
 
 package com.agileapes.dragonfly.sample.cases;
 
-import com.agileapes.couteau.basics.api.Filter;
+import com.mmnaseri.couteau.basics.api.Filter;
 import com.agileapes.dragonfly.sample.assets.StationRepository;
 import com.agileapes.dragonfly.sample.entities.Station;
 import org.springframework.beans.factory.annotation.Autowired;

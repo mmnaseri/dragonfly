@@ -23,7 +23,7 @@
 
 package com.agileapes.dragonfly.statement.impl.model.functions;
 
-import com.agileapes.couteau.freemarker.model.FilteringMethodModel;
+import com.mmnaseri.couteau.freemarker.model.FilteringMethodModel;
 import com.agileapes.dragonfly.metadata.ConstraintMetadata;
 import com.agileapes.dragonfly.metadata.impl.UniqueConstraintMetadata;
 

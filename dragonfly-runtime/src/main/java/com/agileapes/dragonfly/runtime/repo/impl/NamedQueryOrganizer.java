@@ -23,12 +23,12 @@
 
 package com.agileapes.dragonfly.runtime.repo.impl;
 
-import com.agileapes.couteau.basics.api.Filter;
-import com.agileapes.couteau.basics.api.Processor;
-import com.agileapes.couteau.context.error.RegistryException;
-import com.agileapes.couteau.reflection.util.ClassUtils;
-import com.agileapes.couteau.reflection.util.ReflectionUtils;
-import com.agileapes.couteau.reflection.util.assets.AnnotatedElementFilter;
+import com.mmnaseri.couteau.basics.api.Filter;
+import com.mmnaseri.couteau.basics.api.Processor;
+import com.mmnaseri.couteau.context.error.RegistryException;
+import com.mmnaseri.couteau.reflection.util.ClassUtils;
+import com.mmnaseri.couteau.reflection.util.ReflectionUtils;
+import com.mmnaseri.couteau.reflection.util.assets.AnnotatedElementFilter;
 import com.agileapes.dragonfly.dialect.DatabaseDialect;
 import com.agileapes.dragonfly.error.QueryDefinitionError;
 import com.agileapes.dragonfly.metadata.TableMetadataRegistry;
@@ -50,7 +50,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.List;
 
-import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
+import static com.mmnaseri.couteau.basics.collections.CollectionWrapper.with;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)

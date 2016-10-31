@@ -23,8 +23,8 @@
 
 package com.agileapes.dragonfly.ext.impl;
 
-import com.agileapes.couteau.basics.api.Transformer;
-import com.agileapes.couteau.basics.api.impl.MirrorFilter;
+import com.mmnaseri.couteau.basics.api.Transformer;
+import com.mmnaseri.couteau.basics.api.impl.MirrorFilter;
 import com.agileapes.dragonfly.entity.EntityDefinition;
 import com.agileapes.dragonfly.entity.EntityDefinitionInterceptor;
 import com.agileapes.dragonfly.ext.ExtensionManager;
@@ -37,7 +37,7 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
-import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
+import static com.mmnaseri.couteau.basics.collections.CollectionWrapper.with;
 
 /**
  * This is the default extension manager used throughout the application

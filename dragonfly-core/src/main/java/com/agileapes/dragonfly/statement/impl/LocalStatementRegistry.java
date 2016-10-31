@@ -23,11 +23,11 @@
 
 package com.agileapes.dragonfly.statement.impl;
 
-import com.agileapes.couteau.basics.api.Filter;
-import com.agileapes.couteau.basics.api.Processor;
-import com.agileapes.couteau.context.error.InvalidBeanTypeException;
-import com.agileapes.couteau.context.error.NoSuchItemException;
-import com.agileapes.couteau.context.error.RegistryException;
+import com.mmnaseri.couteau.basics.api.Filter;
+import com.mmnaseri.couteau.basics.api.Processor;
+import com.mmnaseri.couteau.context.error.InvalidBeanTypeException;
+import com.mmnaseri.couteau.context.error.NoSuchItemException;
+import com.mmnaseri.couteau.context.error.RegistryException;
 import com.agileapes.dragonfly.statement.Statement;
 import com.agileapes.dragonfly.statement.StatementRegistry;
 
@@ -35,7 +35,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
+import static com.mmnaseri.couteau.basics.collections.CollectionWrapper.with;
 
 /**
  * This is a statement registry that reflects only a part of a given statement registry, limited to a

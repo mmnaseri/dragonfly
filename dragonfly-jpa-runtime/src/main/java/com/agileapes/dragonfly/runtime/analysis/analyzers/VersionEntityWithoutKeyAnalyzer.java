@@ -23,8 +23,8 @@
 
 package com.agileapes.dragonfly.runtime.analysis.analyzers;
 
-import com.agileapes.couteau.basics.api.Filter;
-import com.agileapes.couteau.basics.api.Transformer;
+import com.mmnaseri.couteau.basics.api.Filter;
+import com.mmnaseri.couteau.basics.api.Transformer;
 import com.agileapes.dragonfly.metadata.TableMetadata;
 import com.agileapes.dragonfly.metadata.TableMetadataRegistry;
 import com.agileapes.dragonfly.runtime.analysis.ApplicationDesignAnalyzer;
@@ -33,7 +33,7 @@ import com.agileapes.dragonfly.runtime.analysis.impl.TableIssueTarget;
 
 import java.util.List;
 
-import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
+import static com.mmnaseri.couteau.basics.collections.CollectionWrapper.with;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)

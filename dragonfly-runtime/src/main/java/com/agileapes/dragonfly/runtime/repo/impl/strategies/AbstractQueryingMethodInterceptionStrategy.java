@@ -23,7 +23,7 @@
 
 package com.agileapes.dragonfly.runtime.repo.impl.strategies;
 
-import com.agileapes.couteau.basics.api.Filter;
+import com.mmnaseri.couteau.basics.api.Filter;
 import com.agileapes.dragonfly.data.DataAccess;
 import com.agileapes.dragonfly.entity.EntityHandler;
 import com.agileapes.dragonfly.error.QueryDefinitionError;
@@ -36,7 +36,7 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
 
-import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
+import static com.mmnaseri.couteau.basics.collections.CollectionWrapper.with;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)

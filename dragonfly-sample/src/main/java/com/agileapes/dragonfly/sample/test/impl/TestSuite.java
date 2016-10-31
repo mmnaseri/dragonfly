@@ -23,9 +23,9 @@
 
 package com.agileapes.dragonfly.sample.test.impl;
 
-import com.agileapes.couteau.basics.api.Filter;
-import com.agileapes.couteau.basics.api.Processor;
-import com.agileapes.couteau.context.impl.OrderedBeanComparator;
+import com.mmnaseri.couteau.basics.api.Filter;
+import com.mmnaseri.couteau.basics.api.Processor;
+import com.mmnaseri.couteau.context.impl.OrderedBeanComparator;
 import com.agileapes.dragonfly.annotations.Ignored;
 import com.agileapes.dragonfly.sample.test.Always;
 import com.agileapes.dragonfly.sample.test.Focus;
@@ -38,7 +38,7 @@ import org.springframework.util.StopWatch;
 
 import java.util.Collection;
 
-import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
+import static com.mmnaseri.couteau.basics.collections.CollectionWrapper.with;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)

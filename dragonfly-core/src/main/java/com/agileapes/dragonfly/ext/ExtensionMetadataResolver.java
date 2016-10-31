@@ -23,7 +23,7 @@
 
 package com.agileapes.dragonfly.ext;
 
-import com.agileapes.couteau.basics.api.Filter;
+import com.mmnaseri.couteau.basics.api.Filter;
 
 /**
  * Resolves extension metadata from sources of the given type parameter

@@ -39,22 +39,22 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.agileapes.couteau</groupId>
+            <groupId>com.mmnaseri.couteau</groupId>
             <artifactId>couteau-context</artifactId>
             <version>1.0</version>
         </dependency>
         <dependency>
-            <groupId>com.agileapes.couteau</groupId>
+            <groupId>com.mmnaseri.couteau</groupId>
             <artifactId>couteau-context-tools</artifactId>
             <version>1.0</version>
         </dependency>
         <dependency>
-            <groupId>com.agileapes.couteau</groupId>
+            <groupId>com.mmnaseri.couteau</groupId>
             <artifactId>couteau-enhancer</artifactId>
             <version>1.0</version>
         </dependency>
         <dependency>
-            <groupId>com.agileapes.couteau</groupId>
+            <groupId>com.mmnaseri.couteau</groupId>
             <artifactId>couteau-strings</artifactId>
             <version>1.0</version>
         </dependency>

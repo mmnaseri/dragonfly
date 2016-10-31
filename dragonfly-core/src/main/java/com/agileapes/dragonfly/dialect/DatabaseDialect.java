@@ -23,7 +23,7 @@
 
 package com.agileapes.dragonfly.dialect;
 
-import com.agileapes.couteau.basics.api.Filter;
+import com.mmnaseri.couteau.basics.api.Filter;
 import com.agileapes.dragonfly.data.DataAccessSession;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
 import com.agileapes.dragonfly.metadata.TableMetadata;

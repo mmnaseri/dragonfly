@@ -39,7 +39,7 @@ public enum MetadataResolveStrategy {
     /**
      * This option denotes that in case of multiple metadata resolvers being available
      * for an entity type, the first one sorted by the priority declared through the
-     * {@link com.agileapes.couteau.context.contract.OrderedBean#getOrder()} method will
+     * {@link com.mmnaseri.couteau.context.contract.OrderedBean#getOrder()} method will
      * be chosen
      */
     ORDERED

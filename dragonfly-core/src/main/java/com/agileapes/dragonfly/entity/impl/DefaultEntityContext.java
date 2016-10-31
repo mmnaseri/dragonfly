@@ -23,15 +23,15 @@
 
 package com.agileapes.dragonfly.entity.impl;
 
-import com.agileapes.couteau.basics.api.Cache;
-import com.agileapes.couteau.basics.api.Transformer;
-import com.agileapes.couteau.basics.api.impl.ConcurrentCache;
-import com.agileapes.couteau.enhancer.api.ClassEnhancer;
-import com.agileapes.couteau.enhancer.impl.GeneratingClassEnhancer;
-import com.agileapes.couteau.lang.compiler.impl.DefaultDynamicClassCompiler;
-import com.agileapes.couteau.lang.compiler.impl.SimpleJavaSourceCompiler;
-import com.agileapes.couteau.reflection.cp.ConfigurableClassLoader;
-import com.agileapes.couteau.reflection.util.ClassUtils;
+import com.mmnaseri.couteau.basics.api.Cache;
+import com.mmnaseri.couteau.basics.api.Transformer;
+import com.mmnaseri.couteau.basics.api.impl.ConcurrentCache;
+import com.mmnaseri.couteau.enhancer.api.ClassEnhancer;
+import com.mmnaseri.couteau.enhancer.impl.GeneratingClassEnhancer;
+import com.mmnaseri.couteau.lang.compiler.impl.DefaultDynamicClassCompiler;
+import com.mmnaseri.couteau.lang.compiler.impl.SimpleJavaSourceCompiler;
+import com.mmnaseri.couteau.reflection.cp.ConfigurableClassLoader;
+import com.mmnaseri.couteau.reflection.util.ClassUtils;
 import com.agileapes.dragonfly.cg.StaticNamingPolicy;
 import com.agileapes.dragonfly.data.DataAccess;
 import com.agileapes.dragonfly.data.DataAccessSession;
@@ -49,7 +49,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.*;
 
-import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
+import static com.mmnaseri.couteau.basics.collections.CollectionWrapper.with;
 
 /**
  * This is a caching entity context that will use a generating class enhancer for enhancement

@@ -23,7 +23,7 @@
 
 package com.agileapes.dragonfly.sample.cases;
 
-import com.agileapes.couteau.context.contract.OrderedBean;
+import com.mmnaseri.couteau.context.contract.OrderedBean;
 import com.agileapes.dragonfly.data.DataAccess;
 import com.agileapes.dragonfly.sample.entities.Book;
 import com.agileapes.dragonfly.sample.test.Always;

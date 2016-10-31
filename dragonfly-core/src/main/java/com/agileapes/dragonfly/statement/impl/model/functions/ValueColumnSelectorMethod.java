@@ -23,12 +23,12 @@
 
 package com.agileapes.dragonfly.statement.impl.model.functions;
 
-import com.agileapes.couteau.freemarker.api.Invokable;
-import com.agileapes.couteau.freemarker.model.FilteringMethodModel;
-import com.agileapes.couteau.reflection.beans.BeanAccessor;
-import com.agileapes.couteau.reflection.beans.impl.MethodBeanAccessor;
-import com.agileapes.couteau.reflection.error.NoSuchPropertyException;
-import com.agileapes.couteau.reflection.error.PropertyAccessException;
+import com.mmnaseri.couteau.freemarker.api.Invokable;
+import com.mmnaseri.couteau.freemarker.model.FilteringMethodModel;
+import com.mmnaseri.couteau.reflection.beans.BeanAccessor;
+import com.mmnaseri.couteau.reflection.beans.impl.MethodBeanAccessor;
+import com.mmnaseri.couteau.reflection.error.NoSuchPropertyException;
+import com.mmnaseri.couteau.reflection.error.PropertyAccessException;
 import com.agileapes.dragonfly.error.MetadataCollectionError;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
 

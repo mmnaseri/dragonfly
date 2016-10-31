@@ -23,7 +23,7 @@
 
 package com.agileapes.dragonfly.tools;
 
-import com.agileapes.couteau.basics.api.Filter;
+import com.mmnaseri.couteau.basics.api.Filter;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
 
 /**

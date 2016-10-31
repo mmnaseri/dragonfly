@@ -23,7 +23,7 @@
 
 package com.agileapes.dragonfly.sample.assets;
 
-import com.agileapes.couteau.context.contract.OrderedBean;
+import com.mmnaseri.couteau.context.contract.OrderedBean;
 import com.agileapes.dragonfly.data.DataCallback;
 import com.agileapes.dragonfly.data.DataOperation;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -23,8 +23,8 @@
 
 package com.agileapes.dragonfly.entity.impl;
 
-import com.agileapes.couteau.basics.api.Cache;
-import com.agileapes.couteau.basics.api.impl.ConcurrentCache;
+import com.mmnaseri.couteau.basics.api.Cache;
+import com.mmnaseri.couteau.basics.api.impl.ConcurrentCache;
 import com.agileapes.dragonfly.data.DataAccess;
 import com.agileapes.dragonfly.entity.EntityInitializationContext;
 

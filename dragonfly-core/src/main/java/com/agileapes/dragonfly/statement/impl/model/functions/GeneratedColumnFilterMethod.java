@@ -23,7 +23,7 @@
 
 package com.agileapes.dragonfly.statement.impl.model.functions;
 
-import com.agileapes.couteau.freemarker.model.FilteringMethodModel;
+import com.mmnaseri.couteau.freemarker.model.FilteringMethodModel;
 import com.agileapes.dragonfly.error.NoPrimaryKeyDefinedError;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
 import com.agileapes.dragonfly.metadata.TableMetadata;
@@ -32,7 +32,7 @@ import com.agileapes.dragonfly.tools.ColumnNameFilter;
 import java.util.Collection;
 import java.util.HashSet;
 
-import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
+import static com.mmnaseri.couteau.basics.collections.CollectionWrapper.with;
 
 /**
  * Picks out columns that are reference columns

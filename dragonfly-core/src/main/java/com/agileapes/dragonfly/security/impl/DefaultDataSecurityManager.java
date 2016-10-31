@@ -23,8 +23,8 @@
 
 package com.agileapes.dragonfly.security.impl;
 
-import com.agileapes.couteau.basics.api.Filter;
-import com.agileapes.couteau.reflection.util.ClassUtils;
+import com.mmnaseri.couteau.basics.api.Filter;
+import com.mmnaseri.couteau.reflection.util.ClassUtils;
 import com.agileapes.dragonfly.cg.EnhancementUtils;
 import com.agileapes.dragonfly.security.*;
 
@@ -32,7 +32,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
+import static com.mmnaseri.couteau.basics.collections.CollectionWrapper.with;
 
 /**
  * <p>This is the default implementation of the {@link com.agileapes.dragonfly.security.DataSecurityManager}

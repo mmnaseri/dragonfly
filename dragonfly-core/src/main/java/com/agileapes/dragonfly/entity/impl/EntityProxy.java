@@ -23,10 +23,10 @@
 
 package com.agileapes.dragonfly.entity.impl;
 
-import com.agileapes.couteau.basics.api.Filter;
-import com.agileapes.couteau.enhancer.api.MethodDescriptor;
-import com.agileapes.couteau.enhancer.api.MethodProxy;
-import com.agileapes.couteau.reflection.util.ReflectionUtils;
+import com.mmnaseri.couteau.basics.api.Filter;
+import com.mmnaseri.couteau.enhancer.api.MethodDescriptor;
+import com.mmnaseri.couteau.enhancer.api.MethodProxy;
+import com.mmnaseri.couteau.reflection.util.ReflectionUtils;
 import com.agileapes.dragonfly.cg.SecuredInterfaceInterceptor;
 import com.agileapes.dragonfly.data.DataAccess;
 import com.agileapes.dragonfly.data.DataAccessObject;
@@ -49,7 +49,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
+import static com.mmnaseri.couteau.basics.collections.CollectionWrapper.with;
 
 /**
  * This class is the default interceptor used throughout the application to intercept any given

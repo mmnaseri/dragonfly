@@ -23,7 +23,7 @@
 
 package com.agileapes.dragonfly.dialect.impl;
 
-import com.agileapes.couteau.freemarker.utils.FreemarkerUtils;
+import com.mmnaseri.couteau.freemarker.utils.FreemarkerUtils;
 import com.agileapes.dragonfly.dialect.DatabaseDialect;
 import com.agileapes.dragonfly.error.UnknownColumnTypeError;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;

@@ -23,8 +23,8 @@
 
 package com.agileapes.dragonfly.cg;
 
-import com.agileapes.couteau.enhancer.api.ClassEnhancer;
-import com.agileapes.couteau.enhancer.api.NamingPolicy;
+import com.mmnaseri.couteau.enhancer.api.ClassEnhancer;
+import com.mmnaseri.couteau.enhancer.api.NamingPolicy;
 
 /**
  * This naming policy uses a static naming scheme of enhanced classes to enable the framework to recognize enhanced

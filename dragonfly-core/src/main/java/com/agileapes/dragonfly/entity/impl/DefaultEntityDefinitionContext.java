@@ -23,7 +23,7 @@
 
 package com.agileapes.dragonfly.entity.impl;
 
-import com.agileapes.couteau.context.impl.OrderedBeanComparator;
+import com.mmnaseri.couteau.context.impl.OrderedBeanComparator;
 import com.agileapes.dragonfly.entity.EntityDefinition;
 import com.agileapes.dragonfly.entity.EntityDefinitionContext;
 import com.agileapes.dragonfly.entity.EntityDefinitionInterceptor;
@@ -36,7 +36,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
+import static com.mmnaseri.couteau.basics.collections.CollectionWrapper.with;
 
 /**
  * This is the default entity definition context used by the application. You have the

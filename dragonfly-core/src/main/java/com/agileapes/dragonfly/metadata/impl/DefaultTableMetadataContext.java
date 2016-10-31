@@ -23,11 +23,11 @@
 
 package com.agileapes.dragonfly.metadata.impl;
 
-import com.agileapes.couteau.basics.api.Cache;
-import com.agileapes.couteau.basics.api.Filter;
-import com.agileapes.couteau.basics.api.Processor;
-import com.agileapes.couteau.basics.api.impl.ConcurrentCache;
-import com.agileapes.couteau.basics.api.impl.EqualityFilter;
+import com.mmnaseri.couteau.basics.api.Cache;
+import com.mmnaseri.couteau.basics.api.Filter;
+import com.mmnaseri.couteau.basics.api.Processor;
+import com.mmnaseri.couteau.basics.api.impl.ConcurrentCache;
+import com.mmnaseri.couteau.basics.api.impl.EqualityFilter;
 import com.agileapes.dragonfly.data.impl.ManyToManyMiddleEntity;
 import com.agileapes.dragonfly.data.impl.TableKeyGeneratorEntity;
 import com.agileapes.dragonfly.error.*;
@@ -39,7 +39,7 @@ import com.agileapes.dragonfly.tools.DatabaseUtils;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArraySet;
 
-import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
+import static com.mmnaseri.couteau.basics.collections.CollectionWrapper.with;
 
 /**
  * This is the default implementation of the table metadata context interface, which builds

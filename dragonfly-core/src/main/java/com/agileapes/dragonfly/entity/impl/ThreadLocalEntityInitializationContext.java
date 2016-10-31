@@ -23,9 +23,9 @@
 
 package com.agileapes.dragonfly.entity.impl;
 
-import com.agileapes.couteau.basics.api.Cache;
-import com.agileapes.couteau.basics.api.impl.AbstractCache;
-import com.agileapes.couteau.basics.api.impl.SimpleCache;
+import com.mmnaseri.couteau.basics.api.Cache;
+import com.mmnaseri.couteau.basics.api.impl.AbstractCache;
+import com.mmnaseri.couteau.basics.api.impl.SimpleCache;
 import com.agileapes.dragonfly.data.DataAccess;
 
 /**

@@ -23,10 +23,10 @@
 
 package com.agileapes.dragonfly.metadata.impl;
 
-import com.agileapes.couteau.basics.api.Cache;
-import com.agileapes.couteau.basics.api.impl.ConcurrentCache;
-import com.agileapes.couteau.basics.api.impl.MirrorFilter;
-import com.agileapes.couteau.context.impl.OrderedBeanComparator;
+import com.mmnaseri.couteau.basics.api.Cache;
+import com.mmnaseri.couteau.basics.api.impl.ConcurrentCache;
+import com.mmnaseri.couteau.basics.api.impl.MirrorFilter;
+import com.mmnaseri.couteau.context.impl.OrderedBeanComparator;
 import com.agileapes.dragonfly.error.EntityDefinitionError;
 import com.agileapes.dragonfly.metadata.*;
 
@@ -34,7 +34,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
+import static com.mmnaseri.couteau.basics.collections.CollectionWrapper.with;
 
 /**
  * This is a simple table metadata resolver, with the difference that it will take in

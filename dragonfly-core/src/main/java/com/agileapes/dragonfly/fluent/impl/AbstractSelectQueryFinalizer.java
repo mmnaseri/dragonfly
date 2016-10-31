@@ -23,7 +23,7 @@
 
 package com.agileapes.dragonfly.fluent.impl;
 
-import com.agileapes.couteau.basics.api.Filter;
+import com.mmnaseri.couteau.basics.api.Filter;
 import com.agileapes.dragonfly.data.DataAccessSession;
 import com.agileapes.dragonfly.entity.MapEntityCreator;
 import com.agileapes.dragonfly.entity.impl.DefaultMapEntityCreator;
@@ -49,7 +49,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
+import static com.mmnaseri.couteau.basics.collections.CollectionWrapper.with;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)

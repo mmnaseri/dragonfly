@@ -23,14 +23,14 @@
 
 package com.agileapes.dragonfly.metadata.impl;
 
-import com.agileapes.couteau.basics.api.Transformer;
+import com.mmnaseri.couteau.basics.api.Transformer;
 import com.agileapes.dragonfly.metadata.*;
 import com.agileapes.dragonfly.tools.ColumnNameFilter;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
+import static com.mmnaseri.couteau.basics.collections.CollectionWrapper.with;
 
 /**
  * This class will help with copying table metadata into a new instance.

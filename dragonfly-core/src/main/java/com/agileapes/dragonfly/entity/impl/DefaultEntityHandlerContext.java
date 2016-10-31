@@ -23,7 +23,7 @@
 
 package com.agileapes.dragonfly.entity.impl;
 
-import com.agileapes.couteau.context.error.RegistryException;
+import com.mmnaseri.couteau.context.error.RegistryException;
 import com.agileapes.dragonfly.entity.*;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
 import com.agileapes.dragonfly.metadata.TableMetadata;

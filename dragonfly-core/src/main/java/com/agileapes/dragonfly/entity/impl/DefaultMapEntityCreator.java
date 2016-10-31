@@ -23,13 +23,13 @@
 
 package com.agileapes.dragonfly.entity.impl;
 
-import com.agileapes.couteau.context.error.RegistryException;
-import com.agileapes.couteau.context.value.ValueReaderContext;
-import com.agileapes.couteau.context.value.impl.*;
-import com.agileapes.couteau.reflection.beans.BeanWrapper;
-import com.agileapes.couteau.reflection.beans.impl.MethodBeanWrapper;
-import com.agileapes.couteau.reflection.error.NoSuchPropertyException;
-import com.agileapes.couteau.reflection.util.ClassUtils;
+import com.mmnaseri.couteau.context.error.RegistryException;
+import com.mmnaseri.couteau.context.value.ValueReaderContext;
+import com.mmnaseri.couteau.context.value.impl.*;
+import com.mmnaseri.couteau.reflection.beans.BeanWrapper;
+import com.mmnaseri.couteau.reflection.beans.impl.MethodBeanWrapper;
+import com.mmnaseri.couteau.reflection.error.NoSuchPropertyException;
+import com.mmnaseri.couteau.reflection.util.ClassUtils;
 import com.agileapes.dragonfly.entity.MapEntityCreator;
 import com.agileapes.dragonfly.error.EntityDefinitionError;
 import com.agileapes.dragonfly.error.EntityInitializationError;
@@ -41,7 +41,7 @@ import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.Map;
 
-import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
+import static com.mmnaseri.couteau.basics.collections.CollectionWrapper.with;
 
 /**
  * This class will use column metadata for each entity to fill an entity instance's properties

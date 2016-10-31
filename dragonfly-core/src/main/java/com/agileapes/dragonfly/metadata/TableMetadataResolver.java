@@ -23,7 +23,7 @@
 
 package com.agileapes.dragonfly.metadata;
 
-import com.agileapes.couteau.basics.api.Filter;
+import com.mmnaseri.couteau.basics.api.Filter;
 
 /**
  * This interface defines a way through which metadata can be resolved for a given entity.

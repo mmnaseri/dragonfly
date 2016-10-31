@@ -23,9 +23,9 @@
 
 package com.agileapes.dragonfly.data.impl;
 
-import com.agileapes.couteau.basics.api.Transformer;
-import com.agileapes.couteau.strings.document.DocumentReader;
-import com.agileapes.couteau.strings.document.impl.DefaultDocumentReader;
+import com.mmnaseri.couteau.basics.api.Transformer;
+import com.mmnaseri.couteau.strings.document.DocumentReader;
+import com.mmnaseri.couteau.strings.document.impl.DefaultDocumentReader;
 import com.agileapes.dragonfly.annotations.Ordering;
 import com.agileapes.dragonfly.error.ExpressionParseError;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
@@ -41,7 +41,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
+import static com.mmnaseri.couteau.basics.collections.CollectionWrapper.with;
 
 /**
  * <p>This is a parser that will turn a string describing an ordering based on a given

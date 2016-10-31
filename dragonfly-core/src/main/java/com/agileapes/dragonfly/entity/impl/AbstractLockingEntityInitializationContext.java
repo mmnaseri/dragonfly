@@ -23,8 +23,8 @@
 
 package com.agileapes.dragonfly.entity.impl;
 
-import com.agileapes.couteau.basics.api.Filter;
-import com.agileapes.couteau.basics.api.impl.CachingDataDispenser;
+import com.mmnaseri.couteau.basics.api.Filter;
+import com.mmnaseri.couteau.basics.api.impl.CachingDataDispenser;
 import com.agileapes.dragonfly.data.DataAccess;
 import com.agileapes.dragonfly.entity.EntityInitializationContext;
 import com.agileapes.dragonfly.error.ContextLockFailureError;

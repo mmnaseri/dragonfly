@@ -23,17 +23,17 @@
 
 package com.agileapes.dragonfly.entity.impl;
 
-import com.agileapes.couteau.basics.api.Filter;
-import com.agileapes.couteau.basics.api.Processor;
-import com.agileapes.couteau.basics.api.impl.NegatingFilter;
-import com.agileapes.couteau.context.error.RegistryException;
-import com.agileapes.couteau.reflection.beans.BeanAccessor;
-import com.agileapes.couteau.reflection.beans.BeanWrapper;
-import com.agileapes.couteau.reflection.beans.impl.MethodBeanAccessor;
-import com.agileapes.couteau.reflection.beans.impl.MethodBeanWrapper;
-import com.agileapes.couteau.reflection.error.NoSuchPropertyException;
-import com.agileapes.couteau.reflection.property.WritePropertyAccessor;
-import com.agileapes.couteau.reflection.util.ReflectionUtils;
+import com.mmnaseri.couteau.basics.api.Filter;
+import com.mmnaseri.couteau.basics.api.Processor;
+import com.mmnaseri.couteau.basics.api.impl.NegatingFilter;
+import com.mmnaseri.couteau.context.error.RegistryException;
+import com.mmnaseri.couteau.reflection.beans.BeanAccessor;
+import com.mmnaseri.couteau.reflection.beans.BeanWrapper;
+import com.mmnaseri.couteau.reflection.beans.impl.MethodBeanAccessor;
+import com.mmnaseri.couteau.reflection.beans.impl.MethodBeanWrapper;
+import com.mmnaseri.couteau.reflection.error.NoSuchPropertyException;
+import com.mmnaseri.couteau.reflection.property.WritePropertyAccessor;
+import com.mmnaseri.couteau.reflection.util.ReflectionUtils;
 import com.agileapes.dragonfly.data.DataAccess;
 import com.agileapes.dragonfly.data.DataAccessSession;
 import com.agileapes.dragonfly.data.impl.ManyToManyActionHelper;
@@ -56,7 +56,7 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.*;
 
-import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
+import static com.mmnaseri.couteau.basics.collections.CollectionWrapper.with;
 
 /**
  * This generic entity handler is capable of handling all operations expected from an entity handler

@@ -23,13 +23,13 @@
 
 package com.agileapes.dragonfly.fluent.generation.impl;
 
-import com.agileapes.couteau.basics.api.Transformer;
-import com.agileapes.couteau.basics.api.impl.NullFilter;
-import com.agileapes.couteau.reflection.beans.BeanAccessor;
-import com.agileapes.couteau.reflection.beans.BeanWrapper;
-import com.agileapes.couteau.reflection.beans.impl.MethodBeanAccessor;
-import com.agileapes.couteau.reflection.beans.impl.MethodBeanWrapper;
-import com.agileapes.couteau.reflection.error.NoSuchPropertyException;
+import com.mmnaseri.couteau.basics.api.Transformer;
+import com.mmnaseri.couteau.basics.api.impl.NullFilter;
+import com.mmnaseri.couteau.reflection.beans.BeanAccessor;
+import com.mmnaseri.couteau.reflection.beans.BeanWrapper;
+import com.mmnaseri.couteau.reflection.beans.impl.MethodBeanAccessor;
+import com.mmnaseri.couteau.reflection.beans.impl.MethodBeanWrapper;
+import com.mmnaseri.couteau.reflection.error.NoSuchPropertyException;
 import com.agileapes.dragonfly.data.DataAccessSession;
 import com.agileapes.dragonfly.fluent.SelectQueryExecution;
 import com.agileapes.dragonfly.fluent.error.BindingInitializationException;
@@ -45,7 +45,7 @@ import com.agileapes.dragonfly.tools.DatabaseUtils;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static com.agileapes.couteau.basics.collections.CollectionWrapper.with;
+import static com.mmnaseri.couteau.basics.collections.CollectionWrapper.with;
 
 /**
  * @author Mohammad Milad Naseri (m.m.naseri@gmail.com)

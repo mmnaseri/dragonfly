@@ -23,8 +23,8 @@
 
 package com.agileapes.dragonfly.statement.impl.model.functions;
 
-import com.agileapes.couteau.freemarker.api.Invokable;
-import com.agileapes.couteau.freemarker.model.TypedMethodModel;
+import com.mmnaseri.couteau.freemarker.api.Invokable;
+import com.mmnaseri.couteau.freemarker.model.TypedMethodModel;
 import com.agileapes.dragonfly.dialect.DatabaseDialect;
 import com.agileapes.dragonfly.metadata.ColumnMetadata;
 import com.agileapes.dragonfly.metadata.StoredProcedureMetadata;
